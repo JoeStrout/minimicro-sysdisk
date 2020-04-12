@@ -1,0 +1,6 @@
+Available topics:
+   files        coding        demos
+   text         sound         input
+   graphics     sprites       tiles
+
+(Access these with, for example: `help "demos"`)

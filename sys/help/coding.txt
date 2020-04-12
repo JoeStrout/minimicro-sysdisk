@@ -1,0 +1,9 @@
+Commands related to coding (programming):
+   `load "filename"` -- load a program into memory
+   `save "filename"` -- save current program to disk
+   `run` -- run current program
+   `reset` -- delete current program from memory
+   `source` -- print source code of current program
+   `edit` -- edit current program in graphical editor
+
+See also `help "import"` for info about the `import` command.

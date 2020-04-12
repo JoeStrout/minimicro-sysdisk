@@ -1,0 +1,18 @@
+The parameters to Sound.init are as follows:
+
+1. duration: length of the sound, in seconds.  (Default 1.)
+
+2. freq: sound frequency, in Hz.  May be a simple number, e.g.
+`440`, or a list of numbers to interpolate, e.g. `[2000,100,4000]`.
+
+3. envelope: the volume of the sound over its duration.  This
+can be a single number or a list of numbers, from 0 (silent) to
+1 (full volume).  Default is 1 (full volume for the entire sound).
+A common choice is [1, 0], which starts out full volume and fades
+to silence by the end of the sound.
+
+4. waveform: a list of numbers defining one cycle of the sound
+wave.  [1, -1] produces a sawtooth wave (the default).  The
+Sound class has several predefined waves: `sineWave`, `squareWave`,
+`triangleWave`, `sawtoothWave`, and `noiseWave`.
+

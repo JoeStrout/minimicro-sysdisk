@@ -1,0 +1,24 @@
+Mini Micro has a number of demos on the `/sys` disk.  To run them:
+
+1. Change to the `/sys/demo` directory:
+
+`cd "/sys/demo"`        (don't forget the quotes!)
+
+2. List the files:
+
+`dir`
+
+3. Load one, for example:
+
+`load "drumMachine"
+
+4. Run it!
+
+`run`
+
+5. You can quit most demos by pressing the `Esc` key.  Others
+will provide some other way to exit, or in a pinch, pressing
+`Control-C` will always break out.
+
+Then use `clear` to clear the screen, `edit` to look at the code,
+or go back to step 4 or step 1 above!

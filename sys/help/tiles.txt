@@ -1,0 +1,24 @@
+Tile displays let you efficiently draw a grid of cells using tiles 
+(little pictures) taken from a tile set (a large image containing 
+many smaller tiles).  Basic usage:
+
+1. Set up a tile display.  For example:
+
+`display(4).mode = displayMode.tile`    // prepare display 4
+`tiles = display(4)`         // get a reference to it called `tiles`
+`tiles.clear`                // clear any previous tiles
+
+2. Load a tileset from an image on disk:
+
+`tiles.tileSet = file.loadImage("/sys/pics/SimplePlatformTiles.png")`
+
+3. Define tile set parameters, and display options:
+
+`tiles.tileSetTileSize = 64` // define size of tiles in tile set
+`tiles.cellSize = 128`       // define size of cells on screen
+`tiles.extent = [20,10]`     // set number of columns and rows
+
+4. Set individual cells by specifying the index of a tile in the
+tile set.
+
+`tiles.setCell 4, 0, 1`      // set column 4, row 1 to tile #1

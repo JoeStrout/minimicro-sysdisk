@@ -1,0 +1,20 @@
+Attribution for Mini Micro /sys/pics images:
+
+
+Heart.png, Key.png: from Planet Cute art pack by Daniel Cook (Lostgarden.com).
+
+
+cards, gamePieces: from Kenney's Board Game pack (www.kenney.nl).
+
+SimplePlatformTiles, KP sprites: from Kenney's "Simplified Platformer Pack".
+
+1bitTiles: from Kenney's "1 Bit Pack".  (Yeah, we love Kenney.)
+
+animals, germs: pixel artwork by Joe Strout
+	bats based on (bat-32x32 by MoikMellah on OpenGameArt)
+	turtle.png based on art licensed from FlatIcon.com
+
+Mochi.png, Pipe.png, PipeCap.png, Wumpus.png: all by Joe Strout
+
+hextiles: adapted from "Pastel Resources Hex Tiles" by qubodup on OpenGameart.org (CC-BY-SA 3 license).
+

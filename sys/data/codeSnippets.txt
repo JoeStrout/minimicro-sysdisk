@@ -1,0 +1,36 @@
+===for loop
+for _loopVar_ in _range_
+	_code_
+end for
+===while loop
+while _condition_
+	_code_
+end while
+===if block
+if _condition_ then
+	_code_
+end if
+===if/else block
+if _condition_ then
+	_code_
+else
+	_otherCode_
+end if
+===if/else-if block
+if _condition_ then
+	_code_
+else if _condition2_ then
+	_code2_
+else
+	_code3_
+end if
+===function definition
+_name_ = function(_parameters_)
+	_code_
+end function
+===class definition
+_Name_ = {}
+_Name_._property_ = _value_
+_Name_._methodName_ = function(_parameters_)
+	_code_
+end function

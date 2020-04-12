@@ -1,0 +1,5 @@
+Welcome to Mini Micro!
+Enter MiniScript code at the prompt.
+For language help, see: http://miniscript.org
+For more help, enter `help "topics"`
+Remember to use quotation marks!

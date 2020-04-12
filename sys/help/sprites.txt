@@ -1,0 +1,21 @@
+Sprites are little pictures you can efficiently move, scale, and
+rotate.  To use them you must:
+
+1. Set up a sprite display.  For example:
+
+`display(4).mode = displayMode.sprite` // prepare display 4
+`disp = display(4)`        // get a reference to it called `disp`
+`disp.clear`		       // clear any previous sprites
+
+2. Load a sprite from an image on disk:
+
+`sp = new Sprite`          // create a sprite
+`sp.image = file.loadImage("/sys/pics/Mochi.png")` // load image
+
+3. Append the sprite to the display, and animate as desired.
+
+`disp.sprites.push sp`     // add sprite to display
+`sp.x = 480`               // set horizontal position
+`sp.y = 320`               // set vertical position
+`sp.rot = 45`              // set rotation, in degrees
+`sp.scale = 0.5`           // set scale

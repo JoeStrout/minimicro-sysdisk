@@ -1,0 +1,17 @@
+Sounds in Mini Micro can be loaded from a file, or synthesized
+in code.  To load from a file:
+
+`chaChing = file.loadSound("/sys/sounds/cha-ching.wav")`
+`chaChing.play`
+
+To synthesize from scratch, create a new Sound, then call the
+`.init` method with duration, frequency, envelope, and waveform.
+(All parameters are optional.)  Example:
+
+`pew = new Sound`
+`pew.init 0.3, [4000,100], [1,0], Sound.triangleWave`
+`pew.play`
+
+Experiment with the options above and make some noise!  
+For more detail, enter: `help "sound.init"`
+

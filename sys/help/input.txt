@@ -1,0 +1,13 @@
+Functions to get various kinds of input from the user:
+
+   `input(prompt)` -- print prompt, and return user-entered string
+
+   `key.available` -- returns 1 if there is key in the buffer
+   `key.get` -- waits for and returns a single key
+   `key.clear` -- clears the keyboard buffer
+   `key.pressed(k)` -- returns 1 if key k is currently pressed
+   `key.axis(h)` -- joystick axis h ("Horizontal" or "Vertical")
+
+   `mouse.x` -- current mouse X position, in pixels from left
+   `mouse.y` -- current mouse Y position, in pixels from bottom
+   `mouse.button(which=0)` -- returns 1 if mouse button is pressed
