@@ -36,8 +36,8 @@ parseLines = function(lines)
 		result[fields[0]] = rowMap
 		for col in range(1, fields.len-1)
 			value = fields[col]
-			if value == "0" or val(value) > 0 then value = val(value)
-			rowMap[colNames[col]] = fields[col]
+			if value == "0" or val(value) != 0 then value = val(value)
+			rowMap[colNames[col]] = value
 		end for
 	end for
 	return result
