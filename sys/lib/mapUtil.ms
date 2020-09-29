@@ -48,6 +48,18 @@ map.filterValues = function(func)
 	end for
 end function
 
+// pairs: get all key/value pairs as a list (in arbitrary order)
+// of little maps with "key" and "value", just like what you get
+// when you iterate over a map with a `for` loop.
+map.pairs = function()
+	result = []
+	for kv in self
+		result.push kv
+	end for
+	return result
+end function
+
+
 
 // mapUtils.fromTo: generate a map from one sequence (list or string)
 // to another.  The two sequences must be the same length.

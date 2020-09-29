@@ -194,7 +194,7 @@ PathPoint.forwardAngle = function()
 	i = self.curIndex
 	if i == self.path.len - 1 then i = i - 1
 	return atan(self.path[i+1][1] - self.path[i][1], 
-	self.path[i+1][0] - self.path[i][0]) * 180/pi
+	     self.path[i+1][0] - self.path[i][0]) * 180/pi
 end function
 
 // PathPoint.advance: move forward along the path by the given distance,

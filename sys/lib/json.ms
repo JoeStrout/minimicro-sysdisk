@@ -323,7 +323,7 @@ runUnitTests = function()
 	
 	p = new Parser
 	p.init("   true ")
-	assertEqual p.parse, "true"
+	assertEqual p.parse, 1
 	
 	assertEqual parse(char(13) + "42"), 42
 	assertEqual parse("-123.45"), -123.45

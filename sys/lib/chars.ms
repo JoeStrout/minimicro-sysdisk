@@ -108,4 +108,8 @@ if locals == globals then
 	printAlign "dieFace[1] - dieFace[6]", [dieFace[1], dieFace[2], dieFace[3],
 			 dieFace[4], dieFace[5], dieFace[6]].join
 	print
+	
+	// Since this code has been run in the global scope, we've hidden the
+	// intrinsic `pi` function, which will cause weird bugs in other code. So:
+	globals.remove "pi"
 end if

@@ -148,6 +148,12 @@ list.counts = function()
 	return result
 end function
 
+// distinct: return this list, with any duplicate entries removed.
+// (Note that order of the result is not guaranteed.)
+list.distinct = function()
+	return self.counts.indexes
+end function
+
 // product: return the result of multiplying up all values in the list.
 list.product = function()
 	first = true
@@ -217,7 +223,7 @@ list.filter = function(func)
 	if @func isa string then
 		while i >= 0
 			f = self[i][func]	// (may be a simple type; this will still work)
-			if not f(self[i]) then self.remove i
+			if not f then self.remove i
 			i = i - 1
 		end while		
 	else
@@ -236,13 +242,24 @@ list.filtered = function(func)
 	if @func isa string then
 		for elem in self
 			f = elem[func]	// (may be a simple type; this will still work)
-			if f(elem) then result.push elem
+			if f then result.push elem
 		end for
 	else
 		for elem in self
 			if func(elem) then result.push elem
 		end for
 	end if
+	return result
+end function
+
+// valuesOf: operates on a list of maps (or other indexable type), and pulls
+// out the value of the given index for every element in the list, returning
+// theses as a new list in the same order.
+list.valuesOf = function(indexToExtract)
+	result = []
+	for elem in self
+		result.push elem[indexToExtract]
+	end for
 	return result
 end function
 
@@ -261,6 +278,40 @@ end function
 list.any = function()
 	if self.len < 1 then return null
 	return self[self.len * rnd]
+end function
+
+// init: build an array initialized with an initial value.
+// Note that initialValue may be a function passed in with @
+// (for example, @rnd), in which case it will be invoked for
+// each element as they are created.
+list.init = function(size, initialValue)
+	if @initialValue isa funcRef then
+		result = []
+		for i in range(1, size)
+			result.push initialValue
+		end for
+		return result
+	else
+		return [initialValue] * size
+	end if
+end function
+
+// init2d: build a 2D array, composed as a list of lists.
+list.init2d = function(sizeA, sizeB, initialValue)
+	result = []
+	for a in range(1, sizeA)
+		result.push list.init(sizeB, @initialValue)
+	end for
+	return result
+end function
+
+// init3D: build a 3D array, composed as a list of 2D arrays.
+list.init3d = function(sizeA, sizeB, sizeC, initialValue)
+	result = []
+	for a in range(1, sizeA)
+		result.push list.init2d(sizeB, sizeC, @initialValue)
+	end for
+	return result
 end function
 
 runUnitTests = function()
@@ -318,9 +369,17 @@ runUnitTests = function()
 	assertEqual a, [{"x":42, "keep":true}, {"x":0, "keep":true}], "filter by key"
 	b = a.filtered("x")
 	assertEqual b, [{"x":42, "keep":true}], "filtered by key"
-	
+
+	b = a.valuesOf("x")
+	assertEqual b, [42, 0], "valuesOf"
 
 	a = [1,2,6,2,5,7,2,9]
+	counts = a.counts
+	assertEqual counts[2], 3, "counts[2]"
+	assertEqual counts[7], 1, "counts[7]"
+	b = a.distinct
+	b.sort
+	assertEqual b, [1,2,5,6,7,9]
 	a.removeVal 2
 	assertEqual a, [1,6,2,5,7,2,9], "removeVal (one)"
 	a.removeVal 2, true
@@ -344,6 +403,12 @@ runUnitTests = function()
 	b = [4,-5,6]
 	assertEqual a.dot(b), 12, "dot"
 	assertEqual a.plus(b), [5,-3,9], "plus"
+	
+	a = list.init(4, "x")
+	assertEqual a, ["x", "x", "x", "x"]
+	
+	a = list.init2d(3, 2, 0)
+	assertEqual a, [[0,0], [0,0], [0,0]]
 	
 	if errorCount == 0 then
 		print "All tests passed.  Wahoo!"

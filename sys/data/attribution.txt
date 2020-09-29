@@ -1,0 +1,18 @@
+englishWords.txt
+================
+The "englishWords.txt" file derived from the "12dicts" package 
+(http://wordlist.aspell.net/12dicts/) by Alan Beale.  It is 
+essentially the file in that package called 3of6game.txt, and is
+a collection designed to be particularly useful for word games. 
+It contains 64,662 English words, from "a" to "zygotes".
+
+The original file had additional characters (^, &, $, +, or !) 
+appended to some words to denote word type or origin.  These 
+annotations have been removed in the englishWords.txt file, for 
+simplicity of use.  Of course you can go download the original 
+package if you find you have use for them.
+
+If you publish a program using this data, please add a credit 
+along the lines of:
+      "Word list based on 12dicts package by Alan Beale."
+

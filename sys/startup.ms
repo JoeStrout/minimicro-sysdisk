@@ -97,6 +97,12 @@ end function
 color.lerp = function(colorA, colorB, t=0.5)
 	return _lerpColor(colorA, colorB, t)
 end function
+color.toList = function(colorString)
+	return _colorToRGBA(colorString)
+end function
+color.fromList = function(rgbaList)
+	return _RGBAtoColor(rgbaList)
+end function
 
 pageThrough = function(lines)
 	text.delimiter = ""

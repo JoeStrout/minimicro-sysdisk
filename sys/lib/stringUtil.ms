@@ -167,6 +167,10 @@ string.wrap = function(width=67)
 	return result
 end function
 
+// cipher: apply a map to every character in the string.  This
+// can be used to make a simple substitution cipher (though it
+// could also be used to replace special characters with HTML
+// entity codes, etc.).
 string.cipher = function(charMap)
 	chars = self.split("")
 	for i in chars.indexes
@@ -176,6 +180,10 @@ string.cipher = function(charMap)
 	return chars.join("")
 end function
 
+// rot13: apply the classic (and very simple) substitution cipher
+// of replacing each letter with the letter 13 positions away from
+// it in the alphabet.  Note that if you apply rot13 twice, you 
+// get back the original string.
 string.rot13 = function()
 	if not outer.hasIndex("rot13map") then
 		outer.rot13map = {}

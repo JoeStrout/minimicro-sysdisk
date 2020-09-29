@@ -71,6 +71,26 @@ Turtle.left = function(degrees)
 	self.right -degrees
 end function
 
+demo = function()
+	Turtle.jumpTo gfx.width/2, gfx.height/2
+	Turtle.color = color.yellow
+	Turtle.penSize = 100
+	Turtle.plop
+	Turtle.penSize = 4
+	Turtle.jumpTo Turtle.x + 55, Turtle.y + 22
+	Turtle.heading = 60
+	Turtle.penDown = true
+	for i in range(0,12)
+		Turtle.forward 40
+		Turtle.left 135
+		Turtle.forward 40
+		Turtle.right 105
+	end for
+end function
+
 // Since this module defines only a class, we'll poke that class
 // directly into the globals, so you can say `Turtle` instead of `turtle.Turtle`.
 globals.Turtle = Turtle
+
+if globals == locals then demo
+

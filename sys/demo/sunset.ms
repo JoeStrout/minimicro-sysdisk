@@ -1,28 +1,27 @@
 // Fun little graphical demo.
 
-screen = {"width":960, "height":640}
 gfx.clear
 
 // Draw the sky, in blocks that get darker/redder with each step.
-horizon = screen.height * 0.4
+horizon = gfx.height * 0.4
 y = horizon
 h = 3
 step = 0
-while y < screen.height
+while y < gfx.height
 	c = rgb(180 - step*5, 5 + step*5, 10 + step*20)
-	gfx.fillRect 0, y, screen.width, h, c
+	gfx.fillRect 0, y, gfx.width, h + 1, c
 	y = y + h
 	h = h * 1.5
 	step = step + 1
 end while
 
 // Draw the sun.
-midx = screen.width/2
+midx = gfx.width/2
 c = rgb(240,200,100)
 gfx.fillEllipse midx-100, horizon-80, 200, 160, c
 
 // Draw the water (just a solid dark blue)
-gfx.fillRect 0, 0, screen.width, horizon, rgb(0,0,50)
+gfx.fillRect 0, 0, gfx.width, horizon, rgb(0,0,50)
 
 // Draw the reflection lines.
 y = horizon
