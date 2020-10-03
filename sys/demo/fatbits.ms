@@ -19,6 +19,7 @@ kModeDrawEllipse = "DRAWELLIPSE"
 kModeFillEllipse = "FILLELLIPSE"
 kModeLine = "DRAWLINE"
 kModeReplace = "REPLACE"
+kModePasting = "PASTING"
 
 foreColor = "#000000FF"
 backColor = "#00000000"
@@ -477,6 +478,7 @@ modesWithSize = [kModeErase, kModePaint, kModeLighten, kModeDarken, kModeBlur,
 setMode = function(newMode)
 	globals.mode = newMode
 	globals.drawErases = false
+	deselect
 	for tool in Tool.instances
 		tool.update
 	end for
@@ -489,6 +491,9 @@ paintArea = Rect.make(160, 10, 64*ps, 64*ps)
 prepareScreen = function()
 	paintArea.fill bkgnd, color.clear
 	paintArea.frame gfx, color.black, 3, -5
+	drawGrid
+end function
+drawGrid = function()
 	gfx.color = "#88888866"
 	for i in range(1, 63)
 		if i % 8 == 0 then continue
@@ -534,9 +539,6 @@ vSymmetry = Button.make("modeSymmetry", 818, 324, true)
 hSymmetry = Button.make("modeSymmetry", 880, 324, true)
 hSymmetry.iconSprite.rotation = 90
 
-setMode kModeDraw
-brushSize = 6
-
 // Find the painting location at the given screen location.
 paintPixelAtXY = function(pos)
 	result = {}
@@ -575,6 +577,58 @@ affectedPixels = function(pp)
 end function
 
 //--------------------------------------------------------------------------------
+// CLIPBOARD HELPER FUNCTIONS
+selection = null
+
+drawSelection = function()
+	if selection == null then
+		drawGrid
+	else
+		if time % 1 > 0.9 then gfx.color = color.black else gfx.color = "#FF00FF"
+		gfx.drawRect paintArea.left + selection.left*ps, paintArea.bottom + selection.bottom*ps,
+		  selection.width * ps + 1, selection.height * ps + 1
+	end if
+end function
+
+deselect = function()
+	if selection == null then return
+	globals.selection = null
+	drawGrid
+end function
+
+copy = function()
+	if selection == null then return
+	globals.clip = fatbits.getImage(selection.left, selection.bottom, selection.width, selection.height)
+	drawGrid
+end function
+
+deleteSelection = function()
+	if mode == kModePasting then
+		fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
+		fatbits.drawImage picAtStart, 0, 0
+		setMode kModeSelect
+	else if selection != null then
+		selection.fill fatbits, backColor
+		deselect
+	end if
+end function
+
+paste = function()
+	if not globals.hasIndex("clip") or clip == null then
+		print char(7) // Beep!
+		return
+	end if
+	globals.picAtStart = fatbits.getImage(0, 0, picW, picH)
+	globals.mode = kModePasting
+end function
+
+updatePaste = function(pp)
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
+	fatbits.drawImage picAtStart, 0, 0
+	fatbits.drawImage clip, pp.x - floor(clip.width/2), pp.y - floor(clip.height/2)
+end function
+
+//--------------------------------------------------------------------------------
 // TOOL FUNCTIONS
 
 toolFuncs = {}
@@ -587,7 +641,7 @@ toolFuncs[kModeMove] = function(pp, justDown)
 	dy = pp.y - lastPaintPos.y
 	if dx == 0 and dy == 0 then return
 	pic = fatbits.getImage(0, 0, picW, picH)
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	if dx > 0 then
 		fatbits.drawImage pic.getImage(0, 0, picW-dx, picH), dx, 0
 	else if dx < 0 then
@@ -693,7 +747,7 @@ toolFuncs[kModeLine] = function(pp, justDown)
 		globals.posAtStart = pp
 		return
 	end if
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	fatbits.drawImage picAtStart
 	startPos = symmetries(posAtStart)
 	curPos = symmetries(pp)
@@ -708,7 +762,7 @@ toolFuncs[kModeDrawRect] = function(pp, justDown)
 		globals.posAtStart = pp
 		return
 	end if
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	fatbits.drawImage picAtStart
 	startPos = symmetries(posAtStart)
 	curPos = symmetries(pp)
@@ -723,7 +777,7 @@ toolFuncs[kModeFillRect] = function(pp, justDown)
 		globals.posAtStart = pp
 		return
 	end if
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	fatbits.drawImage picAtStart
 	startPos = symmetries(posAtStart)
 	curPos = symmetries(pp)
@@ -738,7 +792,7 @@ toolFuncs[kModeDrawEllipse] = function(pp, justDown)
 		globals.posAtStart = pp
 		return
 	end if
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	fatbits.drawImage picAtStart
 	startPos = symmetries(posAtStart)
 	curPos = symmetries(pp)
@@ -753,7 +807,7 @@ toolFuncs[kModeFillEllipse] = function(pp, justDown)
 		globals.posAtStart = pp
 		return
 	end if
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	fatbits.drawImage picAtStart
 	startPos = symmetries(posAtStart)
 	curPos = symmetries(pp)
@@ -771,7 +825,7 @@ toolFuncs[kModeLighten] = function(pp, justDown)
 	for pos in symmetries(pp)
 		scratch.fillEllipse pos.x - brushSize/2, pos.y - brushSize/2, brushSize, brushSize, "#FFFFFF22"
 	end for
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	fatbits.drawImage picAtStart
 	fatbits.drawImage scratch.getImage(0, 0, picW, picH)
 end function
@@ -785,9 +839,31 @@ toolFuncs[kModeDarken] = function(pp, justDown)
 	for pos in symmetries(pp)
 		scratch.fillEllipse pos.x - brushSize/2, pos.y - brushSize/2, brushSize, brushSize, "#00000022"
 	end for
-	fatbits.fillRect 0, 0, picW, picH, color.clear
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 	fatbits.drawImage picAtStart
 	fatbits.drawImage scratch.getImage(0, 0, picW, picH)
+end function
+
+toolFuncs[kModeSelect] = function(pp, justDown)
+	if justDown then globals.selectionAnchor = pp
+	if pp == selectionAnchor then
+		deselect
+	else
+		newSel = Rect.fromPoints(selectionAnchor, pp)
+		if newSel.width == 0 then newSel.width = 1
+		if newSel.height == 0 then newSel.height = 1
+		if newSel == selection then return
+		globals.selection = newSel
+		drawGrid
+		drawSelection
+	end if
+end function
+
+toolFuncs[kModePasting] = function(pp, justDown)
+	if justDown then
+		globals.mode = kModeSelect
+		globals.selectionAnchor = pp
+	end if
 end function
 
 //--------------------------------------------------------------------------------
@@ -1006,6 +1082,8 @@ lastPaintPos = null
 lightnessSlider.set 1
 alphaSlider.set 1
 colorWheel.updateColor
+brushSize = 6
+setMode kModeDraw
 
 handleClick = function(justDown)
 	if not paintArea.contains(mouse) then return
@@ -1015,17 +1093,31 @@ handleClick = function(justDown)
 	globals.lastPaintPos = pp
 end function
 
+handleKeys = function()
+	if not key.available then return
+	k = key.get.lower
+	if k == "c" then copy
+	if k == "v" then paste
+	if k.code == 8 or k.code == 127 then deleteSelection
+	if k == "x" then
+		copy
+		deleteSelection
+	end if
+end function
+
 mouseWasDown = mouse.button
 while true
 	pp = paintPixelAtXY(mouse)
 	gfx.fillRect 860, 0, 100, 20, color.clear
-	if pp.x >= 0 and pp.y >= 0 and pp.x < picW and pp.y < picH and modesWithSize.contains(mode) then
+	brushSprite.x = -9999
+	if pp.x >= 0 and pp.y >= 0 and pp.x < picW and pp.y < picH then
 		gfx.print pp.x + "," + pp.y, 860, 3, color.gray, "small"
-		brushSprite.x = paintArea.left + pp.x * ps + 4.5 * (brushSize % 2)
-		brushSprite.y = paintArea.bottom + pp.y * ps + 4.5 * (brushSize % 2)
-	else
-		brushSprite.x = -9999
+		if modesWithSize.contains(mode) then
+			brushSprite.x = paintArea.left + pp.x * ps + 4.5 * (brushSize % 2)
+			brushSprite.y = paintArea.bottom + pp.y * ps + 4.5 * (brushSize % 2)
+		end if
 	end if
+	if mode == kModePasting then updatePaste pp
 	
 	// check UI elements
 	for btn in Button.instances; btn.checkEvents; end for
@@ -1038,5 +1130,7 @@ while true
 	mouseIsDown = mouse.button
 	if mouseIsDown then handleClick not mouseWasDown
 	mouseWasDown = mouseIsDown
+	if key.available then handleKeys
+	if selection != null then drawSelection
 	yield
 end while
