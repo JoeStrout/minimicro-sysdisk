@@ -1,4 +1,5 @@
 // Text Utilities (related to displaying text on the Mini Micro screen).
+import "stringUtil"
 
 // Print without a carriage return (i.e. moving to the next line).
 printNoCR = function(s)
@@ -79,3 +80,204 @@ printAt = function(column, row, s)
 	end if
 end function
 
+// buttonLeft and buttonRight: combines the inverse toggles with
+// the button cap glyphs.  Print these before or after a button caption.
+buttonLeft = char(134) + char(57856)
+buttonRight = char(57857) + char(135)
+
+// button function: returns a complete printable button with the given
+// caption, optionally padded to some caption length.
+button = function(caption, minCaptionLength=0)
+	if caption.len < minCaptionLength then
+		pad = minCaptionLength - caption.len
+		caption = " " * floor(pad/2) + caption + " " * ceil(pad/2)
+	end if
+	return buttonLeft + caption + buttonRight
+end function
+
+// Cell: a little class that represents the complete contents (including
+// colors) of a particular row and column on a text display.
+Cell = {}
+Cell.character = ""
+Cell.color = ""
+Cell.backColor = ""
+Cell.get = function(column, row)
+	result = new Cell
+	result.character = text.cell(column, row)
+	result.color = text.cellColor(column, row)
+	result.backColor = text.cellBackColor(column, row)
+	return result
+end function
+Cell.apply = function(column, row)
+	text.setCell column, row, self.character
+	text.setCellColor column, row, self.color
+	text.setCellBackColor column, row, self.backColor
+end function
+
+// getContent: Get the entire content of the text display as a 2D array
+// of Cell objects in [row][col] order.
+// (You can then restore this later with setContent.)
+getContent = function()
+	rows = []
+	for row in range(0, 25)
+		cols = []
+		for col in range(0, 67)
+			cols.push Cell.get(col, row)
+		end for
+		rows.push cols
+	end for
+	return rows
+end function
+
+// setContent: restore the content of the text display with the given
+// 2D array of Cell objects in [row][col] order.
+setContent = function(data)
+	row = 0
+	for dataRow in data
+		col = 0
+		for c in dataRow
+			c.apply col, row
+			col = col + 1
+			if col > 67 then break
+		end for
+		row = row + 1
+		if row > 25 then break
+	end for
+end function
+
+// Dialog class: used to define a simple message dialog,
+// with title, message, and 1-3 buttons.  Create a new Dialog,
+// with Dialog.make, assign all its other properties as desired,
+// then call .show on it.  The return value is the button that
+// was clicked by the user.
+Dialog = {}
+Dialog.title = "Alert"
+Dialog.message = "Your message here."
+Dialog.width = 34
+Dialog.backColor = "#AAAACC"
+Dialog.titleColor = "#CCCCFF"
+Dialog.textColor = "#444444"
+DialogButton = {}
+DialogButton.caption = "Button"
+DialogButton.visible = false
+DialogButton.key = ""  // shortcut key
+DialogButton.width = function(); return self.caption.len + 2; end function
+DialogButton.x = 20
+DialogButton.y = 10
+DialogButton.draw = function()
+	c = text.backColor
+	text.row = self.y; text.column = self.x; print buttonLeft
+	text.backColor = color.black
+	text.row = self.y; text.column = self.x + 1; print self.caption
+	text.backColor = c
+	text.row = self.y; text.column = self.x + 1 + self.caption.len; print buttonRight
+end function
+DialogButton.contains = function(pt)
+	return textRow(pt.y) == self.y and 
+	   textCol(pt.x) >= self.x and textCol(pt.x) < self.x + self.width
+end function
+DialogButton.trackHit = function()
+	c = text.cellBackColor(self.x, self.y)
+	while mouse.button
+		text.color = c
+		if self.contains(mouse) then text.color = color.lerp(c, color.black)
+		self.draw
+		yield
+	end while
+	if text.color == c then return false
+	text.color = c
+	self.draw
+	return true
+end function
+
+Dialog.make = function(title, message)
+	dlog = new Dialog
+	dlog.title = title
+	dlog.message = message
+	dlog.okBtn = new DialogButton
+	dlog.okBtn.caption = "OK"
+	dlog.okBtn.visible = true
+	dlog.okBtn.key = char(10)  // (return key)
+	dlog.altBtn = new DialogButton
+	dlog.cancelBtn = new DialogButton
+	dlog.cancelBtn.caption = "Cancel"
+	dlog.cancelBtn.key = char(27)
+	if title.len > dlog.width then dlog.width = title.len
+	dlog.msgLines = message.wrap(dlog.width-4)
+	dlog.height = dlog.msgLines.len + 4
+	return dlog
+end function
+
+Dialog.show = function()
+	priorText = getContent
+	priorTextColor = text.color
+	priorBgColor = text.backColor
+	
+	text.row = 12 + self.height/2
+	x = 34 - self.width/2
+	
+	// draw title
+	text.color = self.textColor
+	text.backColor = self.titleColor
+	spacesNeeded = self.width - self.title.len
+	text.column = x
+	print " " * floor(spacesNeeded/2) + self.title + " " * ceil(spacesNeeded/2)
+	
+	// draw box, including message and extra rows for the buttons
+	text.backColor = self.backColor
+	text.column = x; print " " * self.width
+	for line in self.msgLines
+		text.column = x; print "  " + line.pad(self.width-2)
+	end for
+	for i in range(1,3); text.column = x; print " " * self.width; end for
+	
+	// draw buttons
+	btnRow = text.row + 2
+	btnX = x + self.width - 2
+	buttons = [self.okBtn, self.altBtn, self.cancelBtn]
+	for btn in buttons
+		if not btn.visible then continue
+		text.color = "#CCCCCC"  // (button color)
+		if btn.key == char(10) then text.color = "#EEEEFF"
+		btn.x = btnX - btn.width
+		if btn == self.cancelBtn then btn.x = x + 2
+		btn.y = btnRow
+		btn.draw
+		btnX = btn.x - 2
+	end for
+	
+	// now wait until we get a key shortcut or a valid click on a button
+	btnHit = null
+	while not btnHit
+		if mouse.button then
+			for btn in buttons
+				if not btn.visible or not btn.contains(mouse) then continue
+				if btn.trackHit then
+					btnHit = btn
+					break
+				end if
+			end for
+		end if
+		if key.available then
+			k = key.get
+			if k.code == 3 or k.code == 13 then k = char(10)
+			for btn in buttons
+				if btn.visible and btn.key == k then
+					btnHit = btn
+					break
+				end if
+			end for
+		end if
+	end while
+	
+	text.color = priorTextColor
+	text.backColor = priorBgColor
+	setContent priorText
+	return btnHit
+end function
+
+d = Dialog.make("Message Test", 
+"Hello world!  This is a test of the nifty text-based Dialog system.")
+d.altBtn.visible = true
+d.cancelBtn.visible = true
+print d.show.caption

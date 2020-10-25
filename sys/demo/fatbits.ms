@@ -1,6 +1,7 @@
 // Pixel Painting program.  Handy for making sprites
 // without ever leaving Mini Micro!
 import "listUtil"
+import "colorUtil"
 
 // Constants and global state variables
 kModeDraw = "DRAW"
@@ -80,113 +81,6 @@ Sprite.addBounds = function(inset=0)
 	self.localBounds.height = self.image.height - inset*2
 end function
 
-//---------------------------------------------------------------------
-// Color utilities, including conversion between RGB and HSV
-// (thanks to @DFZ on the MiniScript Discord!)
-
-min3 = function(a,b,c)
-	if a<=b and a<=c then
-		return a
-	else if b<=a and b<=c then
-		return b
-	else
-		return c
-	end if
-end function
-
-max3 = function(a,b,c)
-	if a>=b and a>=c then
-		return a
-	else if b>=a and b>=c then
-		return b
-	else
-		return c
-	end if
-end function
-
-RGBtoHSV = function(RGB) // list of RGB values [0-255, 0-255, 0-255]
-	//Rescale
-	R=RGB[0] / 255
-	G=RGB[1] / 255
-	B=RGB[2] / 255
-	min=min3(R,G,B)
-	max=max3(R,G,B)
-	V=round(max*100)
-	delta=max-min
-	if delta != 0 then
-		S=round(delta/max*100)
-	else
-		S=0
-		H=0
-		return [H, S, V]
-	end if
-	if R==max then
-		H=(G-B)/delta
-	else if G==max then
-		H=2+(B-R)/delta
-	else
-		H=4+(R-G)/delta
-	end if
-	H=H*60
-	if H<0 then H=H+360
-	H=round(H)
-	return [H, S, V]
-end function
-
-HSVtoRGB=function(HSV)
-	//Rescale
-	S=HSV[1] / 100
-	V=HSV[2] / 100
-	if S==0 then
-		R=V
-		G=V
-		B=V
-		//Rescale
-		R=round(R*255)
-		G=round(G*255)
-		B=round(B*255)
-		RGB.push R
-		RGB.push G
-		RGB.push B
-		return RGB
-	end if
-	H=HSV[0]/60
-	i=floor(H)
-	f=H-i
-	p=V*(1-S)
-	q=V*(1-S*f)
-	t=V*(1-S*(1-f))
-	if i==0 then
-		R=V
-		G=t
-		B=p
-	else if i==1 then
-		R=q
-		G=V
-		B=p
-	else if i==2 then
-		R=p
-		G=V
-		B=t
-	else if i==3 then
-		R=p
-		G=q
-		B=V
-	else if i==4 then
-		R=t
-		G=p
-		B=V
-	else
-		R=V
-		G=p
-		B=q
-	end if
-	//Rescale
-	R=round(R*255)
-	G=round(G*255)
-	B=round(B*255)
-	return [R, G, B]
-end function
 
 //---------------------------------------------------------------------
 // Make a handy Rect class
@@ -916,12 +810,134 @@ colorWheel.updateFromColor = function(c)
 		if curSwatch == foregroundSwatch then c = foreColor else c = backColor
 	end if
 	rgba = color.toList(c)
-	hsv = RGBtoHSV(rgba)
+	hsv = colorUtil.RGBtoHSV(rgba)
 	r = self.image.width * self.scale / 2 * hsv[1] / 100
 	self.knob.x = self.x + r * cos(hsv[0] * pi/180)
 	self.knob.y = self.y + r * sin(hsv[0] * pi/180)
 	lightnessSlider.set hsv[2] / 100
 	alphaSlider.set rgba[3] / 255
+end function
+
+//--------------------------------------------------------------------------------
+// TABS & FILE MANAGEMENT
+closeBtnClean = file.loadImage(resourceDir + "closeBtnWeak.png")
+closeBtnDirty = file.loadImage(resourceDir + "closeBtnStrong.png")
+CloseButton = new Sprite
+CloseButton.image = closeBtnClean
+CloseButton.y = 640 - 12
+CloseButton.x = 20
+CloseButton.update = function(dirty, curTab, pressed)
+	if self.localBounds == null then self.addBounds
+	if dirty then
+		self.image = closeBtnDirty
+		if curTab then tint = "FF" else tint = "AA"
+	else
+		self.image = closeBtnClean
+		if curTab then tint = "AA" else tint = "66"
+	end if
+	if pressed then
+		if self.contains(mouse) then tint = "88" else tint = "EE"
+	else if self.contains(mouse) then
+		tint = "EE"
+	end if
+	self.tint = "#" + tint + tint + tint
+end function
+
+drawTab = function(x, width, title="", isSelected=false)
+	h = 25  // tab height
+	y = 640 - h - 1  // tab bottom
+	poly = [[x,y], [x+12,y+h], [x+width-24,y+h], [x+width-12,y+h], [x+width,y]]
+	// fill
+	if isSelected then c = "#666666" else c = "#444444"
+	gfx.fillPoly poly, c
+	// highlight at the top
+	if isSelected then c = "#888888" else c = "#666666"
+	gfx.line x+12, y+h-1, x+width-12, y+h-1, c
+	// frame
+	gfx.drawPoly poly, color.black, 2
+	// title
+	if title == "+" then
+		gfx.print "+", x + width/2 - 7, y + h/2 - 10, "#AAAAAA"
+	else
+		if isSelected then c = "#AAAAAA" else c = "#888888"
+		titleWidth = title.len * 9
+		gfx.print title, x + width/2 - titleWidth/2 + 8, y + h/2 - 5, c, "small"
+	end if
+end function
+OpenFile = {}
+OpenFile.path = ""
+OpenFile.tabX = null
+OpenFile.targetX = null
+OpenFile.tabWidth = 0
+OpenFile.tabTitle = ""
+OpenFile.srcRect = null
+OpenFile.closeBtn = null
+tabs = []
+tabs.push {"__isa":OpenFile, "tabTitle":"Test1"}
+tabs.push {"__isa":OpenFile, "tabTitle":"Second Test"}
+tabs.push {"__isa":OpenFile, "tabTitle":"Test 3"}
+tabs.push {"__isa":OpenFile, "tabTitle":"Test 4"}
+tabs.push {"__isa":OpenFile, "tabTitle":"Test 5"}
+specialNewTabTab = {"tabWidth":40, "tabTitle":"+", "tabX":null, "closeBtn":null}
+tabs.push specialNewTabTab
+layoutTabs = function()
+	x = 0
+	for t in tabs
+		t.targetX = x
+		if t.tabX == null then t.tabX = t.targetX
+		if not t.tabWidth then t.tabWidth = t.tabTitle.len * 9 + 42
+		if t.closeBtn == null and t.tabTitle != "+" then
+			t.closeBtn = new CloseButton
+			t.closeBtn.x = x + 20
+			spriteDisp.sprites.push t.closeBtn
+			t.closeBtn.update
+		end if
+		x = x + t.tabWidth - 12
+	end for
+end function
+selectedTab = tabs[2]
+
+drawTabs = function()
+	h = 26
+	gfx.fillRect 0, 640-h, 960, h, "#929292"
+	for t in tabs
+		if t == selectedTab then break
+		drawTab t.tabX, t.tabWidth, t.tabTitle, false
+	end for
+	for i in range(tabs.len-1)
+		t = tabs[i]
+		drawTab t.tabX, t.tabWidth, t.tabTitle, t == selectedTab
+		if t == selectedTab then break
+	end for 
+end function
+
+updateTabs = function()
+	for t in tabs
+		if t.closeBtn == null then continue
+		t.closeBtn.update false, t == selectedTab, false
+	end for
+end function
+
+handleTabClick = function()
+	// first handle clicks on a close button
+	for t in tabs
+		if t.closeBtn == null or not t.closeBtn.contains(mouse) then continue
+		while mouse.button
+			t.closeBtn.update false, t == selectedTab, true
+		end while
+		if t.closeBtn.contains(mouse) then
+			print "Close this tab!"
+		end if
+		return
+	end for
+	// then, handle click on a tab
+	for t in tabs
+		if mouse.x > t.tabX + t.tabWidth then continue
+		globals.selectedTab = t
+		drawTabs
+		while mouse.button; end while
+		return
+	end for
 end function
 
 //--------------------------------------------------------------------------------
@@ -1084,8 +1100,15 @@ alphaSlider.set 1
 colorWheel.updateColor
 brushSize = 6
 setMode kModeDraw
+layoutTabs
+drawTabs
+
 
 handleClick = function(justDown)
+	if mouse.y > 640-26 then
+		handleTabClick
+		return
+	end if
 	if not paintArea.contains(mouse) then return
 	pp = paintPixelAtXY(mouse)
 	tf = toolFuncs[mode]
@@ -1125,6 +1148,7 @@ while true
 	for s in Slider.instances; s.checkEvents; end for
 	PalButton.checkEventsForAll
 	colorWheel.checkEvents
+	updateTabs
 	
 	// then, update usage of tools (e.g. painting)
 	mouseIsDown = mouse.button

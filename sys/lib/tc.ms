@@ -50,8 +50,8 @@ if locals == globals then
 	// here's an example tweetcart
 	// (put all on one line after: import"tc")
 	t=0;while 1;cls;t=t+1;for i in range(15);d=cos(tau*(t/60+i/2))*50+100;	
-			a=tau*(i/16+t/120);x=cos(a)*d+480;y=sin(a)*d+320;
-			r=cos(tau*(t/40+i/4))*10+15; c=pal[i%8+9];circ x,y,r,c,4;
+	a=tau*(i/16+t/120);x=cos(a)*d+480;y=sin(a)*d+320;
+	r=cos(tau*(t/40+i/4))*10+15; c=pal[i%8+9];circ x,y,r,c,4;
 	end for;yield;end while
 	
 else

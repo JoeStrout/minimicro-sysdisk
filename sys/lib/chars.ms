@@ -40,6 +40,7 @@ mu = char(181)
 pi = char(960)
 bullet = char(8226)
 tree = char(57888)
+ellipsis = char(8230)
 
 // Checkboxes:
 emptyBox = char(9744)
@@ -99,7 +100,7 @@ if locals == globals then
 	printAlign "figureWaitingToeUp", figureWaitingToeUp
 	printAlign "figureAkimbo", figureAkimbo
 	printAlign "mu, pi", mu + " " + pi
-	printAlign "bullet", bullet
+	printAlign "bullet, ellipsis", bullet + " " + ellipsis
 	printAlign "tree", tree
 	printAlign "emptyBox", emptyBox
 	printAlign "checkedBox", checkedBox

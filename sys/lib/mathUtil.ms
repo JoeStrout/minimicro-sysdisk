@@ -246,6 +246,13 @@ randRange = function(min, max)
 	return min + (max - min) * rnd
 end function
 
+// clamp: limits the given value to a specified range.
+clamp = function(x, minval=0, maxval=1)
+	if x < minval then return minval
+	if x > maxval then return maxval
+	return x
+end function
+
 runUnitTests = function()
 	print "Unit testing: mathUtil"
 	
