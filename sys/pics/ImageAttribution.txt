@@ -17,3 +17,4 @@ Mochi.png, Pipe.png, PipeCap.png, Wumpus.png, Spaceship.png, UFO.png: all by Joe
 
 hextiles: adapted from "Pastel Resources Hex Tiles" by qubodup on OpenGameart.org (CC-BY-SA 3 license).
 
+food: commissioned artwork by Karekis on fiverr.com.

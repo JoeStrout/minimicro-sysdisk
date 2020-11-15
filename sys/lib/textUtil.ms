@@ -80,6 +80,19 @@ printAt = function(column, row, s)
 	end if
 end function
 
+// Print a string centered on the given column and row.
+printCenteredAt = function(column, row, s)
+	printAt column - s.len/2, row, s
+end function
+
+// Clear from the current cursor position to the end of the line
+// (by filling the rest of the line with spaces).
+clearToEOL = function()
+	for col in range(text.column, 68)
+		text.setCell col, text.row, " "
+	end for
+end function
+
 // buttonLeft and buttonRight: combines the inverse toggles with
 // the button cap glyphs.  Print these before or after a button caption.
 buttonLeft = char(134) + char(57856)
@@ -276,8 +289,10 @@ Dialog.show = function()
 	return btnHit
 end function
 
-d = Dialog.make("Message Test", 
-"Hello world!  This is a test of the nifty text-based Dialog system.")
-d.altBtn.visible = true
-d.cancelBtn.visible = true
-print d.show.caption
+if locals == globals then
+	d = Dialog.make("Message Test", 
+	"Hello world!  This is a test of the nifty text-based Dialog system.")
+	d.altBtn.visible = true
+	d.cancelBtn.visible = true
+	print d.show.caption
+end if

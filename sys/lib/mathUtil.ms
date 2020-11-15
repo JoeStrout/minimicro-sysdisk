@@ -76,7 +76,13 @@ distance = function(p1, p2)
 	return sqrt((x1-x2)^2 + (y1-y2)^2)
 end function
 
-// lerp2d: Interpolate between two points, that is, return a point which is
+// lerp: Interpolate between two values, that is, return a value that is
+// some portion (t) of the way from a to b.
+lerp = function(a, b, t)
+	return a + (b-a) * t
+end function
+
+// lerp2d: Interpolate between two points, that is, return a point that is
 // some portion (t) of the way from p1 to p2.  p1 and p2 may be either a map
 // containing "x" and "y", or it may be an [x,y] list, but the result will
 // always be in the form of an [x,y] list.

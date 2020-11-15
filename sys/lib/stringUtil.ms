@@ -108,6 +108,24 @@ string.trimLeft = function(charsToRemove=null)
 	return self[p0:]
 end function
 
+// ellideEnd: shortens a string (if needed) by cutting and adding
+// an ellipsis to the end.
+// Example:
+//		"Hello World".ellideEnd(6)	// returns "Hello…"
+string.ellideEnd = function(maxLength=10)
+	if self.len <= maxLength then return self
+	return self[:maxLength-1] + "…"
+end function
+
+// ellideMiddle: shortens a string (if needed) by adding an ellipsis
+// to the middle, cutting out the middle part of the string.
+// Example:
+//		"Hello World".ellideMiddle(6)	// returns "He…rld"
+string.ellideMiddle = function(maxLength=10)
+	if self.len <= maxLength then return self
+	return self[:ceil(maxLength/2)-1] + "…" + self[-maxLength/2:]
+end function
+
 string.reverse = function()
 	chars = self.split("")
 	for i in range(0, chars.len/2-1)

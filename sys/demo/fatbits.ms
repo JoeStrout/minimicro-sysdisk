@@ -2,6 +2,7 @@
 // without ever leaving Mini Micro!
 import "listUtil"
 import "colorUtil"
+import "textUtil"
 
 // Constants and global state variables
 kModeDraw = "DRAW"
@@ -31,8 +32,10 @@ resourceDir = "/usr/data/fatbits/"  // ToDo: FIX THIS!!!
 
 // Prepare displays
 // text: display 2 (not used in the app, but handy while debugging)
+clear
 display(2).mode = displayMode.text
 text = display(2)
+text.backColor = color.clear
 text.clear
 // spriteDisp: used for UI buttons, etc.
 display(3).mode = displayMode.sprite
@@ -819,6 +822,97 @@ colorWheel.updateFromColor = function(c)
 end function
 
 //--------------------------------------------------------------------------------
+// "NEW TAB" Text-Based UI
+setupUI = {}
+kStart = "START"		// waiting for user to choose New or Load
+kNewFile = "NEWFILE"	// user specifying new file to create
+kLoadFile = "LOADFILE"	// user specifying file to load
+kPickArea = "PICKAREA"	// user specifying sub-region to edit
+kDone = "DONE"
+setupUI.state = kStart
+setupUI.buttons = []
+
+setupUI.drawButtons = function()
+	text.color = "#8888FF"
+	for b in self.buttons; b.draw; end for
+	text.color = "#333333"
+end function
+
+setupUI.doEvents = function()
+	btnHit = null
+	while not btnHit
+		if mouse.button then
+			for btn in self.buttons
+				if not btn.contains(mouse) then continue
+				if btn.trackHit then
+					self.state = btn.nextState
+					self.draw
+				end if
+			end for
+		end if
+	end while
+
+end function
+
+setupUI.inputAt = function(column, row, prompt)
+	text.color = "#333333"
+	textUtil.printAt column, row, prompt
+	textUtil.clearToEOL
+	text.color = "#000088";	result = input; text.color = "#333333"
+	return result
+end function
+
+setupUI.draw = function()
+	text.color = "#333333"
+	text.backColor = "#929292"
+	text.delimiter = ""
+	for row in range(0,23)
+		text.row = row
+		text.print " " * 68
+	end for
+	gfx.fillRect 0, 0, 960, 640-26, text.backColor
+	spriteDisp.scrollX = 9999
+	self.buttons = []
+	if self.state == kStart then
+		textUtil.printCenteredAt 34, 21, "Create or Load Image"
+		newBtn = new textUtil.DialogButton
+		newBtn.caption = "NEW IMAGE"
+		newBtn.x = 34-4-newBtn.width; newBtn.y = 18
+		newBtn.nextState = kNewFile
+		self.buttons.push newBtn
+		loadBtn = new textUtil.DialogButton
+		loadBtn.caption = "LOAD IMAGE"
+		loadBtn.x = 34+4; loadBtn.y = 18
+		loadBtn.nextState = kLoadFile
+		self.buttons.push loadBtn
+	else if self.state == kNewFile then
+		textUtil.printCenteredAt 34, 21, "Create New Image"
+		textUtil.printAt 10, 18, "Current Directory: " + pwd
+		self.path = self.inputAt(10, 16, "New file path: ")
+		self.width = 0
+		while not self.width
+			self.width = self.inputAt(10, 14, "New image width:  ").val
+		end while
+		self.height = 0
+		while not self.height
+			self.height = self.inputAt(10, 13, "New image height: ").val
+		end while
+		self.img = Image.create(self.width, self.height, color.clear)
+		if self.path[-4:] != ".png" then self.path = self.path + ".png"
+		file.saveImage self.path, self.img
+	else if self.state == kLoadFile then
+		textUtil.printCenteredAt 34, 21, "Load Image"
+		textUtil.printAt 10, 18, "Current Directory: " + pwd
+		self.path = self.inputAt(10, 16, "Image file path: ")
+		if self.path[-4:] != ".png" then self.path = self.path + ".png"
+		self.img = file.loadImage(self.path)
+	end if
+	self.drawButtons
+	text.delimiter = char(13)
+end function
+
+
+//--------------------------------------------------------------------------------
 // TABS & FILE MANAGEMENT
 closeBtnClean = file.loadImage(resourceDir + "closeBtnWeak.png")
 closeBtnDirty = file.loadImage(resourceDir + "closeBtnStrong.png")
@@ -1103,6 +1197,8 @@ setMode kModeDraw
 layoutTabs
 drawTabs
 
+setupUI.draw
+setupUI.doEvents
 
 handleClick = function(justDown)
 	if mouse.y > 640-26 then
