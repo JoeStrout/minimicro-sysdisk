@@ -203,7 +203,7 @@ DialogButton.trackHit = function()
 	return true
 end function
 
-Dialog.make = function(title, message)
+Dialog.make = function(title="", message="Your message here.")
 	dlog = new Dialog
 	dlog.title = title
 	dlog.message = message

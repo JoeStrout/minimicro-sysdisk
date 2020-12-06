@@ -31,7 +31,7 @@ picH = 64
 resourceDir = "/usr/data/fatbits/"  // ToDo: FIX THIS!!!
 
 // Prepare displays
-// text: display 2 (not used in the app, but handy while debugging)
+// text: display 2
 clear
 display(2).mode = displayMode.text
 text = display(2)
@@ -59,7 +59,6 @@ fatbits.scale = ps
 // scratch: hidden drawing area
 display(7).mode = displayMode.pixel
 scratch = display(7)
-text.clear
 
 // load brush sprites
 brushImages = [null]
@@ -75,7 +74,7 @@ brushRowWidths = [null, [1], [2,2], [3,3,3], [2,4,4,2], [3,5,5,5,3], [4,6,6,6,6,
   [3,5,7,7,7,5,3], [4,6,8,8,8,8,6,4], [5,7,9,9,9,9,9,7,5], [4,8,8,10,10,10,10,8,8,4],
   [5,7,9,11,11,11,11,11,9,7,5], [4,8,10,10,12,12,12,12,10,10,8,4]]
 
-fatbits.drawImage file.loadImage("/sys/pics/Wumpus.png"), 0, 0, 64, 64  // HACK
+//fatbits.drawImage file.loadImage("/sys/pics/Wumpus.png"), 0, 0, 64, 64  // HACK
 
 // Helper methods we probably should have in a utils module somewhere
 Sprite.addBounds = function(inset=0)
@@ -408,15 +407,7 @@ drawGrid = function()
 	end for
 end function
 
-// update the fat bits display of our picture
-updateFatbits = function()
-	fatbits.scale = ps
-	fatbits.scrollX = -paintArea.left
-	fatbits.scrollY = -paintArea.bottom
-end function
-
 prepareScreen
-updateFatbits
 
 makeTools = function()
 	tools = [
@@ -839,8 +830,7 @@ setupUI.drawButtons = function()
 end function
 
 setupUI.doEvents = function()
-	btnHit = null
-	while not btnHit
+	while self.state != kDone
 		if mouse.button then
 			for btn in self.buttons
 				if not btn.contains(mouse) then continue
@@ -851,7 +841,7 @@ setupUI.doEvents = function()
 			end for
 		end if
 	end while
-
+	self.clear
 end function
 
 setupUI.inputAt = function(column, row, prompt)
@@ -900,17 +890,27 @@ setupUI.draw = function()
 		self.img = Image.create(self.width, self.height, color.clear)
 		if self.path[-4:] != ".png" then self.path = self.path + ".png"
 		file.saveImage self.path, self.img
+		addTabForImage self.img, self.path
+		self.state = kDone
 	else if self.state == kLoadFile then
 		textUtil.printCenteredAt 34, 21, "Load Image"
 		textUtil.printAt 10, 18, "Current Directory: " + pwd
 		self.path = self.inputAt(10, 16, "Image file path: ")
 		if self.path[-4:] != ".png" then self.path = self.path + ".png"
 		self.img = file.loadImage(self.path)
+		addTabForImage self.img, self.path
+		self.state = kDone
 	end if
 	self.drawButtons
 	text.delimiter = char(13)
 end function
 
+setupUI.clear = function()
+	text.backColor = color.clear
+	text.clear
+	gfx.fillRect 0, 0, 960, 640-26, color.clear
+	spriteDisp.scrollX = 0
+end function
 
 //--------------------------------------------------------------------------------
 // TABS & FILE MANAGEMENT
@@ -966,20 +966,49 @@ OpenFile.tabWidth = 0
 OpenFile.tabTitle = ""
 OpenFile.srcRect = null
 OpenFile.closeBtn = null
+OpenFile.saveFromEditArea = function()
+	self.image = fatbits.getImage(0, 0, self.image.width, self.image.height)
+end function
+OpenFile.loadToEditArea = function()
+	globals.picW = self.image.width; globals.picH = self.image.height
+	fatbits.clear color.clear, picW, picH
+	fatbits.scale = ps
+	fatbits.drawImage self.image
+	fatbits.scrollX = -paintArea.left; fatbits.scrollY = -paintArea.bottom
+end function
+OpenFile.saveToDisk = function()
+	file.saveImage self.path, self.image
+end function
+OpenFile.close = function()
+	idx = tabs.indexOf(self)
+	tabs.remove self
+	globals.selectedTab = tabs[idx-1]
+	layoutTabs; drawTabs
+end function
+OpenFile.confirmAndClose = function()
+	dlog = textUtil.Dialog.make("Save changes to " + self.tabTitle + "?",
+	  "If you do not save, your changes will be lost.")
+	dlog.okBtn.caption = "Save"
+	dlog.cancelBtn.visible = true
+	dlog.altBtn.caption = "Don't Save"
+	dlog.altBtn.visible = true
+	choice = dlog.show
+	if choice == dlog.cancelBtn then return
+	if choice == dlog.okBtn then self.saveToDisk
+	self.close
+end function
+
 tabs = []
-tabs.push {"__isa":OpenFile, "tabTitle":"Test1"}
-tabs.push {"__isa":OpenFile, "tabTitle":"Second Test"}
-tabs.push {"__isa":OpenFile, "tabTitle":"Test 3"}
-tabs.push {"__isa":OpenFile, "tabTitle":"Test 4"}
-tabs.push {"__isa":OpenFile, "tabTitle":"Test 5"}
 specialNewTabTab = {"tabWidth":40, "tabTitle":"+", "tabX":null, "closeBtn":null}
+specialNewTabTab.saveFromEditArea = null
+specialNewTabTab.loadToEditArea = null
 tabs.push specialNewTabTab
 layoutTabs = function()
 	x = 0
 	for t in tabs
 		t.targetX = x
-		if t.tabX == null then t.tabX = t.targetX
-		if not t.tabWidth then t.tabWidth = t.tabTitle.len * 9 + 42
+		t.tabX = t.targetX
+		if not t.tabWidth then t.tabWidth = t.tabTitle.len * 9 + 50
 		if t.closeBtn == null and t.tabTitle != "+" then
 			t.closeBtn = new CloseButton
 			t.closeBtn.x = x + 20
@@ -989,7 +1018,7 @@ layoutTabs = function()
 		x = x + t.tabWidth - 12
 	end for
 end function
-selectedTab = tabs[2]
+selectedTab = tabs[0]
 
 drawTabs = function()
 	h = 26
@@ -1020,18 +1049,43 @@ handleTabClick = function()
 			t.closeBtn.update false, t == selectedTab, true
 		end while
 		if t.closeBtn.contains(mouse) then
-			print "Close this tab!"
+			if t == selectedTab then t.saveFromEditArea
+			t.confirmAndClose
 		end if
 		return
 	end for
 	// then, handle click on a tab
 	for t in tabs
 		if mouse.x > t.tabX + t.tabWidth then continue
+		selectedTab.saveFromEditArea
 		globals.selectedTab = t
 		drawTabs
 		while mouse.button; end while
+		switchToTab t
 		return
 	end for
+end function
+
+switchToTab = function(tab)
+	if tab == specialNewTabTab then
+		setupUI.state = kStart
+		setupUI.draw
+		setupUI.doEvents
+	else
+		setupUI.clear
+		tab.loadToEditArea
+	end if
+end function
+
+addTabForImage = function(img, path)
+	tab = new OpenFile
+	tab.tabTitle = file.name(path) - ".png"
+	tab.path = path
+	tab.image = img
+	tabs.insert -2, tab
+	globals.selectedTab = tab
+	layoutTabs; drawTabs
+	switchToTab tab
 end function
 
 //--------------------------------------------------------------------------------
