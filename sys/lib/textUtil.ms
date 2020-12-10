@@ -221,11 +221,13 @@ Dialog.make = function(title="", message="Your message here.")
 	return dlog
 end function
 
-Dialog.show = function()
+Dialog.show = function(timeout=null)
 	priorText = getContent
 	priorTextColor = text.color
 	priorBgColor = text.backColor
+	priorDelim = text.delimiter
 	
+	text.delimiter = char(13)
 	text.row = 12 + self.height/2
 	x = 34 - self.width/2
 	
@@ -259,8 +261,10 @@ Dialog.show = function()
 		btnX = btn.x - 2
 	end for
 	
-	// now wait until we get a key shortcut or a valid click on a button
+	// now wait until we get a key shortcut or a valid click on a button,
+	// or (optionally) time out
 	btnHit = null
+	startTime = time
 	while not btnHit
 		if mouse.button then
 			for btn in buttons
@@ -281,11 +285,13 @@ Dialog.show = function()
 				end if
 			end for
 		end if
+		if timeout != null and time > startTime + timeout then break
 	end while
 	
 	text.color = priorTextColor
 	text.backColor = priorBgColor
 	setContent priorText
+	text.delimiter = priorDelim
 	return btnHit
 end function
 

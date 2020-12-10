@@ -160,28 +160,29 @@ end function
 string.wrap = function(width=67)
 	if self == "" then return [""]
 	result = []
-	s = self
-	while s
-		if s.len <= width then
-			result.push s
-			return result
-		end if
-		foundCut = false
-		for i in range(width, 0)
-			if s[i] == " " then
-				result.push s[:i]
-				s = s[i+1:]
-				foundCut = true
+	for s in self.split(char(13))
+		while s
+			if s.len <= width then
+				result.push s
 				break
 			end if
-		end for
-		if not foundCut then
-			// Couldn't find a space to cut on...
-			// so, out of desperation, just cut at width
-			result.push s[:width]
-			s = s[width:]
-		end if
-	end while
+			foundCut = false
+			for i in range(width, 0)
+				if s[i] == " " then
+					result.push s[:i]
+					s = s[i+1:]
+					foundCut = true
+					break
+				end if
+			end for
+			if not foundCut then
+				// Couldn't find a space to cut on...
+				// so, out of desperation, just cut at width
+				result.push s[:width]
+				s = s[width:]
+			end if
+		end while
+	end for
 	return result
 end function
 

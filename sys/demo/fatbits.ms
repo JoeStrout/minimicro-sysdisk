@@ -831,13 +831,12 @@ end function
 
 setupUI.doEvents = function()
 	while self.state != kDone
-		if mouse.button then
+		self.draw
+		if self.buttons then
+			while not mouse.button; end while
 			for btn in self.buttons
 				if not btn.contains(mouse) then continue
-				if btn.trackHit then
-					self.state = btn.nextState
-					self.draw
-				end if
+				if btn.trackHit then self.state = btn.nextState
 			end for
 		end if
 	end while
@@ -889,17 +888,27 @@ setupUI.draw = function()
 		end while
 		self.img = Image.create(self.width, self.height, color.clear)
 		if self.path[-4:] != ".png" then self.path = self.path + ".png"
-		file.saveImage self.path, self.img
-		addTabForImage self.img, self.path
-		self.state = kDone
+		err = file.saveImage(self.path, self.img)
+		if err then
+			textUtil.Dialog.make("Unable to Save File", err).show
+			self.state = kStart
+		else
+			addTabForImage self.img, self.path
+			self.state = kDone
+		end if
 	else if self.state == kLoadFile then
 		textUtil.printCenteredAt 34, 21, "Load Image"
 		textUtil.printAt 10, 18, "Current Directory: " + pwd
 		self.path = self.inputAt(10, 16, "Image file path: ")
 		if self.path[-4:] != ".png" then self.path = self.path + ".png"
 		self.img = file.loadImage(self.path)
-		addTabForImage self.img, self.path
-		self.state = kDone
+		if self.img == null then
+			textUtil.Dialog.make("Unable to Open File", "Invalid path:" + char(13) + self.path).show
+			self.state = kStart
+		else
+			addTabForImage self.img, self.path
+			self.state = kDone
+		end if
 	end if
 	self.drawButtons
 	text.delimiter = char(13)
@@ -977,13 +986,23 @@ OpenFile.loadToEditArea = function()
 	fatbits.scrollX = -paintArea.left; fatbits.scrollY = -paintArea.bottom
 end function
 OpenFile.saveToDisk = function()
-	file.saveImage self.path, self.image
+	if self == selectedTab then self.saveFromEditArea
+	err = file.saveImage(self.path, self.image)
+	if not err then
+		dlog = textUtil.Dialog.make("Saved """ + file.name(self.path) + """",
+		   self.path + char(13) + self.image.width + " x " + self.image.height + " pixels")
+		dlog.okBtn.visible = false
+		dlog.show 2
+	else
+		dlog = textUtil.Dialog.make("Unable to Save File", err)
+		dlog.show
+	end if
 end function
 OpenFile.close = function()
 	idx = tabs.indexOf(self)
 	tabs.remove self
 	globals.selectedTab = tabs[idx-1]
-	layoutTabs; drawTabs
+	layoutTabs; drawTab
 end function
 OpenFile.confirmAndClose = function()
 	dlog = textUtil.Dialog.make("Save changes to " + self.tabTitle + "?",
@@ -1069,7 +1088,6 @@ end function
 switchToTab = function(tab)
 	if tab == specialNewTabTab then
 		setupUI.state = kStart
-		setupUI.draw
 		setupUI.doEvents
 	else
 		setupUI.clear
@@ -1251,7 +1269,6 @@ setMode kModeDraw
 layoutTabs
 drawTabs
 
-setupUI.draw
 setupUI.doEvents
 
 handleClick = function(justDown)
@@ -1275,6 +1292,9 @@ handleKeys = function()
 	if k == "x" then
 		copy
 		deleteSelection
+	end if
+	if k == "s" then
+		if selectedTab isa OpenFile then selectedTab.saveToDisk
 	end if
 end function
 
