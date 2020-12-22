@@ -3,6 +3,7 @@
 import "listUtil"
 import "colorUtil"
 import "textUtil"
+import "mathUtil"
 
 // Constants and global state variables
 kModeDraw = "DRAW"
@@ -31,31 +32,35 @@ picH = 64
 resourceDir = "/usr/data/fatbits/"  // ToDo: FIX THIS!!!
 
 // Prepare displays
-// text: display 2
+// text: display 1
 clear
-display(2).mode = displayMode.text
-text = display(2)
+display(1).mode = displayMode.text
+text = display(1)
 text.backColor = color.clear
 text.clear
 // spriteDisp: used for UI buttons, etc.
-display(3).mode = displayMode.sprite
-spriteDisp = display(3)
+display(2).mode = displayMode.sprite
+spriteDisp = display(2)
 spriteDisp.clear
 // gfx: static overlay (drawing area grid, etc.)
-display(4).mode = displayMode.pixel
-gfx = display(4)
+display(3).mode = displayMode.pixel
+gfx = display(3)
 gfx.clear
 // bkgnd: background color; masks off everything except paint area
-display(5).mode = displayMode.pixel
-bkgnd = display(5)
-bkgnd.clear "#929292"
-bkgnd.print "This is a WORK IN PROGRESS.", 20, 620, color.blue, "small"
-
+display(4).mode = displayMode.pixel
+bkgnd = display(4)
+bkgnd.clear "#929292", 970, 650
+bkgnd.scrollX = 5
+bkgnd.scrollY = 5
 // fatbits: scaled-up (fat) display of picture we're drawing
-display(6).mode = displayMode.pixel
-fatbits = display(6)
+display(5).mode = displayMode.pixel
+fatbits = display(5)
 fatbits.clear color.clear, picW, picH
 fatbits.scale = ps
+// backdrop: color that appears behind the fat-bits drawing (and preview area)
+display(6).mode = displayMode.solidColor
+backdrop = display(6)
+backdrop.color = "#444444"
 // scratch: hidden drawing area
 display(7).mode = displayMode.pixel
 scratch = display(7)
@@ -74,7 +79,6 @@ brushRowWidths = [null, [1], [2,2], [3,3,3], [2,4,4,2], [3,5,5,5,3], [4,6,6,6,6,
   [3,5,7,7,7,5,3], [4,6,8,8,8,8,6,4], [5,7,9,9,9,9,9,7,5], [4,8,8,10,10,10,10,8,8,4],
   [5,7,9,11,11,11,11,11,9,7,5], [4,8,10,10,12,12,12,12,10,10,8,4]]
 
-//fatbits.drawImage file.loadImage("/sys/pics/Wumpus.png"), 0, 0, 64, 64  // HACK
 
 // Helper methods we probably should have in a utils module somewhere
 Sprite.addBounds = function(inset=0)
@@ -84,6 +88,11 @@ Sprite.addBounds = function(inset=0)
 end function
 
 
+updatePaintScroll = function()
+	fatbits.scrollX = (previewArea.scrollbox.x-32 - previewArea.left) * fatbits.scale - paintArea.left
+	fatbits.scrollY = (previewArea.scrollbox.y-32 - previewArea.bottom) * fatbits.scale - paintArea.bottom
+end function
+
 //---------------------------------------------------------------------
 // Make a handy Rect class
 Rect = {}
@@ -91,15 +100,11 @@ Rect.left = 0
 Rect.bottom = 0
 Rect.width = 0
 Rect.height = 0
-Rect.area = function()
-	return self.width * self.height
-end function
-Rect.right = function()
-	return self.left + self.width
-end function
-Rect.top = function()
-	return self.bottom + self.height
-end function
+Rect.area = function(); return self.width * self.height; end function
+Rect.right = function(); return self.left + self.width; end function
+Rect.top = function(); return self.bottom + self.height; end function
+Rect.midX = function(); return self.left + self.width/2; end function
+Rect.midY = function(); return self.bottom + self.height/2; end function
 Rect.make = function(left, bottom, width, height)
 	r = new Rect
 	r.left = left
@@ -125,6 +130,12 @@ Rect.fromPoints = function(p0, p1)
 		r.height = p0.y - p1.y
 	end if
 	return r
+end function
+Rect.offset = function(dx, dy)
+	return Rect.make(self.left + dx, self.bottom + dy, self.width, self.height)
+end function
+Rect.grow = function(dwidth, dheight)
+	return Rect.make(self.left, self.bottom, self.width + dwidth, self.height + dheight)
 end function
 Rect.contains = function(pt)
 	return pt.x >= self.left and pt.x < self.left + self.width and
@@ -301,7 +312,7 @@ alphaSlider.applyValue = function(value)
 	colorWheel.updateColor
 end function
 
-scaleSlider = Slider.make("scaleSlider", 804, 350)
+scaleSlider = Slider.make("scaleSlider", 804, 360)
 scaleSlider.value = function()
 	// Our scale slider has 11 divisions (bracketing sizes from 1 to 12), 10 pixels apart.
 	leftx = self.bgSprite.x - 64
@@ -385,9 +396,10 @@ end function
 // screen layout
 paintArea = Rect.make(160, 10, 64*ps, 64*ps)
 prepareScreen = function()
-	paintArea.fill bkgnd, color.clear
-	paintArea.frame gfx, color.black, 3, -5
+	paintArea.offset(5,5).fill bkgnd, color.clear
+	paintArea.grow(1,1).frame gfx, color.black, 4, -4
 	drawGrid
+	previewArea.draw
 end function
 drawGrid = function()
 	gfx.color = "#88888866"
@@ -407,8 +419,6 @@ drawGrid = function()
 	end for
 end function
 
-prepareScreen
-
 makeTools = function()
 	tools = [
 	["Pencil", kModeDraw], ["Erase", kModeErase], ["Move", kModeMove], ["Select", kModeSelect],
@@ -423,15 +433,15 @@ makeTools = function()
 end function
 makeTools
 
-vSymmetry = Button.make("modeSymmetry", 818, 324, true)
-hSymmetry = Button.make("modeSymmetry", 880, 324, true)
+vSymmetry = Button.make("modeSymmetry", 818, 304, true)
+hSymmetry = Button.make("modeSymmetry", 880, 304, true)
 hSymmetry.iconSprite.rotation = 90
 
 // Find the painting location at the given screen location.
 paintPixelAtXY = function(pos)
 	result = {}
-	result.x = floor((pos.x - paintArea.left) / ps)
-	result.y = floor((pos.y - paintArea.bottom) / ps)
+	result.x = floor((pos.x + fatbits.scrollX) / ps)
+	result.y = floor((pos.y + fatbits.scrollY) / ps)
 	return result
 end function
 
@@ -919,6 +929,7 @@ setupUI.clear = function()
 	text.clear
 	gfx.fillRect 0, 0, 960, 640-26, color.clear
 	spriteDisp.scrollX = 0
+	prepareScreen
 end function
 
 //--------------------------------------------------------------------------------
@@ -983,7 +994,7 @@ OpenFile.loadToEditArea = function()
 	fatbits.clear color.clear, picW, picH
 	fatbits.scale = ps
 	fatbits.drawImage self.image
-	fatbits.scrollX = -paintArea.left; fatbits.scrollY = -paintArea.bottom
+	updatePaintScroll
 end function
 OpenFile.saveToDisk = function()
 	if self == selectedTab then self.saveFromEditArea
@@ -1091,6 +1102,8 @@ switchToTab = function(tab)
 		setupUI.doEvents
 	else
 		setupUI.clear
+		previewArea.prepare tab.image
+		prepareScreen
 		tab.loadToEditArea
 	end if
 end function
@@ -1104,6 +1117,56 @@ addTabForImage = function(img, path)
 	globals.selectedTab = tab
 	layoutTabs; drawTabs
 	switchToTab tab
+end function
+
+//--------------------------------------------------------------------------------
+// PREVIEW/SCROLL AREA
+
+// Here's how this works:
+// 1. Preview area is the full size of the source image, unless that is bigger
+// than 194x220, in which case it caps at that, and shrinks the image down to fit.
+// 2. If the image is bigger than 32x32, then we draw a representation (as a sprite?
+// of the current 32x32 editing area, scaled in the same way as the image.
+// 3. Clicking in the preview moves this editing area around, scrolling fatbits.
+
+previewArea = new Rect
+previewArea.scrollbox = null
+
+previewArea.prepare = function(img)
+	// limit size to at most 194 x 220:
+	self.scale = mathUtil.clamp([194/img.width, 220/img.height].min)
+	self.width = img.width * self.scale
+	self.left = 851 - self.width/2
+	self.height = img.height * self.scale
+	self.bottom = 162 - self.height/2
+	spriteDisp.sprites.removeVal self.scrollbox
+	if img.width > 32 or img.height > 32 then
+		scratch.fillRect 0, 0, 66, 66, color.clear
+		scratch.drawRect 0, 0, 66, 66, color.yellow
+		scratch.drawRect 1, 1, 64, 64, color.black
+		self.scrollbox = new Sprite
+		self.scrollbox.image = scratch.getImage(0, 0, 66, 66)
+		spriteDisp.sprites.push self.scrollbox
+		self.scrollbox.x = self.left + 32
+		self.scrollbox.y = self.bottom + 32
+	end if		
+end function
+
+previewArea.draw = function()
+	previewArea.fill gfx, backdrop.color
+	previewArea.frame gfx, color.black
+	img = selectedTab.image
+	gfx.drawImage img, previewArea.midX - img.width/2, previewArea.midY - img.height/2
+end function
+
+previewArea.handleClick = function()
+	while mouse.button
+		x = mathUtil.clamp(mouse.x - previewArea.left, 32, self.width-32)
+		y = mathUtil.clamp(mouse.y - previewArea.bottom, 32, self.height-32)
+		self.scrollbox.x = self.left + x
+		self.scrollbox.y = self.bottom + y
+		updatePaintScroll
+	end while
 end function
 
 //--------------------------------------------------------------------------------
@@ -1276,11 +1339,14 @@ handleClick = function(justDown)
 		handleTabClick
 		return
 	end if
+	if previewArea.contains(mouse) then return previewArea.handleClick
 	if not paintArea.contains(mouse) then return
 	pp = paintPixelAtXY(mouse)
 	tf = toolFuncs[mode]
 	tf pp, justDown
 	globals.lastPaintPos = pp
+	selectedTab.saveFromEditArea
+	previewArea.draw
 end function
 
 handleKeys = function()
@@ -1303,7 +1369,7 @@ while true
 	pp = paintPixelAtXY(mouse)
 	gfx.fillRect 860, 0, 100, 20, color.clear
 	brushSprite.x = -9999
-	if pp.x >= 0 and pp.y >= 0 and pp.x < picW and pp.y < picH then
+	if pp.x >= 0 and pp.y >= 0 and pp.x < 64 and pp.y < 64 then
 		gfx.print pp.x + "," + pp.y, 860, 3, color.gray, "small"
 		if modesWithSize.contains(mode) then
 			brushSprite.x = paintArea.left + pp.x * ps + 4.5 * (brushSize % 2)
