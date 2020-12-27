@@ -397,7 +397,7 @@ end function
 
 //---------------------------------------------------------------------
 // screen layout
-paintArea = Rect.make(160, 10, 64*ps, 64*ps)
+paintArea = Rect.make(180, 10, 64*ps, 64*ps)
 prepareScreen = function()
 	paintArea.offset(5,5).fill bkgnd, color.clear
 	paintArea.grow(1,1).frame gfx, color.black, 4, -4
@@ -462,9 +462,13 @@ end function
 // Get all symmetry versions of the given paint position, as a list.
 symmetries = function(pp)
 	result = [pp]
-	if vSymmetry.isDown then result.push {"x":picW - pp.x, "y":pp.y}
-	if hSymmetry.isDown then result.push {"x":pp.x, "y":picH - pp.y}
-	if vSymmetry.isDown and hSymmetry.isDown then result.push {"x":picW - pp.x, "y":picH - pp.y}
+	// Careful: some tools need an extra offset in the reflected quadrants, while
+	// others (depending on the brush size) do not.
+	xtra = 1
+	if modesWithSize.contains(mode) and brushSize%2 == 0 then xtra = 0
+	if vSymmetry.isDown then result.push {"x":picW - pp.x - xtra, "y":pp.y}
+	if hSymmetry.isDown then result.push {"x":pp.x, "y":picH - pp.y - xtra}
+	if vSymmetry.isDown and hSymmetry.isDown then result.push {"x":picW-pp.x-xtra, "y":picH-pp.y-xtra}
 	return result
 end function
 
@@ -492,8 +496,9 @@ drawSelection = function()
 		drawGrid
 	else
 		if time % 1 > 0.9 then gfx.color = color.black else gfx.color = "#FF00FF"
-		gfx.drawRect paintArea.left + selection.left*ps, paintArea.bottom + selection.bottom*ps,
-		  selection.width * ps + 1, selection.height * ps + 1
+		left = xAtPaintPixel({"x":selection.left}) - floor(ps/2)
+		botm = yAtPaintPixel({"y":selection.bottom}) - floor(ps/2)
+		gfx.drawRect left, botm, selection.width * ps + 1, selection.height * ps + 1
 	end if
 end function
 
@@ -572,7 +577,9 @@ toolFuncs[kModePaint] = function(pp, justDown)
 		if brushSize == 1 then
 			fatbits.setPixel pos.x, pos.y, foreColor
 		else
-			fatbits.fillEllipse ceil(pos.x - brushSize/2), ceil(pos.y - brushSize/2), brushSize, brushSize, foreColor
+			x = ceil(pos.x - brushSize/2)
+			y = ceil(pos.y - brushSize/2)
+			fatbits.fillEllipse x, y, brushSize, brushSize, foreColor
 		end if
 	end for
 end function
@@ -1060,6 +1067,7 @@ selectedTab = tabs[0]
 drawTabs = function()
 	h = 26
 	gfx.fillRect 0, 640-h, 960, h, "#929292"
+	gfx.line 0, 640-h, 960, 640-h, color.black, 2
 	for t in tabs
 		if t == selectedTab then break
 		drawTab t.tabX, t.tabWidth, t.tabTitle, false
@@ -1068,7 +1076,7 @@ drawTabs = function()
 		t = tabs[i]
 		drawTab t.tabX, t.tabWidth, t.tabTitle, t == selectedTab
 		if t == selectedTab then break
-	end for 
+	end for
 end function
 
 updateTabs = function()
