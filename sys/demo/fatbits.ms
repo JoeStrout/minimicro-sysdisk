@@ -89,8 +89,11 @@ end function
 
 
 updatePaintScroll = function()
-	fatbits.scrollX = (previewArea.scrollbox.x-32 - previewArea.left) * fatbits.scale - paintArea.left
-	fatbits.scrollY = (previewArea.scrollbox.y-32 - previewArea.bottom) * fatbits.scale - paintArea.bottom
+	hsz = 32 * previewArea.scale  // (half scrollbox size)
+	fatbits.scrollX = (previewArea.scrollbox.x-hsz - previewArea.left) / 
+		previewArea.scale * fatbits.scale - paintArea.left
+	fatbits.scrollY = (previewArea.scrollbox.y-hsz - previewArea.bottom) /
+		previewArea.scale * fatbits.scale - paintArea.bottom
 end function
 
 //---------------------------------------------------------------------
@@ -445,6 +448,12 @@ paintPixelAtXY = function(pos)
 	return result
 end function
 
+// Find the X and Y screen locations for a given painting location.
+// (Inverse of paintPixelAtXY, above.)  This returns the CENTER of
+// the given fat pixel.
+xAtPaintPixel = function(pp); return (pp.x + 0.5) * ps - fatbits.scrollX; end function
+yAtPaintPixel = function(pp); return (pp.y + 0.5) * ps - fatbits.scrollY; end function
+
 // Set one pixel in our painting to a specific color.
 setPaintPixel = function(pos, c="#000000")
 	fatbits.setPixel pos.x, pos.y, c
@@ -532,19 +541,17 @@ end function
 toolFuncs = {}
 
 toolFuncs[kModeMove] = function(pp, justDown)
-	if justDown then return
-	// We currently have this shifting the data within the picture.
-	// Should we instead have it simply scroll the view?  
-	dx = pp.x - lastPaintPos.x
-	dy = pp.y - lastPaintPos.y
-	if dx == 0 and dy == 0 then return
-	pic = fatbits.getImage(0, 0, picW, picH)
-	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
-	if dx > 0 then
-		fatbits.drawImage pic.getImage(0, 0, picW-dx, picH), dx, 0
-	else if dx < 0 then
-		fatbits.drawImage pic.getImage(-dx, 0, picW+dx, picH)
+	if justDown then
+		globals.startPaintPos = pp
+		globals.startPaintImg = fatbits.getImage(0, 0, picW, picH)
+		return
 	end if
+	// Shift the data within the picture.
+	dx = pp.x - startPaintPos.x
+	dy = pp.y - startPaintPos.y
+	fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
+	fatbits.drawImage startPaintImg.getImage(-dx * (dx<0), -dy * (dy<0), 
+		picW-abs(dx), picH-abs(dy)), dx * (dx>0), dy * (dy>0)
 end function
 
 toolFuncs[kModeDraw] = function(pp, justDown)
@@ -1125,44 +1132,51 @@ end function
 // Here's how this works:
 // 1. Preview area is the full size of the source image, unless that is bigger
 // than 194x220, in which case it caps at that, and shrinks the image down to fit.
-// 2. If the image is bigger than 32x32, then we draw a representation (as a sprite?
-// of the current 32x32 editing area, scaled in the same way as the image.
+// 2. If the image is bigger than 64x64, then we draw a representation (as a sprite?
+// of the current 64x64 editing area, scaled in the same way as the image.
 // 3. Clicking in the preview moves this editing area around, scrolling fatbits.
 
 previewArea = new Rect
 previewArea.scrollbox = null
 
 previewArea.prepare = function(img)
-	// limit size to at most 194 x 220:
+	// limit preview area size to at most 194 x 220:
 	self.scale = mathUtil.clamp([194/img.width, 220/img.height].min)
 	self.width = img.width * self.scale
 	self.left = 851 - self.width/2
 	self.height = img.height * self.scale
 	self.bottom = 162 - self.height/2
+	// update scrollbox (indicating currently viewable part of the image)
 	spriteDisp.sprites.removeVal self.scrollbox
-	if img.width > 32 or img.height > 32 then
-		scratch.fillRect 0, 0, 66, 66, color.clear
-		scratch.drawRect 0, 0, 66, 66, color.yellow
-		scratch.drawRect 1, 1, 64, 64, color.black
-		self.scrollbox = new Sprite
-		self.scrollbox.image = scratch.getImage(0, 0, 66, 66)
+	self.scrollbox = new Sprite
+	if img.width > 64 or img.height > 64 then
+		sz = 64 * self.scale
+		scratch.fillRect 0, 0, sz + 2, sz + 2, color.clear
+		scratch.drawRect 0, 0, sz + 2, sz + 2, color.yellow
+		scratch.drawRect 1, 1, sz, sz, color.black
+		self.scrollbox.image = scratch.getImage(0, 0, sz+2, sz+2)
 		spriteDisp.sprites.push self.scrollbox
-		self.scrollbox.x = self.left + 32
-		self.scrollbox.y = self.bottom + 32
-	end if		
+		self.scrollbox.x = self.left + sz/2
+		self.scrollbox.y = self.bottom + sz/2
+	end if
+	if img.width <= 64 then self.scrollbox.x = self.midX
+	if img.height <= 64 then self.scrollbox.y = self.midY
 end function
 
 previewArea.draw = function()
 	previewArea.fill gfx, backdrop.color
 	previewArea.frame gfx, color.black
 	img = selectedTab.image
-	gfx.drawImage img, previewArea.midX - img.width/2, previewArea.midY - img.height/2
+	gfx.drawImage img, previewArea.midX - img.width*self.scale/2, 
+		previewArea.midY - img.height*self.scale/2,
+		img.width * self.scale, img.height * self.scale//, 0, 0, img.width, img.height
 end function
 
 previewArea.handleClick = function()
+	hsz = 32 * self.scale  // (half the size of our scrollbox)
 	while mouse.button
-		x = mathUtil.clamp(mouse.x - previewArea.left, 32, self.width-32)
-		y = mathUtil.clamp(mouse.y - previewArea.bottom, 32, self.height-32)
+		x = mathUtil.clamp(mouse.x - previewArea.left, hsz, self.width-hsz)
+		y = mathUtil.clamp(mouse.y - previewArea.bottom, hsz, self.height-hsz)
 		self.scrollbox.x = self.left + x
 		self.scrollbox.y = self.bottom + y
 		updatePaintScroll
@@ -1323,7 +1337,8 @@ makeDefaultPalette
 //--------------------------------------------------------------------------------
 // MAIN PROGRAM
 
-lastPaintPos = null
+startPaintPos = null
+startPaintImg = null
 lightnessSlider.set 1
 alphaSlider.set 1
 colorWheel.updateColor
@@ -1344,7 +1359,6 @@ handleClick = function(justDown)
 	pp = paintPixelAtXY(mouse)
 	tf = toolFuncs[mode]
 	tf pp, justDown
-	globals.lastPaintPos = pp
 	selectedTab.saveFromEditArea
 	previewArea.draw
 end function
@@ -1372,8 +1386,8 @@ while true
 	if pp.x >= 0 and pp.y >= 0 and pp.x < 64 and pp.y < 64 then
 		gfx.print pp.x + "," + pp.y, 860, 3, color.gray, "small"
 		if modesWithSize.contains(mode) then
-			brushSprite.x = paintArea.left + pp.x * ps + 4.5 * (brushSize % 2)
-			brushSprite.y = paintArea.bottom + pp.y * ps + 4.5 * (brushSize % 2)
+			brushSprite.x = xAtPaintPixel(pp) - (not brushSize%2)*ps/2
+			brushSprite.y = yAtPaintPixel(pp) - (not brushSize%2)*ps/2
 		end if
 	end if
 	if mode == kModePasting then updatePaste pp
