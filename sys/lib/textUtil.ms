@@ -85,11 +85,27 @@ printCenteredAt = function(column, row, s)
 	printAt column - s.len/2, row, s
 end function
 
-// Clear from the current cursor position to the end of the line
-// (by filling the rest of the line with spaces).
-clearToEOL = function()
-	for col in range(text.column, 68)
-		text.setCell col, text.row, " "
+// clearToEOL: Clear from the current cursor position to the end of the line
+// (by filling the rest of the line with spaces, or whatever character you specify).
+// Also applies default foreground and background colors.
+clearToEOL = function(character=" ")
+	cols = range(text.column, 67)
+	text.setCell cols, text.row, character
+	text.setCellColor cols, text.row, text.color
+	text.setCellBackColor cols, text.row, text.backColor
+end function
+
+// clearRow: Clear the entirety of the given row by filling it with spaces
+// (or whatever character you specify).
+// Also applies default foreground and background colors.
+clearRow = function(row=null, character=" ")
+	if row == null then row = text.row
+	if not row isa list then row = [row]
+	allCols = range(0, 67)
+	for r in row
+		text.setCell allCols, r, character
+		text.setCellColor allCols, r, text.color
+		text.setCellBackColor allCols, r, text.backColor
 	end for
 end function
 
@@ -226,29 +242,33 @@ Dialog.show = function(timeout=null)
 	priorTextColor = text.color
 	priorBgColor = text.backColor
 	priorDelim = text.delimiter
+
+	rows = range(12 - floor(self.height/2), 11 + ceil(self.height/2))
+	cols = range(34 - floor(self.width/2), 33 + ceil(self.width/2))
 	
 	text.delimiter = char(13)
-	text.row = 12 + self.height/2
+	text.row = 12 + ceil(self.height/2)
 	x = 34 - self.width/2
 	
 	// draw title
 	text.color = self.textColor
 	text.backColor = self.titleColor
 	spacesNeeded = self.width - self.title.len
-	text.column = x
+	text.row = rows[-1] + 1; text.column = cols[0]
 	print " " * floor(spacesNeeded/2) + self.title + " " * ceil(spacesNeeded/2)
 	
-	// draw box, including message and extra rows for the buttons
+	// draw box and message
+	text.setCell cols, rows, " "
+	text.setCellBackColor cols, rows, self.backColor
 	text.backColor = self.backColor
-	text.column = x; print " " * self.width
+	text.row = rows[-2]
 	for line in self.msgLines
-		text.column = x; print "  " + line.pad(self.width-2)
+		text.column = cols[2]; print line
 	end for
-	for i in range(1,3); text.column = x; print " " * self.width; end for
 	
 	// draw buttons
-	btnRow = text.row + 2
-	btnX = x + self.width - 2
+	btnRow = rows[1]
+	btnX = cols[-1] - 1
 	buttons = [self.okBtn, self.altBtn, self.cancelBtn]
 	for btn in buttons
 		if not btn.visible then continue

@@ -854,17 +854,15 @@ setupUI.drawButtons = function()
 end function
 
 setupUI.doEvents = function()
-	while self.state != kDone
-		self.draw
-		if self.buttons then
-			while not mouse.button; end while
-			for btn in self.buttons
-				if not btn.contains(mouse) then continue
-				if btn.trackHit then self.state = btn.nextState
-			end for
-		end if
-	end while
-	self.clear
+	if self.buttons and mouse.button and mouse.y < 640-26 then
+		for btn in self.buttons
+			if not btn.contains(mouse) then continue
+			if btn.trackHit then
+				self.state = btn.nextState
+				self.draw
+			end if
+		end for
+	end if
 end function
 
 setupUI.inputAt = function(column, row, prompt)
@@ -879,10 +877,9 @@ setupUI.draw = function()
 	text.color = "#333333"
 	text.backColor = "#929292"
 	text.delimiter = ""
-	for row in range(0,23)
-		text.row = row
-		text.print " " * 68
-	end for
+	text.column = 0
+	text.clear
+	text.setCellBackColor range(0,67),25, color.clear
 	gfx.fillRect 0, 0, 960, 640-26, text.backColor
 	spriteDisp.scrollX = 9999
 	self.buttons = []
@@ -916,6 +913,7 @@ setupUI.draw = function()
 		if err then
 			textUtil.Dialog.make("Unable to Save File", err).show
 			self.state = kStart
+			self.draw
 		else
 			addTabForImage self.img, self.path
 			self.state = kDone
@@ -929,6 +927,7 @@ setupUI.draw = function()
 		if self.img == null then
 			textUtil.Dialog.make("Unable to Open File", "Invalid path:" + char(13) + self.path).show
 			self.state = kStart
+			self.draw
 		else
 			addTabForImage self.img, self.path
 			self.state = kDone
@@ -943,7 +942,6 @@ setupUI.clear = function()
 	text.clear
 	gfx.fillRect 0, 0, 960, 640-26, color.clear
 	spriteDisp.scrollX = 0
-	prepareScreen
 end function
 
 //--------------------------------------------------------------------------------
@@ -1114,7 +1112,7 @@ end function
 switchToTab = function(tab)
 	if tab == specialNewTabTab then
 		setupUI.state = kStart
-		setupUI.doEvents
+		setupUI.draw
 	else
 		setupUI.clear
 		previewArea.prepare tab.image
@@ -1172,6 +1170,7 @@ previewArea.prepare = function(img)
 end function
 
 previewArea.draw = function()
+	if not self.hasIndex("scale") then; print "WTF?"; exit; end if
 	previewArea.fill gfx, backdrop.color
 	previewArea.frame gfx, color.black
 	img = selectedTab.image
@@ -1355,7 +1354,7 @@ setMode kModeDraw
 layoutTabs
 drawTabs
 
-setupUI.doEvents
+setupUI.draw
 
 handleClick = function(justDown)
 	if mouse.y > 640-26 then
@@ -1388,6 +1387,14 @@ end function
 
 mouseWasDown = mouse.button
 while true
+	yield
+	updateTabs
+	if selectedTab == specialNewTabTab then
+		setupUI.doEvents
+		if mouse.button and mouse.y > 640-26 then handleTabClick
+		continue
+	end if
+	
 	pp = paintPixelAtXY(mouse)
 	gfx.fillRect 860, 0, 100, 20, color.clear
 	brushSprite.x = -9999
@@ -1406,7 +1413,6 @@ while true
 	for s in Slider.instances; s.checkEvents; end for
 	PalButton.checkEventsForAll
 	colorWheel.checkEvents
-	updateTabs
 	
 	// then, update usage of tools (e.g. painting)
 	mouseIsDown = mouse.button
@@ -1414,5 +1420,4 @@ while true
 	mouseWasDown = mouseIsDown
 	if key.available then handleKeys
 	if selection != null then drawSelection
-	yield
 end while
