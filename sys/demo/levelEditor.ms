@@ -116,9 +116,9 @@ loadExisting = function()
 		if info.isDirectory then
 			print "Invalid path (that's a directory, not a file)." + EOL
 			continue
-		end if
-		print "Got info: " + info
-		globals.layoutFilePath = path		
+		end if		
+		globals.layoutFilePath = path
+		break
 	end while
 	tileUtil.loadFromFile layoutFilePath, tiles
 end function

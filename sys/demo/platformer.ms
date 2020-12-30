@@ -30,7 +30,8 @@ grid = tileUtil.sizeToXY(tiles.cellSize)
 
 // Define special tile types
 ladders = [49, 63, 64, 65, 66]
-passableTiles = [null, 48, 49, 62]
+passableGround = [null, 48, 49, 62]  // things you can fall through
+solid = [0, 1, 2, 4, 12, 13, 15, 16, 28, 40, 52]
 
 // Create the player character (kip), derived from
 // the spriteControllers.Platformer class (which 
@@ -57,7 +58,7 @@ kip.groundBelow = function(x,y)
 	while true
 		if row < 0 then return 0
 		tile = tiles.cell(col, row)
-		if passableTiles.indexOf(tile) == null then return (row+1) * grid.y
+		if passableGround.indexOf(tile) == null then return (row+1) * grid.y
 		row = row - 1
 	end while
 end function
@@ -73,6 +74,49 @@ kip.canClimb = function(dir)
 	return true
 end function
 
+// adjust kip's X position to avoid penetrating walls or stage bounds
+kip.checkLeftRight = function()
+	if self.x < 20 then
+		self.x = 20
+		return
+	end if
+	if self.vy > 0 then return
+	y = self.y
+	row = floor(y / grid.y)
+	
+	col = floor((self.x + 20) / grid.x)
+	tile = tiles.cell(col, row)
+	if solid.indexOf(tile) != null then
+		// not passable to the right; shift left
+		self.x = col * grid.x - 20
+		if self.vx > 0 then self.vx = 0
+		return
+	end if		
+	col = floor((self.x - 20) / grid.x)
+	tile = tiles.cell(col, row)
+	if solid.indexOf(tile) != null then
+		// not passable to the left; shift right
+		self.x = (col+1) * grid.x + 20
+		if self.vx < 0 then self.vx = 0
+		return
+	end if		
+end function
+
+// make sure we're not hitting our head, and if we are, move down
+kip.checkAbove = function()
+	if self.vy <= 0 then return
+	col = floor(self.x / grid.x)
+	row = floor((self.y + 20) / grid.y)
+	tile = tiles.cell(col, row)
+	if solid.indexOf(tile) != null then
+		// not passable above; shift down
+		sounds.land.play
+		self.y = row * grid.y - 20
+		self.vy = 0
+		return
+	end if
+end function
+	
 // code run (automatically by spriteControllers.Platformer)
 // when our hero enters a new state; we use this to play
 // appropriate sounds when we jump or land.
@@ -89,6 +133,12 @@ kip.enterState = function(newState)
 	// but that super class enterState does some important stuff,
 	// so we need to call it now:
 	super.enterState newState
+end function
+
+kip.updateState = function(dt)
+	super.updateState dt
+	self.checkAbove
+	self.checkLeftRight
 end function
 
 // Define the area of the screen which we keep Kip in
