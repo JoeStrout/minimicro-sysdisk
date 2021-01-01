@@ -403,6 +403,7 @@ prepareScreen = function()
 	paintArea.grow(1,1).frame gfx, color.black, 4, -4
 	drawGrid
 	previewArea.draw
+	gfx.print "press ? for help", 955 - 16*9, 640-18, color.silver, "small"
 end function
 drawGrid = function()
 	gfx.color = "#88888866"
@@ -1370,6 +1371,19 @@ handleClick = function(justDown)
 	previewArea.draw
 end function
 
+showHelp = function()
+	lines = []
+	lines.push "Alt - Color Picker      "
+	lines.push "X - Cut                 "
+	lines.push "C - Copy                "
+	lines.push "V - Paste               "
+	lines.push "Backspace/Delete - Clear"
+	lines.push "S - Save                "
+	lines.push "Q - Quit                "
+	d = textUtil.Dialog.make("Keyboard Shortcuts", lines.join(char(13)))
+	d.show
+end function
+
 handleKeys = function()
 	if not key.available then return
 	k = key.get.lower
@@ -1380,8 +1394,16 @@ handleKeys = function()
 		copy
 		deleteSelection
 	end if
-	if k == "s" then
-		if selectedTab isa OpenFile then selectedTab.saveToDisk
+	if k == "s" and selectedTab isa OpenFile then selectedTab.saveToDisk
+	if k == "?" or k == "/" then showHelp
+	if k == "q" then
+		d = textUtil.Dialog.make("Quit fatbits?", "Are you sure you want to quit?")
+		d.okBtn.caption = "Quit"
+		d.cancelBtn.visible = true
+		if d.show.caption == "Quit" then
+			clear
+			exit
+		end if
 	end if
 end function
 
@@ -1398,8 +1420,8 @@ while true
 	pp = paintPixelAtXY(mouse)
 	gfx.fillRect 860, 0, 100, 20, color.clear
 	brushSprite.x = -9999
-	if pp.x >= 0 and pp.y >= 0 and pp.x < 64 and pp.y < 64 then
-		gfx.print pp.x + "," + pp.y, 860, 3, color.gray, "small"
+	if pp.x >= 0 and pp.y >= 0 and pp.x < picW and pp.y < picH then
+		gfx.print pp.x + "," + pp.y, 860, 3, color.silver, "small"
 		if modesWithSize.contains(mode) then
 			brushSprite.x = xAtPaintPixel(pp) - (not brushSize%2)*ps/2
 			brushSprite.y = yAtPaintPixel(pp) - (not brushSize%2)*ps/2

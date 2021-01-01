@@ -8,7 +8,8 @@
 // Or leave it null, and we'll configure display 0 to do the job.
 errDisplay = null
 
-
+// prepareErrDisplay is used internally to prepare the default error display.
+// You probably won't ever need to call this.
 prepareErrDisplay = function()
 	display(0).mode = displayMode.text
 	display(0).backColor = "#00000088"
