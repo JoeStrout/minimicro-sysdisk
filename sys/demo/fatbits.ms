@@ -4,6 +4,7 @@ import "listUtil"
 import "colorUtil"
 import "textUtil"
 import "mathUtil"
+import "qa"
 
 // Constants and global state variables
 kModeDraw = "DRAW"
@@ -29,7 +30,7 @@ backColor = "#00000000"
 ps = 9	// "pixel size" (forgive the short name, but we use this a lot)
 picW = 64
 picH = 64
-resourceDir = "/usr/data/fatbits/"  // ToDo: FIX THIS!!!
+resourceDir = "/sys/data/fatbits/"
 
 // Prepare displays
 // text: display 1
@@ -82,6 +83,7 @@ brushRowWidths = [null, [1], [2,2], [3,3,3], [2,4,4,2], [3,5,5,5,3], [4,6,6,6,6,
 
 // Helper methods we probably should have in a utils module somewhere
 Sprite.addBounds = function(inset=0)
+	qa.assert self.image != null, "Sprite image is null"
 	self.localBounds = new Bounds
 	self.localBounds.width = self.image.width - inset*2
 	self.localBounds.height = self.image.height - inset*2
@@ -237,7 +239,9 @@ Slider = {}
 Slider.instances = []
 Slider.init = function(imgName, left, bottom)
 	self.bgSprite = new Sprite
-	self.bgSprite.image = file.loadImage(resourceDir + imgName + ".png")
+	path = resourceDir + imgName + ".png"
+	self.bgSprite.image = file.loadImage(path)
+	qa.assert self.bgSprite.image != null, "unable to locate " + path
 	self.bgSprite.addBounds
 	self.bgSprite.x = left + self.bgSprite.image.width/2
 	self.bgSprite.y = bottom + self.bgSprite.image.height/2
