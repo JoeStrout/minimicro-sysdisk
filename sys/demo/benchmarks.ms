@@ -86,7 +86,7 @@ semiprime = function()
 		showProgress i/1000
 	end for
 end function
-addOption @semiprime, "Semiprime (math, looping)", 2.260
+addOption @semiprime, "Semiprime (math, looping)", 0.459
 
 //----------------------------------------------------------------------
 pixelDrawing = function()
@@ -110,7 +110,7 @@ pixelDrawing = function()
 		end for
 	end for
 end function
-addOption @pixelDrawing, "Misc. Drawing", 1.05
+addOption @pixelDrawing, "Misc. Drawing", 0.292
 
 //----------------------------------------------------------------------
 jsonParse = function()
@@ -121,7 +121,7 @@ jsonParse = function()
 	showProgress 1
 	yield
 end function
-addOption @jsonParse, "JSON Parsing", 3.0
+addOption @jsonParse, "JSON Parsing", 0.531
 
 //----------------------------------------------------------------------
 jsonGeneration = function()
@@ -136,7 +136,7 @@ jsonGeneration = function()
 	showProgress 1
 	yield
 end function
-addOption @jsonGeneration, "JSON Generation", 3.291
+addOption @jsonGeneration, "JSON Generation", 0.706
 
 //----------------------------------------------------------------------
 carpet = function()
@@ -159,7 +159,7 @@ carpet = function()
 		showProgress x/96
 	end for
 end function
-addOption @carpet, "Carpet (xor, setPixel, color.rgb)", 4.303
+addOption @carpet, "Carpet (xor, setPixel, color.rgb)", 0.915
 
 //----------------------------------------------------------------------
 raceSim = function()
@@ -207,7 +207,7 @@ raceSim = function()
 		showProgress i/100
 	end for
 end function
-addOption @raceSim, "Race Sim (lists, randNormal)", 5.406
+addOption @raceSim, "Race Sim (lists, randNormal)", 1.043
 
 //----------------------------------------------------------------------
 

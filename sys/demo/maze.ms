@@ -15,6 +15,8 @@ tiles.tileSetTileSize = tiles.tileSet.width/16
 tiles.cellSize = tiles.tileSetTileSize/2
 tiles.extent = [960/tiles.cellSize, 640/tiles.cellSize]
 tiles.clear null
+tiles.scrollX = 0
+tiles.scrollY = 0
 tiles.overlap = 0
 
 // Wang tiles are selected by solid/empty CORNERS, not cells.

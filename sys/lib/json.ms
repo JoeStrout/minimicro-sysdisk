@@ -117,8 +117,7 @@ end function
 whitespace = " " + char(9) + char(10) + char(13)
 Parser._skipWhitespace = function()
 	while self._p < self._sourceLen
-		c = self.source[self._p]
-		if whitespace.indexOf(c) == null then break
+		if whitespace.indexOf(self.source[self._p]) == null then break
 		self._p = self._p + 1
 	end while
 end function

@@ -211,7 +211,7 @@ view = function(path)
 	end if
 	if path[-4:] == ".png" or path[-4:] == ".jpg" or path[-5:] == ".jpeg" then
 		_viewImage file.loadImage(path)
-	else if path[-4:] == ".txt" or path[-3:] == ".ms" or path[-4:] == ".tsv" or path[-5:] == ".json" then
+	else if path[-4:] == ".txt" or path[-3:] == ".ms" or path[-4:] == ".tsv" or path[-5:] == ".json" or path[-3:] == ".md" then
 		// View a text file or MiniScript source file
 		lines = file.readLines(path)
 		if lines isa string then
@@ -250,7 +250,7 @@ load = function(path)
 	end if
 	if path[-3:] != ".ms" then path = path + ".ms"
 	if path[0] != "/" then path = file.child(file.curdir, path)
-	lines = _fileReadLines(path)
+	lines = file.readLines(path)
 	if lines == null then
 		print "Unable to read " + path
 	else
@@ -269,10 +269,13 @@ save = function(path)
 	end if
 	if path[-3:] != ".ms" then path = path + ".ms"
 	if path[0] != "/" then path = file.child(file.curdir, path)
-	_fileWrite(path, _source)
-	globals._sourceFile = path
-	print _source.len + " line" + ("s" * (_source.len != 1)) + " saved to " + path
-	return null
+	err = file.writeLines(path, _source)
+	if err == null then
+		globals._sourceFile = path
+		print _source.len + " line" + ("s" * (_source.len != 1)) + " saved to " + path
+	else
+		return err
+	end if
 end function
 
 source = function(fromLine=0, toLine=-1)
