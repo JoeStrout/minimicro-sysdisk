@@ -178,28 +178,26 @@ fire = function()
 	end for
 	hitSnd.play 0.2, target.pan
 	target.die
+	// increase score
 	globals.score = score + target.text.len
+	// with 10% probability, increase the maximum word length (up to 8)
+	if rnd < 0.1 and maxWordLen < 8 then globals.maxWordLen = maxWordLen + 1
 end function
 
 // Prepare the list of words we can spawn
-wordList = []
-addWords = function(words)
-	for w in words.split
-		wordList.push w
-	end for
-end function
-addWords "apple mini test scooter ball toast trick top eating"
-addWords "the this that other there some than would first have"
-addWords "each make water from which like been call into time"
-addWords "with they word what were when your which their about"
-addWords "many these number more write people come down find"
-addWords "for while if then break new end function not yield print"
+wordList = file.readLines("/sys/data/englishWords.txt")
+maxWordLen = 5
 
 // Now prepare the list of target (spawned) Words, and a spawn function
 targets = []
 spawnNewWord = function()
+	// pick a word less than our max word length
+	s = ""
+	while not s or s.len > maxWordLen
+		s = wordList[wordList.len * rnd]
+	end while
 	w = new Word
-	w.init wordList[wordList.len * rnd]
+	w.init s
 	targets.push w
 end function
 
@@ -221,7 +219,7 @@ while not done
 	yield
 end while
 
-text.row = 0
+text.row = 5
 text.color = normalTextColor
 wait 1
 print

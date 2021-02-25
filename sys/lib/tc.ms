@@ -84,8 +84,9 @@ end function
 
 // misc. aliases
 cls = @clear
-π = pi
 tau = 2 * pi
+π = pi		// (don't know how to type these?  Copy & paste!)
+τ = tau
 c = @char
 t = @time
 g = function(); return gfx; end function

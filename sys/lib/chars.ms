@@ -38,6 +38,7 @@ figureAkimbo = char(57875)
 // Some misc. glyphs:
 mu = char(181)
 pi = char(960)
+tau = char(964)
 bullet = char(8226)
 tree = char(57888)
 ellipsis = char(8230)
@@ -99,7 +100,7 @@ if locals == globals then
 	printAlign "figureWaitingToeDown", figureWaitingToeDown
 	printAlign "figureWaitingToeUp", figureWaitingToeUp
 	printAlign "figureAkimbo", figureAkimbo
-	printAlign "mu, pi", mu + " " + pi
+	printAlign "mu, pi, tau", mu + " " + pi + " " + tau
 	printAlign "bullet, ellipsis", bullet + " " + ellipsis
 	printAlign "tree", tree
 	printAlign "emptyBox", emptyBox

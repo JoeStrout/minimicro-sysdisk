@@ -316,6 +316,7 @@ _restoreGlobals = function()
 end function
 
 reset = function()
+	Sound.stopAll
 	globals._source = []
 	globals._sourceFile = null
 	_restoreGlobals

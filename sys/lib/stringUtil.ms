@@ -215,6 +215,50 @@ string.rot13 = function()
 	return self.cipher(rot13map)
 end function
 
+// editDistance: return the Levenshtein distance, aka the edit 
+// distance, between the two strings.  That's the number of 
+// insertions, deletions, or changes required to make one string
+// match the other.  A result of 0 means the strings are
+// identical; higher values mean more different.
+string.editDistance = function(s2)
+	n = self.len
+	m = s2.len
+	if n == 0 then return m
+	if m == 0 then return n
+	
+	s1chars = self.split("")
+	s2chars = s2.split("")
+	d = range(0, m)	
+	lastCost = 0
+	
+	for i in range(1, n)
+		s1char = s1chars[i-1]
+		lastCost = i
+		jMinus1 = 0
+		for j in range(1, m)
+			if s1char == s2chars[jMinus1] then cost = 0 else cost = 1
+			
+			// set nextCost to the minimum of the following three possibilities:
+			a = d[j] + 1
+			b = lastCost + 1
+			c = cost + d[jMinus1]
+			
+			if a < b then
+				if c < a then nextCost = c else nextCost = a
+			else
+				if c < b then nextCost = c else nextCost = b
+			end if
+			
+			d[jMinus1] = lastCost
+			lastCost = nextCost
+			jMinus1 = j
+		end for
+		d[m] = lastCost
+	end for
+	
+	return nextCost
+end function
+
 runUnitTests = function()
 	print "Unit testing: stringUtil"
 	
@@ -283,6 +327,13 @@ runUnitTests = function()
 	assertEqual "".wrap(24), [""]
 	assertEqual "Now is the time for all good folks to come together".wrap(24),
 		["Now is the time for all", "good folks to come", "together"]
+	
+	assertEqual "Foo".editDistance(""), 3
+	assertEqual "".editDistance("Foo"), 3
+	assertEqual "Foo".editDistance("FOO"), 2
+	assertEqual "FOO".editDistance("Foo"), 2
+	assertEqual "Foobar".editDistance("Boobear"), 2
+	assertEqual "Boobear".editDistance("Foobar"), 2
 	
 	if errorCount == 0 then
 		print "All tests passed.  Yay!"
