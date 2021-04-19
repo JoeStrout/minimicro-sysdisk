@@ -785,11 +785,13 @@ update = function()
 			// clicked the original selection again; undo it
 			enterState kStateSelectingAttacker
 		else if clicked.owner == curPlayer then
-			// clicked a different cell of the current player;
-			// select that instead
-			attackingCell.setSelected false
-			clicked.setSelected
-			globals.attackingCell = clicked
+			if clicked.soldiers > 0 then
+				// clicked a different cell of the current player;
+				// select that instead
+				attackingCell.setSelected false
+				clicked.setSelected
+				globals.attackingCell = clicked
+			end if
 		else if isNeighboring(attackingCell, clicked) then
 			// attack!
 			globals.defendingCell = clicked

@@ -252,6 +252,16 @@ randRange = function(min, max)
 	return min + (max - min) * rnd
 end function
 
+// dice: return the sum of rolling some number of dice.
+// For example, dice(3,6) simulates rolling three 6-sided dice.
+dice = function(numberOfDice=1, sides=6)
+	sum = 0
+	for i in range(1, numberOfDice)
+		sum = sum + ceil(rnd * sides)
+	end for
+	return sum
+end function
+
 // clamp: limits the given value to a specified range.
 clamp = function(x, minval=0, maxval=1)
 	if x < minval then return minval
