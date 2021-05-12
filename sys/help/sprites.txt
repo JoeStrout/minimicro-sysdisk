@@ -17,5 +17,5 @@ rotate.  To use them you must:
 `disp.sprites.push sp`     // add sprite to display
 `sp.x = 480`               // set horizontal position
 `sp.y = 320`               // set vertical position
-`sp.rot = 45`              // set rotation, in degrees
+`sp.rotation = 45`         // set rotation, in degrees
 `sp.scale = 0.5`           // set scale
