@@ -9,7 +9,7 @@ import "stringUtil"
 import "listUtil"
 import "mapUtil"
 import "mathUtil"
-
+import "qa"
 
 // oneTo: shortcut for range(1, count)
 oneTo = function(count)
@@ -132,8 +132,8 @@ spr = function(nameOrURL, x=480, y=320)
 	end if
 	s.x = x
 	s.y = y
-	sd.sprites.push spr
-	return spr
+	sd.sprites.push s
+	return s
 end function
 
 

@@ -33,7 +33,7 @@ newAnimation = function(frameList, fps=10)
 	return noob
 end function
 
-// Important: do NOT share an animation between multiply sprites!  Each
+// Important: do NOT share an animation between multiple sprites!  Each
 // animation object maintains its own state.  So you must make a fresh
 // clone for each sprite that uses it.
 Animation.clone = function()
