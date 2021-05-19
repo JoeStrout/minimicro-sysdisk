@@ -4,31 +4,35 @@
 // code: assert conditions that you think should always be true, or otherwise
 // check your assumptions and report when they fail.
 
-// errDisplay: assign a TextDisplay to this, and it will be used to report errors.
-// Or leave it null, and we'll configure display 0 to do the job.
+_prevMode = 0
+
 errDisplay = null
 
 // prepareErrDisplay is used internally to prepare the default error display.
 // You probably won't ever need to call this.
 prepareErrDisplay = function()
+	outer._prevMode = display(0).mode
 	display(0).mode = displayMode.text
-	display(0).backColor = "#00000088"
-	display(0).color = color.red
-	display(0).clear
-	return display(0)
+	outer._prevDisp = display(0)
+	outer.errDisplay = new TextDisplay
+	errDisplay.backColor = "#00000088"
+	errDisplay.color = color.red
+	errDisplay.clear
+	errDisplay.install 0
 end function
 
 // clear: clears (just) the error display.
 clear = function()
-	if errDisplay == null then outer.errDisplay = prepareErrDisplay
-	display(errDisplay.index).mode = displayMode.off
+	if errDisplay == null then prepareErrDisplay
+	_prevDisp.install 0
+	display(0).mode = _prevMode
+	outer.errDisplay = null
 end function
 
 // abort: print a stack trace (optionally, after an error message),
 // then exit the program.
 abort = function(errMsg)
-	if errDisplay == null then outer.errDisplay = prepareErrDisplay
-	display(errDisplay.index).mode = displayMode.text
+	if errDisplay == null then prepareErrDisplay
 	if errMsg == null then errMsg = "qa.abort has been called."
 	errDisplay.print errMsg
 	errDisplay.print "Call stack:"

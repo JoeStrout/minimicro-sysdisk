@@ -101,7 +101,7 @@ end function
 string.trimLeft = function(charsToRemove=null)
 	if charsToRemove == null then charsToRemove = whitespace
 	len = self.len
-	p0 = 1
+	p0 = 0
 	while p0 < len and charsToRemove.indexOf(self[p0]) != null
 		p0 = p0 + 1
 	end while
@@ -309,6 +309,11 @@ runUnitTests = function()
 	assertEqual s.trimLeft, "hello" + char(9) + " "
 	testing = "trimRight"
 	assertEqual s.trimRight, " " + char(9) + "hello"
+	
+	s = "no extra"
+	testing = "trim"; 		assertEqual s.trim, s
+	testing = "trimLeft";	assertEqual s.trimLeft, s
+	testing = "trimRight";	assertEqual s.trimRight, s
 	
 	testing = "reverse"
 	assertEqual "Hello world!".reverse, "!dlrow olleH"

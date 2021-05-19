@@ -180,9 +180,13 @@ _viewImage = function(pic)
 		print "Unable to read image: " + path
 		return
 	end if
+	prevMode = display(0).mode
 	display(0).mode = displayMode.pixel
-	display(0).clear "#00000088"
-	display(0).drawImage pic, 480-pic.width/2, 320-pic.height/2
+	prevDisp = display(0)
+	g = new PixelDisplay
+	g.install 0
+	g.clear "#00000088"
+	g.drawImage pic, 480-pic.width/2, 320-pic.height/2
 	print pic.width + " x " + pic.height + " image"
 	text.delimiter = ""
 	text.inverse = true
@@ -191,7 +195,9 @@ _viewImage = function(pic)
 	key.get
 	text.column = 0
 	print " " * 32
-	display(0).mode = displayMode.off
+	g.clear
+	prevDisp.install 0
+	display(0).mode = prevMode
 	text.delimiter = char(13)		
 end function
 
@@ -228,7 +234,7 @@ view = function(path)
 			end while
 			pageThrough lines
 		end if
-	else if path[-4:] == ".wav" then
+	else if path[-4:] == ".wav" or path[-4:] == ".ogg" then
 		// Play a sound
 		snd = file.loadSound(path)
 		if snd == null then

@@ -49,7 +49,7 @@ printMore = function(s)
 	globals.row = row - 1
 	if 25 - row >= codes.len/2 then
 		globals.row = 25
-		globals.column = 35
+		globals.column = 36
 	end if
 end function
 
