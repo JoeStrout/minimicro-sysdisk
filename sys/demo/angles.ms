@@ -2,6 +2,7 @@
 //
 // A little educational demo to help you understand angles,
 // rotations, and the functions that work with them.
+import "chars"
 clear
 
 // layout constants
@@ -19,6 +20,7 @@ radianColor = "#00CC00"
 
 // program state
 curAng = 60  // currently displayed angle, in degrees
+negativeAngles = true  // whether to show negative angles
 
 // setup
 sprite = new Sprite
@@ -33,6 +35,15 @@ pointOnCircle = function(ang=null, radius=null)
 	return [
 	  circCX + radius * cos(ang*pi/180), 
 	  circCY + radius * sin(ang*pi/180) ]
+end function
+
+rectify = function(angle)
+	if angle > 180 and negativeAngles then
+		return angle - 360
+	else if angle < 0 and not negativeAngles then
+		return angle + 360
+	end if
+	return angle	
 end function
 
 printCentered = function(s, x, y, textColor)
@@ -95,7 +106,7 @@ end function
 
 drawTriDisplay = function()
 	gfx.fillRect triX-triR-80, triY-triR-100,
-	   triR*2+200, triR*2+100, bgColor
+	triR*2+200, triR*2+100, bgColor
 	
 	radians = curAng * pi/180
 	x = triX + triR * cos(radians)
@@ -113,8 +124,10 @@ drawTriDisplay = function()
 	end if
 	if cos(radians) >= 0 then
 		gfx.print ystr, x + 2, (triY + y)/2 - 8, color.white, "small"
+		gfx.print "d", (triX+x)/2-11, (triY+y)/2-10*(sin(radians)<0), color.white, "small"
 	else
 		gfx.print ystr, x - 2 - ystr.len*9, (triY + y)/2 - 8, color.white, "small"		
+		gfx.print "d", (triX+x)/2+2, (triY+y)/2-10*(sin(radians)<0), color.white, "small"
 	end if
 	
 	rstr = str(round(radians, 2))
@@ -140,7 +153,7 @@ trackMouse = function(centerX, centerY)
 	while mouse.button
 		yield
 		radians = atan(mouse.y - centerY, mouse.x - centerX)
-		newAng = round(radians * 180/pi)
+		newAng = rectify(round(radians * 180/pi))
 		if newAng != curAng then
 			globals.curAng = newAng
 			drawCircleDisplay
@@ -149,18 +162,81 @@ trackMouse = function(centerX, centerY)
 	end while
 end function
 
+string.indexOfFirst = function(options, after=-1)
+	result = null
+	for opt in options
+		i = self.indexOf(opt, after)
+		if i != null and (result == null or i < result) then
+			result = i
+		end if
+	end for
+	return result
+end function
+
+printMarkup = function(s)
+	text.delimiter = ""
+	while s
+		endPos = s.indexOfFirst(["<D>", "<R>", "</>"])
+		if endPos == null then
+			print s
+			break
+		else if endPos > 0 then
+			print s[:endPos]
+			s = s[endPos:]
+			continue
+		end if
+		tag = s[:3]
+		if tag == "<D>" then text.color = degreeColor
+		if tag == "<R>" then text.color = radianColor
+		if tag == "</>" then text.color = color.white
+		s = s[3:]
+	end while
+	text.delimiter = char(13)
+	print
+end function
+
 printInfo = function()
 	text.row = 25
-	print "Angles can be measured in two"
-	print "different ways: degrees or radians."
+	text.color = color.white
+	printMarkup "Angles can be measured in two"
+	printMarkup "different ways: <D>degrees</> or <R>radians</>."
 	print
-	print "Degrees run from 0 to 360 (or"
-	print "-180 to 180).  Radians run from"
-	print "0 to 2*pi (or -pi to pi)."
-	print "They're just two ways of "
-	print "expressing the same idea: how"
-	print "far to go around a circle."
+	printMarkup "<D>Degrees</> run from <D>0</> to <D>360</> (or"
+	printMarkup "<D>-180</> to <D>180</>).  <R>Radians</> run from"
+	printMarkup "<R>0</> to <R>2*pi</> (or <R>-pi</> to <R>pi</>)."
+	printMarkup "They're just two ways of "
+	printMarkup "expressing the same idea: how"
+	printMarkup "far to go around a circle."
+	print
+	printMarkup "You can assign an angle in <D>degrees</>"
+	printMarkup "to the <D>.rotation</> of a sprite to"
+	printMarkup "set the angle of that sprite."
+	print
+	printMarkup "You can treat an angle in <R>radians</>"
+	printMarkup "like a direction, and use the <R>cos</>"
+	printMarkup "and <R>sin</> functions (times a distance"
+	printMarkup "d) to find the X and Y step in that"
+	printMarkup "direction.  Or, if you have X and Y,"
+	printMarkup "you can use <R>atan</> to find the direction."
+	print
+	printMarkup "Click and drag at right to explore"
+	printMarkup "different angles!"
+	text.delimiter = ""; text.row = 0; text.color = color.silver
+	print chars.checkedBox + " Use negative angles"
+	text.row = 25; text.delimiter = char(13)
 end function
+
+toggleNegativeAngles = function()
+	globals.negativeAngles = not negativeAngles
+	if negativeAngles then b = chars.checkedBox else b = chars.emptyBox
+	text.setCell 0, 0, b
+	
+	globals.curAng = rectify(curAng)
+	drawCircleDisplay
+	drawTriDisplay
+	
+	while mouse.button; yield; end while // wait for mouse-up	
+end function	
 
 printInfo
 drawCircleDisplay
@@ -169,10 +245,19 @@ drawTriDisplay
 while true
 	yield
 	if mouse.button then
-		if mouse.y > triY + 120 then
+		if mouse.x < 480 then
+			if mouse.y < 30 then toggleNegativeAngles
+		else if mouse.y > triY + 120 then
 			trackMouse circCX, circCY
 		else
 			trackMouse triX, triY
 		end if
+	else if key.available then
+		k = key.get
+		if k == char(27) or k == "q" then break
 	end if
 end while
+
+text.row = 0
+print; print
+text.color = color.orange
