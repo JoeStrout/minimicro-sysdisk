@@ -24,7 +24,7 @@ max3 = function(a,b,c)
 end function
 
 // RGBtoHSV: Convert a color in list format, [0-255, 0-255, 0-255],
-// from RGB color space to HSV color space, [0-100, 0-100, 0-100].
+// from RGB color space to HSV color space, [0-360, 0-100, 0-100].
 RGBtoHSV = function(RGB) // list of RGB values [0-255, 0-255, 0-255]
 	//Rescale
 	R = RGB[0] / 255
@@ -54,9 +54,9 @@ RGBtoHSV = function(RGB) // list of RGB values [0-255, 0-255, 0-255]
 	return [H, S, V]
 end function
 
-// HSVtoRGB: Convert a color in HSV list format, [0-100, 0-100, 0-100],
+// HSVtoRGB: Convert a color in HSV list format, [0-360, 0-100, 0-100],
 // from HSV color space to RGB color space [0-255, 0-255, 0-255].
-HSVtoRGB = function(HSV) // list of HSV values [0-100, 0-100, 0-100]
+HSVtoRGB = function(HSV) // list of HSV values [0-360, 0-100, 0-100]
 	//Rescale
 	S = HSV[1] / 100
 	V = HSV[2] / 100
