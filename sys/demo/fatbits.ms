@@ -1,7 +1,6 @@
 // Pixel Painting program.  Handy for making sprites
 // without ever leaving Mini Micro!
 import "listUtil"
-import "colorUtil"
 import "textUtil"
 import "mathUtil"
 import "qa"
@@ -832,13 +831,12 @@ colorWheel.updateFromColor = function(c)
 	if c == null then
 		if curSwatch == foregroundSwatch then c = foreColor else c = backColor
 	end if
-	rgba = color.toList(c)
-	hsv = colorUtil.RGBtoHSV(rgba)
-	r = self.image.width * self.scale / 2 * hsv[1] / 100
-	self.knob.x = self.x + r * cos(hsv[0] * pi/180)
-	self.knob.y = self.y + r * sin(hsv[0] * pi/180)
-	lightnessSlider.set hsv[2] / 100
-	alphaSlider.set rgba[3] / 255
+	hsv = color.toListHSV(c)
+	r = self.image.width * self.scale / 2 * hsv[1] / 255
+	self.knob.x = self.x + r * cos(hsv[0]/255 * 2*pi)
+	self.knob.y = self.y + r * sin(hsv[0]/255 * 2*pi)
+	lightnessSlider.set hsv[2] / 255
+	alphaSlider.set hsv[3] / 255
 end function
 
 //--------------------------------------------------------------------------------

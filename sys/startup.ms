@@ -103,6 +103,12 @@ end function
 color.fromList = function(rgbaList)
 	return _RGBAtoColor(rgbaList)
 end function
+color.toListHSV = function(colorString)
+	return _colorToHSVA(colorString)
+end function
+color.fromListHSV = function(hsvaList)
+	return _HSVAtoColor(hsvaList)
+end function
 
 pageThrough = function(lines)
 	text.delimiter = ""

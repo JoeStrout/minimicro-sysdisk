@@ -78,11 +78,13 @@ gReflections = {
 "i'd"   : "you would",
 "i've"  : "you have",
 "i'll"  : "you will",
+"i'm"	: "you're",
 "my"    : "your",
 "are"   : "am",
 "you've": "I have",
 "you'll": "I will",
 "your"  : "my",
+"you're": "I'm",
 "yours" : "mine",
 "you"   : "me",
 "me"    : "you" }
@@ -113,7 +115,12 @@ gPats = [
   ["I can't (.*)",
   [ "How do you know you can't %1?",
     "Perhaps you could %1 if you tried.",
-    "What would it take for you to %1?"]],
+    "What would it take for you to %1?",
+    "Not with THAT attitude.",
+    "Are you sure you can't %1?",
+    "What would you do if you could %1?",
+    "Do you think others could %1?",
+    "Have you tried to %1?"]],
 
   ["I am (.*)",
   [ "Did you come to me because you are %1?",
@@ -314,8 +321,8 @@ runInteractive = function()
 			s = s[:-1]
 		end while
 		text.color = myColor
-		if s.lower == "quit" then break
 		print respond(s)
+		if s.lower == "quit" then break
 	end while
 end function
 

@@ -6,13 +6,6 @@ import "textUtil"
 
 printWrap = @textUtil.printWrap
 
-origTextColor = text.color
-origBackColor = text.backColor
-normalColor = color.green
-text.color = normalColor
-text.backColor = color.black
-clear
-
 // Define some utility functions.
 printIfNonEmpty = function(s)
 	if s > null then printWrap s
@@ -480,193 +473,6 @@ Player.canGet = function()
 	return false
 end function
 
-
-//----------------------------------------------------------------------
-// Create the world.
-fountainRoom = new Room
-fountainRoom.name = "Fountain Room"
-fountainRoom.desc = "You're in a small room with walls of stone." +
-"  In the middle of the room is a raised stone pool filled with" +
-" water.  To the north is a great stone door, into which a" +
-" gargoyle has been carved with amazingly lifelike detail."
-fountainRoom.darkDesc = "You're in a very dark room.  The only" +
-" light comes from the glowing gargoyle carved into the great" +
-" stone door to the north."
-Player.moveTo fountainRoom
-
-endRoom = new Room
-endRoom.name = "Congratulations!"
-endRoom.desc = "You've gotten past the greedy gargoyle -- and"+
-" it only cost you three fake coins!  Nicely done.  You may" +
-" examine the credits, or quit."
-
-doors = Exit.connect(fountainRoom, "north", endRoom)
-exit = doors[0]
-exit.altNames = ["exit", "leave", "out", "door", "n"]
-exit.desc = "It's a great stone door, with a carving of a" +
-" gargoyle that appears amazingly lifelike."
-doors[1].altNames = ["s"]
-exit.open = false
-exit.salient = false
-exit.openDoor = function()
-	print "The stone door won't budge."
-end function
-
-pool = new Container
-pool.name = "pool"
-pool.altNames = ["fountain", "fountian"]
-pool.desc =  "The pool is composed of circular stone walls about a"+
-" foot high and five feet across.  The floor of the pool is also" +
-" depressed several inches below the floor of the room.  It's" +
-" filled with a clear liquid that appears to be water."
-pool.size = 20
-pool.salient = false
-pool.moveTo fountainRoom
-
-water = new Liquid
-water.name = "water"
-water.altNames = ["liquid", "fluid"]
-water.desc = "It appears to be ordinary water, and fairly clean."
-water.moveTo pool
-
-garg = new Thing
-garg.name = "gargoyle"
-garg.altNames = ["garg", "gar", "statue", "carving", "hand"]
-garg.desc = "The gargoyle is carved into the door with amazing" +
-" three-dimensional relief.  Its face wears an exaggerated" +
-" expression of boredom.  Its hand juts out from the door, palm up."
-garg.moveTo fountainRoom
-garg.salient = false
-garg.size = 20
-garg.note = "The gargoyle on the door glows faintly in the dark," +
-" as magical items frequently do."
-garg.door = doors[0]
-
-lamp = new Thing
-lamp.name = "lamp"
-lamp.lit = true
-lamp.fullName = function()
-	result = self.a + " " + self.name + " "
-	if self.lit then result = result + "(lit)" else result = result + "(not lit)"
-	return result
-end function
-lamp.handleCommand = function(cmd, pass)
-	if cmd == "douse lamp" or cmd == "extinguish lamp" or 
-		   cmd == "turn lamp off" or cmd == "turn off lamp" or
-		   cmd == "put out lamp" then
-		if not self.lit then
-			print "The lamp is already off."
-		else
-			self.lit = false
-			printWrap "You extinguish the lamp.  The room goes" +
-" dark, except for a faint glow from the gargoyle statue."
-		end if
-		return true
-	else if cmd == "light lamp" or cmd == "turn lamp on" or
-		   cmd == "turn on lamp" then
-		if self.lit then
-			print "The lamp is already lit."
-		else if self.location == pool then
-			print "You can't get the lamp lit while it's in the pool."
-		else
-			self.lit = true
-			printWrap "You light the lamp."
-		end if
-		return true
-	end if
-end function	
-lamp.moveTo Player
-
-goldCoin = new CountableThing
-goldCoin.name = "gold coin"
-goldCoin.name = "coin"
-goldCoin.moveTo Player
-
-tinCoin = new CountableThing
-tinCoin.name = "tin coin"
-tinCoin.altNames = ["coin", "fake"]
-tinCoin.singleDesc = "This is a fake coin made of worthless tin."
-tinCoin.pluralDesc = "These are fake coins made of worthless tin."
-tinCoin.descInRoom = function()
-	return "You see " + self.fullName + " lying here."
-end function
-tinCoin.count = 3
-tinCoin.moveTo pool
-
-credits = new Thing
-credits.name = "credits"
-credits.altNames = ["cred"]
-credits.desc = "The Greedy Gargoyle was originally written on May"+
-" 11, 1996 by Joe Strout, using the Python Universe Builder (a"+
-" little Python library for making text adventures).  It was" +
-" ported to MiniScript as a Mini Micro demo in summer 2019."
-credits.a = "the"
-credits.moveTo endRoom
-credits.salient = false
-
-//----------------------------------------------------------------------
-// Special code for the gargoyle.
-garg.contain = function(obj)
-	if obj == goldCoin then
-		printWrap "As you place the coin in the gargoyle's palm, "+
-" its face comes to life.  It cocks one bulging eye at the coin for"+
-" a moment, then nods approvingly.  With the help of a clawed" +
-" finger, it begins to count -- but, finding only one coin in its"+
-" palm, it stops abruptly and throws the coin down in disgust."
-		obj.moveTo self.location
-	else if obj == tinCoin then
-		if lamp.lit then
-			printWrap "As you place the false coinage in the gargoyle's" +
-" hand, its face springs to life.  It cocks a bulging eye at your"+
-" offering.  Noting the dull grey color and featureless surfaces,"+
-" its eyes grow wide.  With an angry flick of its arm, it hurls"+
-" the " + obj.fullName + " over your head."
-			obj.moveTo self.location
-		else
-			if obj.count > 1 then
-				shapes = "shapes"
-				their = "their"
-				coins = "coins"
-				them = "them"
-			else
-				shapes = "shape"
-				their = "its"
-				coins = "coin"
-				them = "it"
-			end if
-			printWrap "As you place "+obj.fullName+" into the"+
-" gargoyle's glowing hand, its face comes to life once again.  It"+
-" cocks an eye at the dark round "+shapes+" in its hand.  Frowning,"+
-" it turns them over and appears to be judging "+their+" weight." +
-"  With a shrug, it lifts a clawed finger and begins counting."
-			if obj.count < 3 then
-				printWrap "Finding only " + obj.count + " " +
-coins+", it stops abruptly and throws "+them+" down in disgust."
-				obj.moveTo self.location
-			else
-				printWrap "It stabs its finger at the coins three"+
-" times, and compares this to the three clawed toes on its foot." +
-"  Apparently satisfied, the gargoyle opens its mouth and tosses" +
-" the coins down."
-				obj.moveTo null
-				print; wait 2
-				printWrap "Grinning, the gargoyle splits in half,"+
-" right down the middle.  His two halves separate and slide" +
-" apart, taking the two halves of the great stone door with them."+
-"  A dark passageway extends beyond the door to the north."
-				exit.open = true
-				exit.salient = true
-			end if
-		end if
-	else
-		printWrap "As you place " + obj.fullName + " in the" +
-" gargoyle's hand, its face comes to life.  It glances briefly" +
-" at your offering, but then without hesitation, drops it onto" +
-" the floor."
-		obj.moveTo self.location
-	end if
-end function
-
 //----------------------------------------------------------------------
 // Command helper functions.
 
@@ -717,37 +523,233 @@ handleCommand = function(cmd)
 end function
 
 //----------------------------------------------------------------------
-// Main loop.
-print "                         THE GREEDY GARGOYLE"
-print "                        A 5-Minute Text Puzzle"
-print
-printWrap "Holding your lantern high, you cautiously explore the" +
-" stone panel before you.  According to the maps, the entrance to"+
-" the tomb should be right at the end of this passageway -- but" +
-" you find only smooth stone."
-print
-printWrap "Just as you're about to give up and go home, your" +
-" fingers catch on a small indentation on the adjoining wall. " +
-" When you press the knob inside, the panel spins around," +
-" carrying you with it."
-print
-printWrap "You find yourself in a small room.  The panel through " +
-"which you entered joins perfectly with the wall on this side," +
-" leaving no hope of returning the way you came.  You'd been" +
-" studying for years to find a way into the tomb -- now, if you" +
-" can just find a way out..."
-print char(13)*3
-input "[Press Return.]"
-print char(13)*3
+// Main program.
+if locals == globals then
 
-done = false
-look
-while not done
-	text.color = color.gray
-	cmd = input(">").lower
+	origTextColor = text.color
+	origBackColor = text.backColor
+	normalColor = color.green
 	text.color = normalColor
-	handleCommand cmd
-end while
+	text.backColor = color.black
+	clear
 
-text.color = origTextColor
-text.backColor = origBackColor
+	// Create the world.
+	fountainRoom = new Room
+	fountainRoom.name = "Fountain Room"
+	fountainRoom.desc = "You're in a small room with walls of stone." +
+	"  In the middle of the room is a raised stone pool filled with" +
+	" water.  To the north is a great stone door, into which a" +
+	" gargoyle has been carved with amazingly lifelike detail."
+	fountainRoom.darkDesc = "You're in a very dark room.  The only" +
+	" light comes from the glowing gargoyle carved into the great" +
+	" stone door to the north."
+	Player.moveTo fountainRoom
+
+	endRoom = new Room
+	endRoom.name = "Congratulations!"
+	endRoom.desc = "You've gotten past the greedy gargoyle -- and"+
+	" it only cost you three fake coins!  Nicely done.  You may" +
+	" examine the credits, or quit."
+
+	doors = Exit.connect(fountainRoom, "north", endRoom)
+	exit = doors[0]
+	exit.altNames = ["exit", "leave", "out", "door", "n"]
+	exit.desc = "It's a great stone door, with a carving of a" +
+	" gargoyle that appears amazingly lifelike."
+	doors[1].altNames = ["s"]
+	exit.open = false
+	exit.salient = false
+	exit.openDoor = function()
+		print "The stone door won't budge."
+	end function
+
+	pool = new Container
+	pool.name = "pool"
+	pool.altNames = ["fountain", "fountian"]
+	pool.desc =  "The pool is composed of circular stone walls about a"+
+	" foot high and five feet across.  The floor of the pool is also" +
+	" depressed several inches below the floor of the room.  It's" +
+	" filled with a clear liquid that appears to be water."
+	pool.size = 20
+	pool.salient = false
+	pool.moveTo fountainRoom
+
+	water = new Liquid
+	water.name = "water"
+	water.altNames = ["liquid", "fluid"]
+	water.desc = "It appears to be ordinary water, and fairly clean."
+	water.moveTo pool
+
+	garg = new Thing
+	garg.name = "gargoyle"
+	garg.altNames = ["garg", "gar", "statue", "carving", "hand"]
+	garg.desc = "The gargoyle is carved into the door with amazing" +
+	" three-dimensional relief.  Its face wears an exaggerated" +
+	" expression of boredom.  Its hand juts out from the door, palm up."
+	garg.moveTo fountainRoom
+	garg.salient = false
+	garg.size = 20
+	garg.note = "The gargoyle on the door glows faintly in the dark," +
+	" as magical items frequently do."
+	garg.door = doors[0]
+
+	lamp = new Thing
+	lamp.name = "lamp"
+	lamp.lit = true
+	lamp.fullName = function()
+		result = self.a + " " + self.name + " "
+		if self.lit then result = result + "(lit)" else result = result + "(not lit)"
+		return result
+	end function
+	lamp.handleCommand = function(cmd, pass)
+		if cmd == "douse lamp" or cmd == "extinguish lamp" or 
+			   cmd == "turn lamp off" or cmd == "turn off lamp" or
+			   cmd == "put out lamp" then
+			if not self.lit then
+				print "The lamp is already off."
+			else
+				self.lit = false
+				printWrap "You extinguish the lamp.  The room goes" +
+	" dark, except for a faint glow from the gargoyle statue."
+			end if
+			return true
+		else if cmd == "light lamp" or cmd == "turn lamp on" or
+			   cmd == "turn on lamp" then
+			if self.lit then
+				print "The lamp is already lit."
+			else if self.location == pool then
+				print "You can't get the lamp lit while it's in the pool."
+			else
+				self.lit = true
+				printWrap "You light the lamp."
+			end if
+			return true
+		end if
+	end function	
+	lamp.moveTo Player
+
+	goldCoin = new CountableThing
+	goldCoin.name = "gold coin"
+	goldCoin.name = "coin"
+	goldCoin.moveTo Player
+
+	tinCoin = new CountableThing
+	tinCoin.name = "tin coin"
+	tinCoin.altNames = ["coin", "fake"]
+	tinCoin.singleDesc = "This is a fake coin made of worthless tin."
+	tinCoin.pluralDesc = "These are fake coins made of worthless tin."
+	tinCoin.descInRoom = function()
+		return "You see " + self.fullName + " lying here."
+	end function
+	tinCoin.count = 3
+	tinCoin.moveTo pool
+
+	credits = new Thing
+	credits.name = "credits"
+	credits.altNames = ["cred"]
+	credits.desc = "The Greedy Gargoyle was originally written on May"+
+	" 11, 1996 by Joe Strout, using the Python Universe Builder (a"+
+	" little Python library for making text adventures).  It was" +
+	" ported to MiniScript as a Mini Micro demo in summer 2019."
+	credits.a = "the"
+	credits.moveTo endRoom
+	credits.salient = false
+
+	//----------------------------------------------------------------------
+	// Special code for the gargoyle.
+	garg.contain = function(obj)
+		if obj == goldCoin then
+			printWrap "As you place the coin in the gargoyle's palm, "+
+	" its face comes to life.  It cocks one bulging eye at the coin for"+
+	" a moment, then nods approvingly.  With the help of a clawed" +
+	" finger, it begins to count -- but, finding only one coin in its"+
+	" palm, it stops abruptly and throws the coin down in disgust."
+			obj.moveTo self.location
+		else if obj == tinCoin then
+			if lamp.lit then
+				printWrap "As you place the false coinage in the gargoyle's" +
+	" hand, its face springs to life.  It cocks a bulging eye at your"+
+	" offering.  Noting the dull grey color and featureless surfaces,"+
+	" its eyes grow wide.  With an angry flick of its arm, it hurls"+
+	" the " + obj.fullName + " over your head."
+				obj.moveTo self.location
+			else
+				if obj.count > 1 then
+					shapes = "shapes"
+					their = "their"
+					coins = "coins"
+					them = "them"
+				else
+					shapes = "shape"
+					their = "its"
+					coins = "coin"
+					them = "it"
+				end if
+				printWrap "As you place "+obj.fullName+" into the"+
+	" gargoyle's glowing hand, its face comes to life once again.  It"+
+	" cocks an eye at the dark round "+shapes+" in its hand.  Frowning,"+
+	" it turns them over and appears to be judging "+their+" weight." +
+	"  With a shrug, it lifts a clawed finger and begins counting."
+				if obj.count < 3 then
+					printWrap "Finding only " + obj.count + " " +
+	coins+", it stops abruptly and throws "+them+" down in disgust."
+					obj.moveTo self.location
+				else
+					printWrap "It stabs its finger at the coins three"+
+	" times, and compares this to the three clawed toes on its foot." +
+	"  Apparently satisfied, the gargoyle opens its mouth and tosses" +
+	" the coins down."
+					obj.moveTo null
+					print; wait 2
+					printWrap "Grinning, the gargoyle splits in half,"+
+	" right down the middle.  His two halves separate and slide" +
+	" apart, taking the two halves of the great stone door with them."+
+	"  A dark passageway extends beyond the door to the north."
+					exit.open = true
+					exit.salient = true
+				end if
+			end if
+		else
+			printWrap "As you place " + obj.fullName + " in the" +
+	" gargoyle's hand, its face comes to life.  It glances briefly" +
+	" at your offering, but then without hesitation, drops it onto" +
+	" the floor."
+			obj.moveTo self.location
+		end if
+	end function
+
+	print "                         THE GREEDY GARGOYLE"
+	print "                        A 5-Minute Text Puzzle"
+	print
+	printWrap "Holding your lantern high, you cautiously explore the" +
+	" stone panel before you.  According to the maps, the entrance to"+
+	" the tomb should be right at the end of this passageway -- but" +
+	" you find only smooth stone."
+	print
+	printWrap "Just as you're about to give up and go home, your" +
+	" fingers catch on a small indentation on the adjoining wall. " +
+	" When you press the knob inside, the panel spins around," +
+	" carrying you with it."
+	print
+	printWrap "You find yourself in a small room.  The panel through " +
+	"which you entered joins perfectly with the wall on this side," +
+	" leaving no hope of returning the way you came.  You'd been" +
+	" studying for years to find a way into the tomb -- now, if you" +
+	" can just find a way out..."
+	print char(13)*3
+	input "[Press Return.]"
+	print char(13)*3
+
+	// Main loop.
+	done = false
+	look
+	while not done
+		text.color = color.gray
+		cmd = input(">").lower
+		text.color = normalColor
+		handleCommand cmd
+	end while
+
+	text.color = origTextColor
+	text.backColor = origBackColor
+end if

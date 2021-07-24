@@ -120,25 +120,17 @@ doOneStep = function()
 	end for
 end function
 
-// Generate a maze!
-while walls
-	doOneStep
-end while
-setCornersFromRooms
-updateTiles
-
+generate = function()
+	// Generate a maze!
+	while walls
+		doOneStep
+	end while
+	setCornersFromRooms
+	updateTiles
+end function
 
 // That's it for maze generation!
 // Everything below is for manually drawing with the mouse.
-
-// Print instructions.
-gfx.fillRect 0, 0, 960, 60, "#00000088"
-c = color.yellow
-gfx.print "Click and drag to draw/erase.", 20, 30, c, "small"
-gfx.print "1-3: thin/normal/thick", 400, 40, c, "small"
-gfx.print "4-9: select color", 400, 25, c, "small"
-gfx.print "  G: toggle grid", 400, 10, c, "small"
-gfx.print "ESC: quit",780, 30, c, "small"
 
 applyColor = function(colorIdx)
 	colors = [color.white, color.pink, color.fuchsia,
@@ -165,26 +157,41 @@ cornerAtMouse = function()
 	return d
 end function
 
-while true
-	yield
-	if key.available then
-		k = key.get
-		if k == "1" then baseIndex = 16
-		if k == "2" then baseIndex = 0
-		if k == "3" then baseIndex = 32
-		if k.lower == "g" then toggleGrid
-		if k >= "4" and k <= "9" then applyColor val(k)-4
-		if k == "q" or k == char(27) then exit
-		updateTiles
-	end if
-	if not mouse.button then continue
-	cs = tiles.cellSize
-	m = cornerAtMouse
-	setEm = not corners[m.col][m.row]
-	while mouse.button
-		m = cornerAtMouse
-		corners[m.col][m.row] = setEm
-		updateTiles
+if locals == globals then
+	// Generate a maze.
+	generate
+
+	// Print instructions.
+	gfx.fillRect 0, 0, 960, 60, "#00000088"
+	c = color.yellow
+	gfx.print "Click and drag to draw/erase.", 20, 30, c, "small"
+	gfx.print "1-3: thin/normal/thick", 400, 40, c, "small"
+	gfx.print "4-9: select color", 400, 25, c, "small"
+	gfx.print "  G: toggle grid", 400, 10, c, "small"
+	gfx.print "ESC: quit",780, 30, c, "small"
+
+	// Main loop.
+	while true
 		yield
+		if key.available then
+			k = key.get
+			if k == "1" then baseIndex = 16
+			if k == "2" then baseIndex = 0
+			if k == "3" then baseIndex = 32
+			if k.lower == "g" then toggleGrid
+			if k >= "4" and k <= "9" then applyColor val(k)-4
+			if k == "q" or k == char(27) then exit
+			updateTiles
+		end if
+		if not mouse.button then continue
+		cs = tiles.cellSize
+		m = cornerAtMouse
+		setEm = not corners[m.col][m.row]
+		while mouse.button
+			m = cornerAtMouse
+			corners[m.col][m.row] = setEm
+			updateTiles
+			yield
+		end while
 	end while
-end while
+end if
