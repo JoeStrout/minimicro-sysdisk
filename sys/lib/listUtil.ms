@@ -1,9 +1,22 @@
 // List Utilities.
 //	This module adds some additional methods to the `list` type.
+//	It includes some math functions which work on a 1D list of numbers.
+//	(If you need to work with 2D arrays of numbers, you should probably
+//	consider matrixUtil instead.)
 
 // contains: return true if this list contains the given element.
 list.contains = function(item)
 	return self.indexOf(item) != null
+end function
+
+// deepcopy: clones this list, and if it contains sub-lists,
+// clones those as well.
+list.deepCopy = function()
+	result = self[:]
+	for i in result.indexes
+		if result[i] isa list then result[i] = result[i].deepCopy
+	end for
+	return result
 end function
 
 // add: add a number to all elements of a list (in place),
@@ -33,7 +46,7 @@ end function
 // with another list of the same size, returning a new list (leaving this
 // one untouched).
 list.plus = function(addend)
-	result = self[0:]
+	result = self[:]
 	result.add addend
 	return result
 end function
@@ -67,12 +80,12 @@ end function
 //
 // Example 1:
 //		x = [1, 2, 3]
-//		x.multiplyBy 5   // returns[5, 10, 15]
+//		x.times 5   // returns[5, 10, 15]
 // Example 2:
 //		x = [1, 2, 3]
-//		x.multiplyBy [10,100,10]	// returns [10, 200, 30]
+//		x.times [10,100,10]	// returns [10, 200, 30]
 list.times = function(factor)
-	result = self[0:]
+	result = self[:]
 	result.multiplyBy factor
 	return result
 end function
@@ -106,7 +119,7 @@ end function
 //		x = [1, 2, 3]
 //		x.reversed		// returns [3, 2, 1]
 list.reversed = function()
-	result = self[0:]
+	result = self[:]
 	result.reverse
 	return result
 end function
@@ -297,10 +310,13 @@ list.init = function(size, initialValue)
 end function
 
 // init2d: build a 2D array, composed as a list of lists.
-list.init2d = function(sizeA, sizeB, initialValue)
+// (Note that the math functions here in listUtil probably do not do what
+// you would want for a 2D array of numbers; if you wnat to do matrix math,
+// use matrixUtil instead.)
+list.init2d = function(rows, columns, initialValue)
 	result = []
-	for a in range(1, sizeA)
-		result.push list.init(sizeB, @initialValue)
+	for a in range(1, rows)
+		result.push list.init(columns, @initialValue)
 	end for
 	return result
 end function

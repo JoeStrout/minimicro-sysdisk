@@ -269,6 +269,21 @@ clamp = function(x, minval=0, maxval=1)
 	return x
 end function
 
+// numToStr: converts a number to a string, with a specified precision
+// (number of digits past the decimal place).  Trailing zeros will be
+// added as needed to get the decimal point at the right place.
+numToStr = function(n, precision=null)
+	if precision == null then return str(n)
+	s = str(round(n, precision))
+	if precision > 0 then
+		dotPos = s.indexOf(".")
+		if dotPos > s.len - precision - 1 then
+			s = s + "0" * (dotPos - s.len + precision + 1)
+		end if
+	end if
+	return s
+end function
+
 runUnitTests = function()
 	print "Unit testing: mathUtil"
 	
@@ -306,6 +321,11 @@ runUnitTests = function()
 	assertEqual mover.y, 30, "moveTowardsXY"
 	assertEqual moveTowardsXY(mover, target, 10), false
 	
+	assertEqual numToStr(pi, 2), "3.14"
+	assertEqual numToStr(1.23, 3), "1.230"
+	assertEqual numToStr(1.23), "1.23"
+	assertEqual numToStr(12345.67, -2), "12300"	
+
 	if errorCount == 0 then
 		print "All tests passed.  Woot!"
 	else
