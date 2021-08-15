@@ -1,9 +1,16 @@
 // Event-driven programming!
+//
+// Create sprites derived from events.EventSprite, then assign
+// functions to their onKey, onKeyDown, onKeyUp, onClick, etc.
+// properties (see below).  You can also assign an update function
+// to get called every frame.  Call .start on each Sprite.
+// Then call eventLoop.run.  The various events will get invoked
+// at the appropriate times.  (See test method below.)
+
 
 // Sprite display used by EventSprite and eventLoop; reassign this
 // after importing if you want your sprites on a different display.
 spriteDisplay = display(4)
-
 
 // Helper function to invoke a method as a member of
 // an instance, so that the method gets 'self' bound
@@ -46,6 +53,7 @@ KeyHandler._check = function(owner)
 end function
 
 EventSprite = new Sprite
+
 EventSprite.onKey = new KeyHandler
 EventSprite.onKeyDown = new KeyHandler
 EventSprite.onKeyDown.mode = 0
@@ -57,9 +65,11 @@ EventSprite.onDrag = null
 EventSprite.onDragEnd = null
 EventSprite.onMouseOver = null
 EventSprite.update = null
+
 EventSprite._dragging = false
 EventSprite.ignoreClicks = false
 EventSprite.joystick = "any" // or, assign 1 through 29
+
 EventSprite._update = function()
 	self.update
 	self.onKey._check self

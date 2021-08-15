@@ -181,6 +181,65 @@ dir = function(path=".")
 	pageThrough lines
 end function
 
+_apiClassNames = {
+	Image:"Image",
+	Sprite:"Sprite",
+	Display:"Display",
+	TextDisplay:"TextDisplay",
+	SpriteDisplay:"SpriteDisplay",
+	PixelDisplay:"PixelDisplay",
+	SolidColorDisplay:"SolidColorDisplay",
+	TileDisplay:"TileDisplay",
+	Sound:"Sound" }
+
+mapName = function(map)
+	if map.hasIndex("_name") then return map._name
+	if _apiClassNames.hasIndex(map) then return _apiClassNames[map]
+	for kv in globals
+		if @kv.value == map then return @kv.key
+	end for
+	return null
+end function
+
+pprintToList = function(outList, obj, prefix="", indent=0, suffix="")
+	s = str(obj)
+	if obj == null then s = "null"
+	if s.len + prefix.len + indent < 65 then
+		outList.push " "*indent + prefix + s + suffix
+		return
+	end if
+	if indent > 32 then
+		outList.push " "*indent + prefix + "..." + suffix
+		return
+	end if
+	if obj isa list then
+		outList.push " "*indent + prefix + "["
+		for i in obj.indexes
+			pprintToList outList, obj[i], "", indent + 4, "," * (i < obj.len-1)
+		end for
+		outList.push " "*indent + "]" + suffix
+	else if obj isa map then
+		outList.push " "*indent + prefix + "{"
+		entries = []; for kv in obj; entries.push kv; end for
+		for i in entries.indexes
+			kv = entries[i]
+			value = null
+			if kv.value isa map then value = mapName(kv.value)
+			if value == null then value = kv.value
+			pprintToList outList, value, kv.key + ": ", indent+4, "," * (i < entries.len-1)
+		end for
+		outList.push " "*indent + "}" + suffix
+	else
+		outList.push " "*indent + prefix + obj + suffix
+	end if
+end function
+
+pprint = function(obj)
+	lines = []
+	pprintToList lines, obj
+	pageThrough lines
+end function
+
 _viewImage = function(pic)
 	if not pic then
 		print "Unable to read image: " + path
