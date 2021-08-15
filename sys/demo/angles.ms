@@ -2,6 +2,7 @@
 //
 // A little educational demo to help you understand angles,
 // rotations, and the functions that work with them.
+
 import "chars"
 clear
 
@@ -145,7 +146,8 @@ drawTriDisplay = function()
 	y = y - 16
 	s = "atan(" + ystr + ", " + xstr + ") = "
 	gfx.print s, x, y, color.white, "small"
-	gfx.print rstr, x+s.len*9, y, radianColor, "small"
+	atanstr = str(round(atan(sin(radians), cos(radians)), 2))
+	gfx.print atanstr, x+s.len*9, y, radianColor, "small"
 	
 end function
 

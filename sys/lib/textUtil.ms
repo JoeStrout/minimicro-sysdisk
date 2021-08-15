@@ -1,4 +1,5 @@
 // Text Utilities (related to displaying text on the Mini Micro screen).
+
 import "stringUtil"
 
 // Print without a carriage return (i.e. moving to the next line).
@@ -319,6 +320,7 @@ if locals == globals then
 	d = Dialog.make("Message Test", 
 	"Hello world!  This is a test of the nifty text-based Dialog system.")
 	d.altBtn.visible = true
+	d.altBtn.key = "b"
 	d.cancelBtn.visible = true
 	print d.show.caption
 end if

@@ -78,13 +78,15 @@ namedMaps = {
 	Bounds:"Bounds" }
 
 typeOf = function(value)
+	if @value isa funcRef then return "funcRef"
 	if value isa number then return "number"
 	if value isa string then return "string"
 	if value isa list then return "list"
 	if value == null then return "null"
-	if value isa funcRef then return "funcRef"
 	if value isa map then
-		if namedMaps.hasIndex(value) then return namedMaps[value]
+		mapType = value
+		if value.hasIndex("__isa") then mapType = value.__isa
+		if namedMaps.hasIndex(mapType) then return namedMaps[mapType]
 		return "map"
 	end if
 	return "unknown"
@@ -100,3 +102,35 @@ assertType = function(value, type, note)
 	  ", but got a " + typeOf(value) + " (" + value + ")"
 	abort msg
 end function
+
+
+runUnitTests = function()
+	print "Unit testing: qa"
+
+	// We can't easily test the various assert methods, but we
+	// can at least test typeOf (and through that, namedMaps).
+	errorCount = 0
+	assertEqual = function(actual, expected)
+		// for the sake of unit testing, let's round all numbers to 1 decimal place.
+		if actual != expected then
+			print "Unit test failure (line " + stackTrace[1].split[-1] + 
+			  "): expected " + expected + ", got " + actual
+			outer.errorCount = errorCount + 1
+		end if
+	end function
+	
+	assertEqual typeOf(42), "number"
+	assertEqual typeOf("abc"), "string"
+	assertEqual typeOf([1,2,3]), "list"
+	assertEqual typeOf(@rnd), "funcRef"
+	assertEqual typeOf(new Sprite), "Sprite"
+	assertEqual typeOf(gfx), "PixelDisplay"
+	
+	if errorCount == 0 then
+		print "All tests passed.  Quality code!"
+	else
+		print errorCount + " error" + "s" * (errorCount!=1) + " found."
+	end if	
+end function
+
+if globals == locals then runUnitTests

@@ -1,3 +1,7 @@
+// The spriteControllers module adds some helper classes to aid with
+// sprite animation and platformer games.  These are NOT required to
+// use sprites; you can do it all yourself if you prefer.
+
 // Define a class to represent an animation: this is one or more frames
 // (images), plus the frames per second we should cycle through them.
 // It also holds the current state, so rather than share Animation 
@@ -7,6 +11,7 @@ Animation = {}
 Animation.speed = 1
 Animation.loop = true
 
+// Apply this animation to the given sprite (and update its state).
 Animation.applyTo = function(sprite, dt=0.1)
 	if self.speed == 0 then return
 	self.timeTillNextFrame = self.timeTillNextFrame - dt
@@ -23,6 +28,7 @@ Animation.applyTo = function(sprite, dt=0.1)
 	self.timeTillNextFrame = 1 / (self.fps * abs(self.speed))
 end function
 
+// Create a new Animation from a list of frames, and the frames/second speed.
 newAnimation = function(frameList, fps=10)
 	noob = new Animation
 	if frameList isa Image then frameList = [frameList]
@@ -33,6 +39,7 @@ newAnimation = function(frameList, fps=10)
 	return noob
 end function
 
+// Create an exact copy (clone) of this Animation.
 // Important: do NOT share an animation between multiple sprites!  Each
 // animation object maintains its own state.  So you must make a fresh
 // clone for each sprite that uses it.
@@ -41,11 +48,13 @@ Animation.clone = function()
 	return noob
 end function
 
-// Define a class for any sprite that uses an Animation.
+// Define a Sprite subclass for any sprite that uses an Animation.
 Animated = new Sprite
 Animated.curAnim = null
 Animated.normalScale = [1,1]
 Animated.flippedScale = [-1,1]
+
+// Update method: call this on every frame to update the sprite.
 Animated.update = function(dt=0.1)
 	if self.curAnim then self.curAnim.applyTo self, dt
 end function
@@ -67,6 +76,7 @@ inputPressed = function(keyOrValue)
 end function
 
 // Helper method to move one value towards another.
+// (This is also available in the mathUtil module.)
 moveTowards = function(curVal, targetVal, maxChange)
 	if abs(curVal - targetVal) < maxChange then return targetVal
 	return curVal + maxChange * sign(targetVal - curVal)
@@ -100,16 +110,16 @@ Platformer.boost = 4000		// how much gravity is reduced by holding jump
 Platformer.flyAccel = 1000	// horizontal acceleration while airborne
 Platformer.maxYStep = 16	// largest amount we'll automatically climb up
 
-Platformer.leftInput = "left"
+Platformer.leftInput = "left"		// keys used to control this character
 Platformer.rightInput = "right"
 Platformer.upInput = "up"
 Platformer.downInput = "down"
 Platformer.jumpInput = "space"
 Platformer.footOffset = null	// (defaults to 1/2 the idle frame height)
 
-// Methods you should override to detect the environment, etc.:
-
+// Platformer.groundBelow:
 // Return the Y level of the ground below the given x,y position on screen.
+// You should override or replace this to detect your actual terrain.
 Platformer.groundBelow = function(x, y)
 	return 0
 end function
@@ -228,7 +238,7 @@ end function
 
 // exitState: do whatever stuff we need to do when exiting the current state.
 Platformer.exitState = function()
-	// Nothing to do.
+	// Nothing to do (by default).
 end function
 
 // updateState: do whatever we do on every frame, in each state
@@ -292,6 +302,7 @@ Platformer.checkInputs = function()
 	self.jumpAvail = not inputPressed(self.jumpInput)
 end function
 
+// Platformer.update: main update function for Platformer characters.
 Platformer.update = function(dt)
 	if self.state == null then self.finishSetup
 	self.checkInputs
@@ -299,14 +310,17 @@ Platformer.update = function(dt)
 	super.update dt
 end function
 
-// To use updateSprites, either set spriteControllers.disp to your
+// updateSprites: update all Animated sprites on the given display.
+// To use this method, either set spriteControllers.disp to your
 // sprite display, or pass it in as the second parameter.
 // If you do neither, then it will try to use display(4).
 disp = display(4)
-
 updateSprites = function(dt=0.1, disp=null)
 	if disp == null then disp = outer.disp
 	for s in disp.sprites
 		if s isa Animated then s.update dt
 	end for
 end function
+
+// Note that this library module does not have a built-in demo;
+// for a demo, see /sys/demo/platformer.

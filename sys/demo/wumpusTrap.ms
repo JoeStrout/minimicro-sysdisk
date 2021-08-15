@@ -192,6 +192,7 @@ checkMouse = function()
 		updateDistMap
 		moveWumpus
 	end if
+	while mouse.button; end while  // (wait for mouse-up)
 end function
 
 // Function to print a line centered at the bottom of the screen.
@@ -207,7 +208,7 @@ printStatus = function(s)
 	text.delimiter = char(13)
 end function
 printStatus "Click hexes around the wumpus to trap it.  " +
-   "Don't let it get away!"
+"Don't let it get away!"
 
 // Main loop.
 done = false
@@ -226,3 +227,4 @@ while wumpus.moving
 end while
 key.clear
 text.row = 25
+print

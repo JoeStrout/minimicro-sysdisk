@@ -1,5 +1,11 @@
 // This is a little module to read Tab-Separated Value (TSV) files,
 // such as can be exported (for example) from Google Sheets.
+//
+// The data is returned in one of two ways, depending on whether the
+// first column contains unique identifiers.  You select which way 
+// you want via the `asRowList` paremeter.
+//
+// If asRowList=false:
 // The file should be organized by row and column, with row headers
 // (if any) in column 1 and column headers in row 1.  The return value 
 // will be a map of maps, indexed first by row header and second by
@@ -18,7 +24,8 @@
 // The map for each row will also have a _lineNum entry which is
 // the 1-based line number that data came from.
 //
-// Alternatively, if you don't have unique row identifiers in column 1,
+// If asRowList=true (the default):
+// When you don't have unique row identifiers in column 1,
 // you can get the result as a list of maps.
 // Example: if your data file looks like this:
 //    color    points    calories

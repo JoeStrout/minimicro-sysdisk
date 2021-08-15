@@ -1,4 +1,5 @@
 // What is Mini Micro?
+//
 // A demo of direct manipulation of the text display.
 
 // Load /sys/lib/chars, so we can use chars.printable

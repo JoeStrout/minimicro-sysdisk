@@ -99,6 +99,7 @@ disp.clear
 gfx.clear "#000044"
 text.clear
 text.row = 25
+text.delimiter = char(13)
 print "Height: 0"
 
 platforms = []

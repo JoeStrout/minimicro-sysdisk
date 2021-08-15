@@ -32,6 +32,32 @@ sizeToXY = function(size)
 	return result
 end function
 
+// Save a tile map to a file.
+// Returns null on success, or an error string in case of an error.
+saveToFile = function(path, tiles)
+	data = []
+	data.push "tileSetPath:" + tileSetPath
+	data.push "tileSetTileSize:" + tiles.tileSetTileSize
+	data.push "cellSize:" + tiles.cellSize
+	data.push "overlap:" + tiles.overlap
+	data.push "extent:" + tiles.extent
+	data.push "--"
+	extent = sizeToXY(tiles.extent)
+	for row in range(extent.y - 1, 0) // (backwards to match visually)
+		line = []
+		for col in range(0, extent.x - 1)
+			if tiles.cell(col, row) == null then 
+				line.push "."
+			else
+				line.push tiles.cell(col, row)
+			end if
+		end for
+		data.push line.join
+	end for
+	return file.writeLines(layoutFilePath, data)
+end function
+
+
 // Load a tile map from a file. 
 // Returns true (1) on success, false (0) on failure.
 // Also sets globals.tileSetPath (in case you need that).
@@ -70,3 +96,7 @@ loadFromFile = function(path, tiles)
 	end for
 	return gotTileSet
 end function
+
+// This module has no built-in demo/test function; but
+// see /sys/demo/levelEditor for a demo (and useful utility).
+

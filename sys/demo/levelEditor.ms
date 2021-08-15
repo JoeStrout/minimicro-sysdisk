@@ -129,22 +129,7 @@ saveToFile = function()
 		globals.layoutFilePath = input("Save layout to path: ")
 		if layoutFilePath == "" then return
 	end if
-	data = []
-	data.push "tileSetPath:" + tileSetPath
-	data.push "tileSetTileSize:" + tiles.tileSetTileSize
-	data.push "cellSize:" + tiles.cellSize
-	data.push "overlap:" + tiles.overlap
-	data.push "extent:" + tiles.extent
-	data.push "--"
-	extent = sizeToXY(tiles.extent)
-	for row in range(extent.y - 1, 0) // (backwards to match visually)
-		line = []
-		for col in range(0, extent.x - 1)
-			if tiles.cell(col, row) == null then line.push "." else line.push tiles.cell(col, row)
-		end for
-		data.push line.join
-	end for
-	file.writeLines layoutFilePath, data
+	tileUtil.saveToFile layoutFilePath, tiles
 	print "Saved data to " + layoutFilePath + EOL
 	print "(Press any key to continue.)"
 	key.get

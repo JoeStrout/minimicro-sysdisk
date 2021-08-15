@@ -10,7 +10,7 @@ gfx.clear
 c = text.color
 text.color = color.gray
 text.row = 25
-print "(Use arrows to move; Esc to exit.)"
+print "(Use arrows or joystick to move; Esc to exit.)"
 text.color = c
 
 display(4).mode = displayMode.sprite
@@ -47,18 +47,18 @@ end function
 
 // Main loop
 while not key.pressed("escape")
-	// move/rotate the wumpus
-	if key.pressed("left") then
-		wumpus.x = wumpus.x - 10
+	// move/rotate the wumpus using arrow keys, WASD, or a gamepad
+	inputH = key.axis("Horizontal")
+	wumpus.x = wumpus.x + 10 * inputH
+	if inputH < -0.5 then
 		if wumpus.rotation < 10 then wumpus.rotation = wumpus.rotation + 2
-	else if key.pressed("right") then
-		wumpus.x = wumpus.x + 10
+	else if inputH > 0.5 then
 		if wumpus.rotation > -10 then wumpus.rotation = wumpus.rotation - 2
 	else if wumpus.rotation != 0 then
 		wumpus.rotation = wumpus.rotation - sign(wumpus.rotation)
 	end if
-	if key.pressed("up") then wumpus.y = wumpus.y + 10
-	if key.pressed("down") then wumpus.y = wumpus.y - 10
+	inputV = key.axis("Vertical")
+	wumpus.y = wumpus.y + inputV * 10
 	if key.pressed("escape") then exit
 	
 	// animate the target, and check for collision

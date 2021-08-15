@@ -1,8 +1,8 @@
 // sounds
 //
-//	This is just a little module of handy sounds you might want to use in
-//	your own games, demos, or quick testing.  It also serves as examples
-//	of how to define synthesized sounds in code.
+//	This is just a little module of handy synthesized sounds you might 
+//	want to use in your own games, demos, or quick testing.  It also 
+//	serves as examples of how to define synthesized sounds in code.
 
 all = []
 
@@ -88,13 +88,17 @@ demo = function()
 	for i in names.indexes
 		print " " * (i<10) + i + ". " + names[i]
 	end for
+	print
+	row = text.row
 	while true
+		text.row = row
 		istr = input("Sound number (or Return to exit): ")
 		if istr == "" then break
 		name = names[val(istr)]
-		print name
+		print name + " "*40
 		byName[name].play
 	end while
+	print " "*40
 end function
 
 if globals == locals then demo

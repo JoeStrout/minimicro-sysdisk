@@ -149,6 +149,7 @@ doGameOver = function()
 	hitSnd.play
 	text.row = 13
 	print "GAME OVER!"
+	print "Your score: " + disp.scrollX
 	exit
 end function
 

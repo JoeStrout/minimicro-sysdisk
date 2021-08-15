@@ -102,4 +102,13 @@ runUnitTests = function()
 end function
 
 
-if locals == globals then runUnitTests
+if locals == globals then
+	runUnitTests
+	// Normally, dateTime would not be run in the global space, so its
+	// special str and val methods would not hide the intrinsics... but
+	// since it was, let's remove those so as to not cause grief.
+	dateTime = {"str":@str, "val":@val}
+	globals.remove "str"
+	globals.remove "val"
+end if
+	
