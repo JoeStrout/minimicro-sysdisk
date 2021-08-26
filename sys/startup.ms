@@ -202,8 +202,9 @@ mapName = function(map)
 end function
 
 pprintToList = function(outList, obj, prefix="", indent=0, suffix="")
-	s = str(obj)
-	if obj == null then s = "null"
+	s = str(@obj)
+	if @obj == null then s = "null"
+	if @obj isa funcRef then s = "function" + s[8:]
 	if s.len + prefix.len + indent < 65 then
 		outList.push " "*indent + prefix + s + suffix
 		return
@@ -212,25 +213,25 @@ pprintToList = function(outList, obj, prefix="", indent=0, suffix="")
 		outList.push " "*indent + prefix + "..." + suffix
 		return
 	end if
-	if obj isa list then
+	if @obj isa list then
 		outList.push " "*indent + prefix + "["
 		for i in obj.indexes
 			pprintToList outList, obj[i], "", indent + 4, "," * (i < obj.len-1)
 		end for
 		outList.push " "*indent + "]" + suffix
-	else if obj isa map then
+	else if @obj isa map then
 		outList.push " "*indent + prefix + "{"
 		entries = []; for kv in obj; entries.push kv; end for
 		for i in entries.indexes
 			kv = entries[i]
 			value = null
-			if kv.value isa map then value = mapName(kv.value)
-			if value == null then value = kv.value
-			pprintToList outList, value, kv.key + ": ", indent+4, "," * (i < entries.len-1)
+			if @kv.value isa map then value = mapName(@kv.value)
+			if value == null then value = @kv.value
+			pprintToList outList, @value, @kv.key + ": ", indent+4, "," * (i < entries.len-1)
 		end for
 		outList.push " "*indent + "}" + suffix
 	else
-		outList.push " "*indent + prefix + obj + suffix
+		outList.push " "*indent + prefix + s + suffix
 	end if
 end function
 
