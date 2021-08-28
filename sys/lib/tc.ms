@@ -122,8 +122,9 @@ end function
 sd = display(4)
 
 // spr: create a sprite from an image name (see img)
-// or URL.  Add the sprite to the `sd` SpriteDisplay.
-spr = function(nameOrURL, x=480, y=320)
+// or URL.  Set up a localBounds based on the image size,
+// and if addToSd is true, add to the sd sprites list.
+spr = function(nameOrURL, x=480, y=320, addToSd=true)
 	s = new Sprite
 	if nameOrURL.contains("://") then
 		s.image = http.get(nameOrURL)
@@ -132,7 +133,10 @@ spr = function(nameOrURL, x=480, y=320)
 	end if
 	s.x = x
 	s.y = y
-	sd.sprites.push s
+	s.localBounds = new Bounds
+	s.localBounds.width = s.image.width
+	s.localBounds.height = s.image.height
+	if addToSd then sd.sprites.push s
 	return s
 end function
 

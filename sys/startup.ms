@@ -292,6 +292,7 @@ view = function(path)
 			// Wrap each line to 68 columns.
 			i = 0
 			while i < lines.len
+				lines[i] = lines[i].replace(char(9), "    ")
 				if lines[i].len > 68 then
 					lines.insert i+1, lines[i][68:]
 					lines[i] = lines[i][:68]

@@ -111,9 +111,9 @@ end function
 // will be < 0 or > 1 if p is outside the range of endA to endB.
 //
 // Parameters:
-//  endA: one point on the line
-//  endB: another point on the line
-//  p: point of interest
+//  endA: one point on the line (map or list)
+//  endB: another point on the line (map or list)
+//  p: point of interest (map or list)
 // Returns: a number indicating how far p is from endA to endB.
 proportionAlongLine = function(endA, endB, p)
 	return _proportionAlongLine(endA, endB, p)
@@ -124,9 +124,9 @@ end function
 // may be beyond the range of endA and endB.  See nearestPointOnLineSegment.
 //
 // Parameters:
-//  endA: one point on the line
-//  endB: another point on the line
-//  p: point of interest
+//  endA: one point on the line (map or list)
+//  endB: another point on the line (map or list)
+//  p: point of interest (map or list)
 // Returns: an [x,y] list of the nearest point on the line to p.
 nearestPointOnLine = function(endA, endB, p)
 	return _nearestPointOnLine(endA, endB, p)
@@ -137,9 +137,9 @@ end function
 // return a point outside the given line segment.
 //
 // Parameters:
-//  endA: one end of the line segment
-//  endB: other end of the line segment
-//  p: point of interest
+//  endA: one point on the line (map or list)
+//  endB: another point on the line (map or list)
+//  p: point of interest (map or list)
 // Returns: an [x,y] list of the nearest point on the line segment to p.
 nearestPointOnLineSegment = function(endA, endB, p)
 	return _nearestPointOnLineSegment(endA, endB, p)
@@ -148,9 +148,9 @@ end function
 // distanceToLine: calculate the shortest distance between the given
 // point and an infinite line.
 // Parameters:
-//  endA: one point on the line
-//  endB: another point on the line
-//  p: point of interest
+//  endA: one point on the line (map or list)
+//  endB: another point on the line (map or list)
+//  p: point of interest (map or list)
 // Returns: distance from p to the line
 distanceToLine = function(endA, endB, p)
 	ptOnLine = _nearestPointOnLine(endA, endB, p)
@@ -160,9 +160,9 @@ end function
 // distanceToLineSegment: calculate the shortest distance between 
 // the given point and a line segment between two points.
 // Parameters:
-//  endA: one end of the line segment
-//  endB: other end of the line segment
-//  p: point of interest
+//  endA: one point on the line (map or list)
+//  endB: another point on the line (map or list)
+//  p: point of interest (map or list)
 // Returns: distance from p to the line
 distanceToLineSegment = function(endA, endB, p)
 	ptOnLine = _nearestPointOnLineSegment(endA, endB, p)
@@ -179,7 +179,7 @@ polyPerimeter = function(polygon)
 	return _polyPerimeter(polygon)
 end function
 
-// polyPerimeter: Calculate the area within the given polygon.
+// polyArea: Calculate the area within the given polygon.
 //
 // Parameters:
 //	polygon: list of [x,y] points defining a polygon
@@ -222,8 +222,8 @@ end function
 //	dx: amount to add to the X coordinate of each point
 //	dy: amount to add to the Y coordinate of each point
 // Returns: new list of points defining translated polygon
-shiftPoly = function(polygon, delta)
-	return _translatePoly(point, delta)
+shiftPoly = function(polygon, dx=0, dy=0)
+	return _translatePoly(point, dx=0, dy=0)
 end function
 
 // rotatePoly: rotates all points in the given list around 0,0.
@@ -234,8 +234,8 @@ end function
 //	polygon: list of points defining a polygon
 //	degrees: amount of rotation to apply, in degrees clockwise
 // Returns: new list of points defining rotated polygon
-rotatePoly = function(polygon, delta)
-	return _rotatePoly(point, delta)
+rotatePoly = function(polygon, degrees)
+	return _rotatePoly(point, degrees)
 end function
 
 // randNormal: return a normally-destributed (i.e. Gaussian) number
