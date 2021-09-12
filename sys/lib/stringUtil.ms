@@ -70,6 +70,7 @@ end function
 // Example:
 //		"  hello ".trim		// returns "hello"
 string.trim = function(charsToRemove=null)
+	if not self then return self
 	if charsToRemove == null then charsToRemove = whitespace
 	len = self.len
 	p0 = 0
@@ -87,6 +88,7 @@ end function
 // Example:
 //		"  hello ".trimRight		// returns "  hello"
 string.trimRight = function(charsToRemove=null)
+	if not self then return self
 	if charsToRemove == null then charsToRemove = whitespace
 	p1 = self.len - 1
 	while p1 >= 0 and charsToRemove.indexOf(self[p1]) != null
@@ -99,6 +101,7 @@ end function
 // Example:
 //		"  hello ".trimLeft		// returns "hello "
 string.trimLeft = function(charsToRemove=null)
+	if not self then return self
 	if charsToRemove == null then charsToRemove = whitespace
 	len = self.len
 	p0 = 0

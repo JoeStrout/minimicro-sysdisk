@@ -223,7 +223,7 @@ end function
 //	dy: amount to add to the Y coordinate of each point
 // Returns: new list of points defining translated polygon
 shiftPoly = function(polygon, dx=0, dy=0)
-	return _translatePoly(point, dx=0, dy=0)
+	return _translatePoly(point, dx, dy)
 end function
 
 // rotatePoly: rotates all points in the given list around 0,0.

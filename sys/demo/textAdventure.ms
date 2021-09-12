@@ -3,8 +3,9 @@
 // a miniature text adventure
 
 import "textUtil"
-
 printWrap = @textUtil.printWrap
+
+it = ""
 
 // Define some utility functions.
 printIfNonEmpty = function(s)
@@ -13,7 +14,12 @@ end function
 
 removeValue = function(lst, val)
 	idx = lst.indexOf(val)
-	if idx != null then lst.remove idx else print "Couldn't find " + val + " in " + lst
+	if idx != null then
+		lst.remove idx
+	else
+		print "Couldn't find " + val + " in " + lst
+		print stackTrace
+	end if 
 end function
 
 aOrAn = function(s)
@@ -144,8 +150,9 @@ Object.handleCommand = function(cmd, pass)
 		printWrap "You say, """ + obj + """"
 		return true
 	end if
-	if self.matches(["look", "look at", "examine", "l "], cmd) then
+	if self.matches(["look at", "look", "examine", "l "], cmd) then
 		self.describe
+		globals.it = self.name
 		return true
 	end if
 	if pass == 2 then
@@ -272,7 +279,7 @@ Exit.connect = function(room1, name1, room2, name2)
 		if name1 == "east" then name2 = "west"
 		if name1 == "west" then name2 = "east"
 	end if
-if name2 then exit2.name = name2 else exit2.name = name1
+	if name2 then exit2.name = name2 else exit2.name = name1
 	
 	return [exit1, exit2]
 end function
@@ -363,13 +370,16 @@ Container.handleCommand = function(cmd, pass)
 			for item in self.contents
 				printWrap "   - " + item.fullName
 			end for
+		else
+			print "The " + self.name + " is empty."
 		end if
+		globals.it = self.name
 		return true
 	end if
 	return super.handleCommand(cmd, pass)
 end function
 Container.contain = function(obj)
-	obj.location = self
+	obj.moveTo self
 	print "You put " + obj.fullName + " into " + self.fullName + "."
 end function
 
@@ -411,7 +421,7 @@ Player.handleCommand = function(cmd, pass)
 		self.listContents "You are carrying:", "You are empty-handed."
 		return true
 	end if
-
+	
 	objStrs = matchPrep(["get", "pick up", "take"], "from", cmd)
 	if objStrs then
 		objs = [null, self.findObj(objStrs[1])]
@@ -420,24 +430,34 @@ Player.handleCommand = function(cmd, pass)
 			return true
 		end if
 		objs[0] = objs[1].contentNamed(objStrs[0])
-			if not objs[0] then
+		if not objs[0] then
 			print "The " + objs[1].name + " doesn't seem to contain any " + objStrs[0] + "."
 			return true
 		end if
+		globals.it = objs[0].name
 		return self.get(objs[0])
 	end if
-
+	
 	obj = self.findObj(match(["get", "pick up", "take"], cmd))
-	if obj then return self.get(obj)
-
+	if obj then
+		globals.it = obj.name
+		return self.get(obj)
+	end if
+	
 	objs = self.findObjs(matchPrep("put", "in", cmd))
 	if not objs then objs = self.findObjs(matchPrep("put", "into", cmd))
 	if not objs then objs = self.findObjs(matchPrep("give", "to", cmd))
-	if objs then return self.put(objs[0], objs[1])
+	if objs then
+		globals.it = objs[0].name
+		return self.put(objs[0], objs[1])
+	end if
 	
 	obj = self.findObj(match(["drop", "put down", "toss"], cmd))
-	if obj then return self.drop(obj)
-
+	if obj then
+		globals.it = obj.name
+		return self.drop(obj)
+	end if
+	
 	return super.handleCommand(cmd, pass)
 end function
 
@@ -454,7 +474,7 @@ end function
 
 Player.drop = function(obj)
 	obj.moveTo Player.location
-	print "You drop " + obj.name + "."
+	print "You drop " + obj.fullName + "."
 	return true
 end function
 
@@ -492,11 +512,26 @@ end function
 //----------------------------------------------------------------------
 // Global command handler.
 handleCommand = function(cmd)
+	cmd = cmd + " "
+	itPos = cmd.indexOf(" it ")
+	if itPos != null then
+		if not it then
+			print "I don't know what you mean by ""it""."
+			return
+		end if
+		cmd = cmd.replace(" it ", " " + it + " ")
+	end if
+	cmd = cmd[:-1]
+	
 	room = Player.location
 	for pass in range(1,2)
 		// try all the objects in the room (except the player)
 		for item in room.contents
 			if item == Player then continue
+			if item.handleCommand(cmd, pass) then return
+		end for
+		// try objects in the inventory
+		for item in Player.contents
 			if item.handleCommand(cmd, pass) then return
 		end for
 		// try the room itself
@@ -525,14 +560,14 @@ end function
 //----------------------------------------------------------------------
 // Main program.
 if locals == globals then
-
+	
 	origTextColor = text.color
 	origBackColor = text.backColor
 	normalColor = color.green
 	text.color = normalColor
 	text.backColor = color.black
 	clear
-
+	
 	// Create the world.
 	fountainRoom = new Room
 	fountainRoom.name = "Fountain Room"
@@ -544,13 +579,13 @@ if locals == globals then
 	" light comes from the glowing gargoyle carved into the great" +
 	" stone door to the north."
 	Player.moveTo fountainRoom
-
+	
 	endRoom = new Room
 	endRoom.name = "Congratulations!"
 	endRoom.desc = "You've gotten past the greedy gargoyle -- and"+
 	" it only cost you three fake coins!  Nicely done.  You may" +
 	" examine the credits, or quit."
-
+	
 	doors = Exit.connect(fountainRoom, "north", endRoom)
 	exit = doors[0]
 	exit.altNames = ["exit", "leave", "out", "door", "n"]
@@ -562,7 +597,7 @@ if locals == globals then
 	exit.openDoor = function()
 		print "The stone door won't budge."
 	end function
-
+	
 	pool = new Container
 	pool.name = "pool"
 	pool.altNames = ["fountain", "fountian"]
@@ -573,15 +608,16 @@ if locals == globals then
 	pool.size = 20
 	pool.salient = false
 	pool.moveTo fountainRoom
-
+	
 	water = new Liquid
 	water.name = "water"
 	water.altNames = ["liquid", "fluid"]
 	water.desc = "It appears to be ordinary water, and fairly clean."
 	water.moveTo pool
-
+	
 	garg = new Thing
 	garg.name = "gargoyle"
+	garg.altNames = ["statue"]
 	garg.altNames = ["garg", "gar", "statue", "carving", "hand"]
 	garg.desc = "The gargoyle is carved into the door with amazing" +
 	" three-dimensional relief.  Its face wears an exaggerated" +
@@ -592,29 +628,36 @@ if locals == globals then
 	garg.note = "The gargoyle on the door glows faintly in the dark," +
 	" as magical items frequently do."
 	garg.door = doors[0]
-
+	
 	lamp = new Thing
 	lamp.name = "lamp"
+	lamp.altNames = ["lantern"]
 	lamp.lit = true
 	lamp.fullName = function()
 		result = self.a + " " + self.name + " "
 		if self.lit then result = result + "(lit)" else result = result + "(not lit)"
 		return result
 	end function
+	lamp.desc = function()
+		if self.lit then return "Your trusty oil lamp is burning brightly."
+		return "Your trusty oil lamp is currently dark, much like the room itself."
+	end function
 	lamp.handleCommand = function(cmd, pass)
+		if super.handleCommand(cmd, pass) then return true
+		cmd = cmd.replace("lantern", "lamp")
 		if cmd == "douse lamp" or cmd == "extinguish lamp" or 
-			   cmd == "turn lamp off" or cmd == "turn off lamp" or
-			   cmd == "put out lamp" then
+				cmd == "turn lamp off" or cmd == "turn off lamp" or
+				cmd == "put out lamp" then
 			if not self.lit then
 				print "The lamp is already off."
 			else
 				self.lit = false
 				printWrap "You extinguish the lamp.  The room goes" +
-	" dark, except for a faint glow from the gargoyle statue."
+				" dark, except for a faint glow from the gargoyle statue."
 			end if
 			return true
 		else if cmd == "light lamp" or cmd == "turn lamp on" or
-			   cmd == "turn on lamp" then
+		cmd == "turn on lamp" then
 			if self.lit then
 				print "The lamp is already lit."
 			else if self.location == pool then
@@ -627,12 +670,12 @@ if locals == globals then
 		end if
 	end function	
 	lamp.moveTo Player
-
+	
 	goldCoin = new CountableThing
 	goldCoin.name = "gold coin"
 	goldCoin.name = "coin"
 	goldCoin.moveTo Player
-
+	
 	tinCoin = new CountableThing
 	tinCoin.name = "tin coin"
 	tinCoin.altNames = ["coin", "fake"]
@@ -643,7 +686,7 @@ if locals == globals then
 	end function
 	tinCoin.count = 3
 	tinCoin.moveTo pool
-
+	
 	credits = new Thing
 	credits.name = "credits"
 	credits.altNames = ["cred"]
@@ -654,7 +697,7 @@ if locals == globals then
 	credits.a = "the"
 	credits.moveTo endRoom
 	credits.salient = false
-
+	
 	//----------------------------------------------------------------------
 	// Special code for the gargoyle.
 	garg.contain = function(obj)
@@ -717,7 +760,7 @@ if locals == globals then
 			obj.moveTo self.location
 		end if
 	end function
-
+	
 	print "                         THE GREEDY GARGOYLE"
 	print "                        A 5-Minute Text Puzzle"
 	print
@@ -739,7 +782,7 @@ if locals == globals then
 	print char(13)*3
 	input "[Press Return.]"
 	print char(13)*3
-
+	
 	// Main loop.
 	done = false
 	look
@@ -749,7 +792,7 @@ if locals == globals then
 		text.color = normalColor
 		handleCommand cmd
 	end while
-
+	
 	text.color = origTextColor
 	text.backColor = origBackColor
 end if
