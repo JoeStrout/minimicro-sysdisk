@@ -311,7 +311,7 @@ end function
 
 // init2d: build a 2D array, composed as a list of lists.
 // (Note that the math functions here in listUtil probably do not do what
-// you would want for a 2D array of numbers; if you wnat to do matrix math,
+// you would want for a 2D array of numbers; if you want to do matrix math,
 // use matrixUtil instead.)
 list.init2d = function(rows, columns, initialValue)
 	result = []
