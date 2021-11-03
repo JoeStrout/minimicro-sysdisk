@@ -324,7 +324,8 @@ runUnitTests = function()
 	assertEqual numToStr(pi, 2), "3.14"
 	assertEqual numToStr(1.23, 3), "1.230"
 	assertEqual numToStr(1.23), "1.23"
-	assertEqual numToStr(12345.67, -2), "12300"	
+	assertEqual numToStr(12345.67, -2), "12300"
+	assertEqual numToStr(2, 3), "2.000"
 
 	if errorCount == 0 then
 		print "All tests passed.  Woot!"

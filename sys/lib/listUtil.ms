@@ -106,6 +106,7 @@ end function
 //		x = [1, 2, 3]
 //		x.reverse		// x is now [3, 2, 1]
 list.reverse = function()
+	if not self then return self
 	for i in range(0, self.len/2-1)
 	    negi = -1 - i
 		temp = self[i]

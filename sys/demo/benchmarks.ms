@@ -56,7 +56,7 @@ showProgress = function(fractionDone=null)
 end function
 
 showResult = function(time)
-	msg = ("   " + round(time, 3))[-8:] + " s "
+	msg = ("   " + mathUtil.numToStr(time, 3))[-8:] + " s "
 	text.row = 23 - curOptIdx
 	text.column = 40
 	nom = options[curOptIdx].nominalTime
@@ -139,6 +139,42 @@ jsonGeneration = function()
 	yield
 end function
 addOption @jsonGeneration, "JSON Generation", 0.706
+
+//----------------------------------------------------------------------
+recursiveFill = function()
+	gfx.clear color.black
+	gfx.drawEllipse 300,50,300,200, color.blue
+	fillAtPoint 400, 80
+end function
+
+fillAtPoint = function(x,y)
+	if gfx.pixel(x,y) != "#000000FF" then return
+	gfx.setPixel x,y, "#FF8800"
+	fillAtPoint x-1, y
+	fillAtPoint x, y-1
+	fillAtPoint x+1, y
+	fillAtPoint x, y+1
+end function
+
+addOption @recursiveFill, "Recursive Flood Fill", 1.5
+
+//----------------------------------------------------------------------
+iterativeFill = function()
+	gfx.clear color.black
+	gfx.drawEllipse 300,50,300,200, color.blue
+	toDoList = [[400, 80]]
+	while toDoList
+		pos = toDoList.pop
+		x = pos[0]; y = pos[1]
+		if gfx.pixel(x,y) != "#000000FF" then continue
+		gfx.setPixel x, y, "#FF8800"
+		toDoList.push [x, y+1]
+		toDoList.push [x+1, y]
+		toDoList.push [x, y-1]
+		toDoList.push [x-1, y]
+	end while
+end function
+addOption @iterativeFill, "Iterative Flood Fill", 2.0
 
 //----------------------------------------------------------------------
 carpet = function()

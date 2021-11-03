@@ -101,11 +101,13 @@ color.red, color.lime, color.blue, color.olive, color.teal, color.purple,
 color.brown, color.orange, color.gray, color.yellow, color.aqua, color.fuchsia,
 color.pink, color.silver, color.white]
 
-// img: load an image by name, anywhere under /sys/pics.
+// img: load an image by name, anywhere under the current
+// directory, /usr/pics, or /sys/pics, or somewhere else
+// that you specify.
 // The .png extension is not needed.
 img = function(name, folder=null)
-	if folder == null then folder = "/sys/pics"
-	todo = [folder]
+	todo = [".", "/usr/pics", "/sys/pics"]
+	if folder then todo.insert 0, folder
 	if not name.endsWith(".png") then name = name + ".png"
 	while todo
 		folder = todo.pull
