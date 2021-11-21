@@ -1083,12 +1083,14 @@ layoutTabs = function()
 		t.targetX = x
 		t.tabX = t.targetX
 		if not t.tabWidth then t.tabWidth = t.tabTitle.len * 9 + 50
-		if t.closeBtn == null and t.tabTitle != "+" then
-			t.closeBtn = new CloseButton
-			t.closeBtn.x = x + 20
-			spriteDisp.sprites.push t.closeBtn
+		if t.tabTitle != "+" then
+			if t.closeBtn == null then
+				t.closeBtn = new CloseButton
+				spriteDisp.sprites.push t.closeBtn
+			end if
 			t.closeBtn.update
-		end if
+			t.closeBtn.x = x + 20	
+		end if		
 		x = x + t.tabWidth - 12
 	end for
 end function
