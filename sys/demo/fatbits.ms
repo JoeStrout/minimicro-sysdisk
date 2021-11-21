@@ -27,6 +27,7 @@ kModePasting = "PASTING"
 
 foreColor = "#000000FF"
 backColor = "#00000000"
+spriteBoundsColor = color.silver
 ps = 9	// "pixel size" (forgive the short name, but we use this a lot)
 picW = 64
 picH = 64
@@ -58,8 +59,8 @@ display(5).mode = displayMode.pixel
 fatbits = display(5)
 fatbits.clear color.clear, picW, picH
 fatbits.scale = ps
-// backdrop: color that appears behind the fat-bits drawing (and preview area)
-display(6).mode = displayMode.solidColor
+// backdrop: area that appears behind the fat-bits drawing (and preview area)
+display(6).mode = displayMode.pixel
 backdrop = display(6)
 backdrop.color = "#444444"
 // scratch: hidden drawing area
@@ -405,11 +406,25 @@ paintArea = Rect.make(180, 10, 64*ps, 64*ps)
 prepareScreen = function()
 	paintArea.offset(5,5).fill bkgnd, color.clear
 	paintArea.grow(1,1).frame gfx, color.black, 4, -4
+	backdrop.clear color.black
 	drawGrid
 	previewArea.draw
 	gfx.print "press ? for help", 955 - 16*9, 640-18, color.silver, "small"
 end function
 drawGrid = function()
+	// Select current image
+	img = selectedTab.image
+	// Calculate backdrop rectangle
+	if img.width >= 64 then maxWidth = 64 else maxWidth = img.width
+	if img.height >= 64 then maxHeight = 64 else maxHeight = img.height
+	backdropRect = Rect.make(
+	    paintArea.midX - (maxWidth / 2)*ps,
+	    paintArea.midY - (maxHeight / 2)*ps,
+	    maxWidth * ps,
+	    maxHeight * ps)
+	// Fill backdrop area
+	backdropRect.fill(backdrop, backdrop.color)
+	// Draw lines for individual "fat" pixels
 	gfx.color = "#88888866"
 	for i in range(1, 63)
 		if i % 8 == 0 then continue
@@ -418,6 +433,7 @@ drawGrid = function()
 		y = paintArea.bottom + i*ps
 		gfx.line paintArea.left, y, paintArea.right, y
 	end for
+	// Draw 8x8 cell separators
 	gfx.color = "#777777AA"
 	for i in range(0, 64, 8)
 		x = paintArea.left + i*ps
@@ -425,7 +441,9 @@ drawGrid = function()
 		y = paintArea.bottom + i*ps
 		gfx.line paintArea.left, y, paintArea.right, y
 	end for
-end function
+	// Draw bounding box of fatbits area
+	backdropRect.frame(gfx, spriteBoundsColor)
+end  function
 
 makeTools = function()
 	tools = [
