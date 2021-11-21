@@ -1044,10 +1044,20 @@ OpenFile.saveToDisk = function()
 	end if
 end function
 OpenFile.close = function()
-	idx = tabs.indexOf(self)
-	tabs.remove self
-	globals.selectedTab = tabs[idx-1]
+	tabIdx = tabs.indexOf(self)
+	// Choose the tab before it, or the first one if none left
+	if tabIdx == 0 then newIdx = 0 else newIdx = tabIdx - 1
+	// Remove the close button of the removed tab
+	sprIdx = spriteDisp.sprites.indexOf(self.closeBtn)
+	spriteDisp.sprites.remove sprIdx
+	// Remove the tab object
+	tabs.remove tabIdx
+	// Point to new tab
+	newTab = tabs[newIdx]
+	globals.selectedTab = newTab
+	// Repaint UI and switch
 	layoutTabs; drawTabs
+	switchToTab newTab
 end function
 OpenFile.confirmAndClose = function()
 	dlog = textUtil.Dialog.make("Save changes to " + self.tabTitle + "?",
