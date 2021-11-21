@@ -1047,7 +1047,7 @@ OpenFile.close = function()
 	idx = tabs.indexOf(self)
 	tabs.remove self
 	globals.selectedTab = tabs[idx-1]
-	layoutTabs; drawTab
+	layoutTabs; drawTabs
 end function
 OpenFile.confirmAndClose = function()
 	dlog = textUtil.Dialog.make("Save changes to " + self.tabTitle + "?",
