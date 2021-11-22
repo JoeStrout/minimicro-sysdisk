@@ -975,7 +975,7 @@ CloseButton.image = closeBtnClean
 CloseButton.y = 640 - 12
 CloseButton.x = 20
 CloseButton.update = function(dirty, curTab, pressed)
-	if self.localBounds == null then self.addBounds
+	if self.localBounds == null then self.addBounds; yield
 	if dirty then
 		self.image = closeBtnDirty
 		if curTab then tint = "FF" else tint = "AA"
