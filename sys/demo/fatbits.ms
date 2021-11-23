@@ -975,7 +975,7 @@ CloseButton.image = closeBtnClean
 CloseButton.y = 640 - 12
 CloseButton.x = 20
 CloseButton.update = function(dirty, curTab, pressed)
-	if self.localBounds == null then self.addBounds
+	if self.localBounds == null then self.addBounds; yield
 	if dirty then
 		self.image = closeBtnDirty
 		if curTab then tint = "FF" else tint = "AA"
@@ -1044,10 +1044,20 @@ OpenFile.saveToDisk = function()
 	end if
 end function
 OpenFile.close = function()
-	idx = tabs.indexOf(self)
-	tabs.remove self
-	globals.selectedTab = tabs[idx-1]
-	layoutTabs; drawTab
+	tabIdx = tabs.indexOf(self)
+	// Choose the tab before it, or the first one if none left
+	if tabIdx == 0 then newIdx = 0 else newIdx = tabIdx - 1
+	// Remove the close button of the removed tab
+	sprIdx = spriteDisp.sprites.indexOf(self.closeBtn)
+	spriteDisp.sprites.remove sprIdx
+	// Remove the tab object
+	tabs.remove tabIdx
+	// Point to new tab
+	newTab = tabs[newIdx]
+	globals.selectedTab = newTab
+	// Repaint UI and switch
+	layoutTabs; drawTabs
+	switchToTab newTab
 end function
 OpenFile.confirmAndClose = function()
 	dlog = textUtil.Dialog.make("Save changes to " + self.tabTitle + "?",
@@ -1073,12 +1083,14 @@ layoutTabs = function()
 		t.targetX = x
 		t.tabX = t.targetX
 		if not t.tabWidth then t.tabWidth = t.tabTitle.len * 9 + 50
-		if t.closeBtn == null and t.tabTitle != "+" then
-			t.closeBtn = new CloseButton
-			t.closeBtn.x = x + 20
-			spriteDisp.sprites.push t.closeBtn
+		if t.tabTitle != "+" then
+			if t.closeBtn == null then
+				t.closeBtn = new CloseButton
+				spriteDisp.sprites.push t.closeBtn
+			end if
 			t.closeBtn.update
-		end if
+			t.closeBtn.x = x + 20	
+		end if		
 		x = x + t.tabWidth - 12
 	end for
 end function
