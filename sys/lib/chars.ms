@@ -37,6 +37,14 @@ figureAkimbo = char(57875)
 
 // Some misc. glyphs:
 mu = char(181)
+invertedBang = char(161)
+copyright = char(169)
+lineEndSymbol = char(172)
+registered = char(174)
+degrees = char(176)
+invertedQuestion = char(191)
+multSign = char(215)
+divSign = char(247)
 pi = char(960)
 tau = char(964)
 bullet = char(8226)
@@ -78,7 +86,9 @@ enterKey = char(3)
 printable = [leftArrow, upArrow, rightArrow, downArrow, unprintable,
 	buttonCapLeft, buttonCapRight, 
 	figureStanding, figureWaitingToeDown, figureWaitingToeUp, figureAkimbo,
-	mu, pi, bullet, tree, emptyBox, checkedBox, boxWithX,
+	mu, invertedBang, copyright, lineEndSymbol, registered, degrees, 
+	invertedQuestion, multSign, divSign, pi, bullet, tree, 
+	emptyBox, checkedBox, boxWithX,
 	spade, club, heart, diamond] + dieFace.values
 
 if locals == globals then

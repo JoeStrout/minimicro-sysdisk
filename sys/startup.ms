@@ -246,8 +246,6 @@ _viewImage = function(pic)
 		print "Unable to read image: " + path
 		return
 	end if
-	prevMode = display(0).mode
-	display(0).mode = displayMode.pixel
 	prevDisp = display(0)
 	g = new PixelDisplay
 	g.install 0
@@ -263,7 +261,7 @@ _viewImage = function(pic)
 	print " " * 32
 	g.clear
 	prevDisp.install 0
-	display(0).mode = prevMode
+	display(0).mode = prevDisp.mode
 	text.delimiter = char(13)		
 end function
 

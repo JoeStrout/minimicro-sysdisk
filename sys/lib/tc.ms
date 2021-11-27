@@ -87,6 +87,7 @@ cls = @clear
 tau = 2 * pi
 π = pi		// (don't know how to type these?  Copy & paste!)
 τ = tau
+e = 2.7182818284
 c = @char
 t = @time
 g = function(); return gfx; end function
@@ -94,6 +95,11 @@ k = key
 m = mouse
 µ = @yield
 wget = @http.get
+
+// ln: natural logarithm (i.e., log base e)
+ln = function(x)
+	return log(x, 2.7182818284)
+end function
 
 // pal: our 20 standard colors, sorted by total of R, G, B, and A.
 pal = [color.clear, color.black, color.maroon, color.green, color.navy,
