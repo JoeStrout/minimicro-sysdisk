@@ -1,5 +1,5 @@
 The `import` command loads a MiniScript file from the current
-directory, `/sys/lib`, `/usr/lib`, or some path defined in
+directory, `/usr/lib`, `/sys/lib`, or some path defined in
 `env.importPaths`.  Any values defined by that code then become
 available in a map of the same name.  Example:
 

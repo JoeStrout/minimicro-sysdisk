@@ -9,7 +9,7 @@ file-related commands:
    `file.import "filename"` -- import a file from the host OS
    `file.export "filename"` -- extract a file to the host OS
 		
-Note that there are two disks available:
+Note that there are three disks available:
     `"/sys"` -- system disk (read-only)
     `"/usr"` -- user disk (top slot; read/write)
     `"/usr2"` -- secondary user disk (bottom slot; read/write)

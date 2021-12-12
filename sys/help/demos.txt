@@ -10,7 +10,7 @@ Mini Micro has a number of demos on the `/sys` disk.  To run them:
 
 3. Load one, for example:
 
-`load "drumMachine"
+`load "drumMachine"`
 
 4. Run it!
 
