@@ -1,0 +1,21 @@
+Downloadable Content
+
+In addition to the small games/demos available in the `/sys/demo`
+folder, there are larger, more polished games and programs which
+can be downloaded from the web.  Many of these are available at
+`https://miniscript.org/MiniMicro/dlc`.  To use them:
+
+1. Go to that URL in your favorite web browser.
+
+2. Download one of the programs you find there.  It should come
+down as a .minidisk file, for example, `WorldConquest.minidisk`.
+
+3. Click on the top disk slot below the screen.  From the pop-up
+menu that appears, choose `Mount Disk File…`.
+
+4. Select the .minidisk file you downloaded in Step 2.
+
+5. Quit and relaunch Mini Micro (or enter `cd; load "start"; run`).
+
+To get back to your own files, click the disk slot again, and use 
+either `Mount Folder` or `Mount Disk File` to load your own user disk.

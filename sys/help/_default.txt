@@ -1,6 +1,6 @@
 Welcome to Mini Micro!
 Enter MiniScript code at the prompt.
-For language help, see: `http://miniscript.org`
+For language help, see: `https://miniscript.org`
 
 When typing a command, Mini Micro will sometimes make
 suggestions in faint text after the cursor.  Just press 
