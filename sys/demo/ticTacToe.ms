@@ -52,7 +52,7 @@ drawMark = function(position, player)
 end function
 
 // draw the board
-drawBoard = function()
+drawBoard = function
 	top = 320 - boxSize*1.5
 	bot = 320 + boxSize*1.5
 	left = 480 - boxSize*1.5
@@ -69,7 +69,7 @@ human = "X"
 computer = "O"
 
 // Return a list of the empty positions on the current board.
-emptySpaces = function()
+emptySpaces = function
 	result = []
 	for i in board.indexes
 		if board[i] == "" then result.push i
@@ -89,7 +89,7 @@ end function
 // Return the board position for computer's move,
 // or null if no move is possible.  This is the AI
 // of this game.  Can you make it any smarter?
-getComputerMove = function()
+getComputerMove = function
 	// gather possible moves
 	available = emptySpaces
 	if not available then return null  // no empty spaces!
@@ -113,7 +113,7 @@ getComputerMove = function()
 end function
 
 // Do the computer's move.
-doComputerMove = function()
+doComputerMove = function
 	move = getComputerMove
 	if move != null then
 		drawMark move, computer
@@ -121,7 +121,7 @@ doComputerMove = function()
 end function
 
 // Handle a click from the player.
-handleClick = function()
+handleClick = function
 	// figure out what column and row was clicked
 	c = 1 + round((mouse.x - 480) / boxSize)
 	r = 1 + round((mouse.y - 320) / boxSize)

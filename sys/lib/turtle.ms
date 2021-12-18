@@ -9,7 +9,7 @@ Turtle.penDown = true
 Turtle.penSize = 1
 Turtle.color = color.white
 
-Turtle.updateSprite = function()
+Turtle.updateSprite = function
 	if not self.hasIndex("sprite") then return
 	self.sprite.image = self.image
 	self.sprite.scale = self.scale
@@ -18,27 +18,27 @@ Turtle.updateSprite = function()
 	self.sprite.rotation = self.heading
 end function
 
-Turtle.show = function()
+Turtle.show = function
 	self.sprite = new Sprite
 	self.updateSprite
 	display(self.displayNum).mode = displayMode.sprite
 	display(self.displayNum).sprites.push self.sprite
 end function
 
-Turtle.hide = function()
+Turtle.hide = function
 	splist = display(self.displayNum).sprites
 	idx = splist.indexOf(self.sprite)
 	if idx >= 0 then splist.remove idx
 	self.remove "sprite"
 end function
 
-Turtle.clear = function()
+Turtle.clear = function
 	gfx.clear
 	display(self.displayNum).sprites = []
 	self.remove "sprite"
 end function
 
-Turtle.plop = function()
+Turtle.plop = function
 	if self.penSize <= 1 then
 		gfx.setPixel self.x, self.y, self.color
 	else
@@ -82,7 +82,7 @@ Turtle.left = function(degrees)
 	self.right -degrees
 end function
 
-demo = function()
+demo = function
 	Turtle.jumpTo gfx.width/2, gfx.height/2
 	Turtle.color = color.yellow
 	Turtle.penSize = 100
@@ -99,7 +99,7 @@ demo = function()
 	end for
 end function
 
-longDemo = function()
+longDemo = function
 	// This demo draws a turtle, using Turtle!
 	// Based on a design by Discord user @Intas.
 	Turtle.clear

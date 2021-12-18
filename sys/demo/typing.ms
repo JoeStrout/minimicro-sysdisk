@@ -44,11 +44,11 @@ Word.startTime = 0
 Word.dieTime = null
 Word.speed = 0.5
 
-Word.draw = function()
+Word.draw = function
 	printAt self.y, self.x - self.text.len/2, self.text
 end function
 
-Word.erase = function()
+Word.erase = function
 	printAt self.y, self.x - self.text.len/2, " " * self.text.len
 end function
 
@@ -60,7 +60,7 @@ Word.init = function(text)
 	self.speed = 0.5 + (score + 20)/20
 end function
 
-Word.update = function()
+Word.update = function
 	if self.dieTime == null then
 		t = time - self.startTime
 		y = round(25 - t * self.speed)
@@ -83,7 +83,7 @@ Word.update = function()
 	end if
 end function
 
-Word.pan = function()
+Word.pan = function
 	// how much to pan a sound based on this word position
 	pan = (self.x - 34) / 34
 	// Default panning is not very noticeable; let's exaggerate it!
@@ -91,11 +91,11 @@ Word.pan = function()
 	return pan
 end function
 
-Word.die = function()
+Word.die = function
 	self.dieTime = time
 end function
 
-Word.endGame = function()
+Word.endGame = function
 	gameOverSnd.play 1, self.pan
 	x = xForCol(self.x)
 	y = yForRow(self.y)
@@ -118,7 +118,7 @@ end function
 entry = ""
 
 // draw the ground, including the text entry and score
-drawGround = function()
+drawGround = function
 	c = text.color
 	bc = text.backColor
 	text.color = color.yellow
@@ -135,7 +135,7 @@ drawGround = function()
 end function
 
 // handle keyboard input
-checkInput = function()
+checkInput = function
 	while key.available
 		k = key.get.upper
 		kcode = code(k)
@@ -156,7 +156,7 @@ end function
 
 // See if we have any target that matches our current entry,
 // and if so, fire a beam and take that word out!
-fire = function()
+fire = function
 	target = null
 	for w in targets
 		if w.text == entry and not w.dieTime then
@@ -190,7 +190,7 @@ maxWordLen = 5
 
 // Now prepare the list of target (spawned) Words, and a spawn function
 targets = []
-spawnNewWord = function()
+spawnNewWord = function
 	// pick a word less than our max word length
 	s = ""
 	while not s or s.len > maxWordLen

@@ -306,7 +306,7 @@ gPats = [
     "How do you feel when you say that?"]]  ]
 
 
-runInteractive = function()
+runInteractive = function
 	print "Therapist" + char(13) + "---------"
 	print "Talk to the program by typing in plain English, using normal upper-"
 	print "and lower-case letters and punctuation.  Enter ""quit"" when done."

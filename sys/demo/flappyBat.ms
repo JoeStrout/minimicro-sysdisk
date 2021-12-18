@@ -39,12 +39,12 @@ Bat.dy = 0
 Bat.frame = 0
 Bat.nextFrameTime = 0
 Bat.doFlap = false
-Bat.init = function()
+Bat.init = function
 	self.image = frames[0]
 	self.x = 100
 	self.y = 320
 end function
-Bat.update = function()
+Bat.update = function
 	if time > self.nextFrameTime then
 		if self.frame < 4 then
 			self.frame = self.frame + 1
@@ -74,7 +74,7 @@ disp.sprites.push bat
 
 // Define a Pipe class.  (We'll need a lot of these.)
 Pipe = {}
-Pipe.init = function()
+Pipe.init = function
 	self.tube = new Sprite
 	self.tube.image = pipeImg
 	self.tube.scale = [1, 4] // so it's now 1024 pixels high!
@@ -101,13 +101,13 @@ Pipe.setPos = function(x, height)
 	self.height = height
 end function
 
-Pipe.setRandomPos = function()
+Pipe.setRandomPos = function
 	x = round(disp.scrollX + 1000 + 500*rnd)
 	h = round(600*(rnd-0.5))
 	self.setPos x, h 
 end function
 
-Pipe.update = function()
+Pipe.update = function
 	// check for collision with bat
 	if self.x > bat.x-60 and self.x < bat.x+60 then
 		hit = false
@@ -134,7 +134,7 @@ for i in range(1,3)
 end for
 
 // Handle keyboard input
-handleKeys = function()
+handleKeys = function
 	if not key.available then return
 	k = key.get
 	if k == char(27) or k == "q" then
@@ -145,7 +145,7 @@ handleKeys = function()
 end function
 
 // Handle game-over
-doGameOver = function()
+doGameOver = function
 	hitSnd.play
 	text.row = 13
 	print "GAME OVER!"

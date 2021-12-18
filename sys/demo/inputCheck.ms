@@ -43,7 +43,7 @@ end for
 
 // Main update function: scan all inputs, and
 // display any which are currently active.
-update = function()
+update = function
 	active = []
 	for btn in allInputs
 		if key.pressed(btn) then active.push btn

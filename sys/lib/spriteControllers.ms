@@ -43,7 +43,7 @@ end function
 // Important: do NOT share an animation between multiple sprites!  Each
 // animation object maintains its own state.  So you must make a fresh
 // clone for each sprite that uses it.
-Animation.clone = function()
+Animation.clone = function
 	noob = {} + self  // MiniScript makes this really easy!
 	return noob
 end function
@@ -131,7 +131,7 @@ Platformer.vy = 0
 Platformer.inBoost = false
 Platformer.targetSpeed = 0
 Platformer.jumpAvail = false
-Platformer.finishSetup = function()
+Platformer.finishSetup = function
 	if self.footOffset == null then
 		self.footOffset = self.idleAnim.frames[0].height/2
 	end if
@@ -167,7 +167,7 @@ Platformer.applyFreefall = function(dt)
 	self.y = self.y + dy
 end function
 
-Platformer.checkForGround = function()
+Platformer.checkForGround = function
 	if self.state == JUMPING then return
 	groundLevel = self.groundBelow(self.x, self.y) + self.footOffset
 	if groundLevel > self.y and groundLevel < self.y + self.maxYStep then
@@ -237,7 +237,7 @@ Platformer.enterState = function(newState)
 end function
 
 // exitState: do whatever stuff we need to do when exiting the current state.
-Platformer.exitState = function()
+Platformer.exitState = function
 	// Nothing to do (by default).
 end function
 
@@ -263,7 +263,7 @@ Platformer.updateState = function(dt)
 	end if
 end function
 
-Platformer.checkInputs = function()
+Platformer.checkInputs = function
 	if self.state == JUMPING or self.state == FALLING then
 		// behavior of inputs is somewhat different in the air
 		if inputPressed(self.leftInput) then

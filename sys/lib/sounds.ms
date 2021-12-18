@@ -81,7 +81,7 @@ for kv in locals
 	end if
 end for
 
-demo = function()
+demo = function
 	clear
 	text.delimeter = char(13)
 	names = byName.indexes.sort

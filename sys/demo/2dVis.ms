@@ -50,7 +50,7 @@ Segment.make = function(p1, p2)
 end function
 
 Visibility = {}
-Visibility.make = function()
+Visibility.make = function
 	v = new Visibility
 	v.segments = []
 	v.endpoints = []
@@ -174,7 +174,7 @@ Visibility.segment_in_front_of = function(a, b, relativeTo)
 	    self.leftOf(b, a.p2) == relOnLeft
 end function
 
-Visibility.sortEndpoints = function()
+Visibility.sortEndpoints = function
 	// sort endpoints first by angle, and in case they're equal, put begin before end
 	for e in self.endpoints
 		e.sortKey = e.angle + e.begin * 0.0001
@@ -275,7 +275,7 @@ Visibility.addTriangle = function(angle1, angle2, segment)
 	if point.x == point.x then self.output.push point
 end function
 
-Visibility.cleanOutput = function()
+Visibility.cleanOutput = function
 	i = self.output.len - 1
 	while i > 0
 		p = self.output[i]
@@ -295,7 +295,7 @@ Visibility.cleanOutput = function()
 	end while
 end function
 
-Visibility.dumpPoints = function()
+Visibility.dumpPoints = function
 	for i in self.output.indexes
 		print i + ". " + self.output[i].x + ", " + self.output[i].y
 	end for

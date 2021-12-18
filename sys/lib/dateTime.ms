@@ -7,7 +7,7 @@
 // some amount of time to a starting date/time.
 
 // nowVal: get the current date/time, as a number.
-nowVal = function()
+nowVal = function
 	return _dateVal
 end function
 
@@ -69,7 +69,7 @@ weekday = function(date)
 	return weekdayNames.indexOf(_dateStr(date, "ddd"))
 end function
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: dateTime"
 	
 	errorCount = 0

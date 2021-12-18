@@ -5,7 +5,7 @@ if version.hostName != "Mini Micro" then
 	// if we just define a couple of functions:
 	clear = null
 	key = {}
-	key.get = function()
+	key.get = function
 		s = input("")
 		if s == "" then s = char(13)
 		return s[0]
@@ -30,7 +30,7 @@ print
 // Define the Player class
 Player = {}
 Player.score = 0
-Player.doTurn = function()
+Player.doTurn = function
 	rolls = 0
 	pot = 0
 	print self.name + "'s Turn!"

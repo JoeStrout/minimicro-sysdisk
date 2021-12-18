@@ -42,12 +42,12 @@ help = function(topic)
 	end if
 end function
 
-usr = function()
+usr = function
 	_printMark "Remember, you `must` use quotation marks around file paths.", "#8080FF"
 	_printMark "   Wrong: `cd /usr`", "#800000"
 	_printMark "   Right: `cd ""/usr""`"
 end function
-sys = function()
+sys = function
 	_printMark "Remember, you `must` use quotation marks around file paths.", "#8080FF"
 	_printMark "   Wrong: `cd /sys`", "#800000"
 	_printMark "   Right: `cd ""/sys""`"
@@ -355,7 +355,7 @@ source = function(fromLine=0, toLine=-1)
 	return _source[fromLine:toLine+1].join(char(13))
 end function
 
-clear = function()
+clear = function
 	// Clear and reset all displays.
 	for i in [0,1,2,6]
 		display(i).mode = displayMode.off
@@ -373,11 +373,11 @@ clear = function()
 	text.row = 25
 end function
 
-_saveGlobals = function()
+_saveGlobals = function
 	globals._savedGlobals = {} + globals
 end function
 
-_restoreGlobals = function()
+_restoreGlobals = function
 	for key in globals.indexes
 		if key[0] != "_" then globals.remove(key)
 	end for
@@ -386,7 +386,7 @@ _restoreGlobals = function()
 	end for
 end function
 
-reset = function()
+reset = function
 	Sound.stopAll
 	globals._source = []
 	globals._sourceFile = null
@@ -396,7 +396,7 @@ reset = function()
 	return null
 end function
 
-tip = function()
+tip = function
 	tips = _fileReadLines("/sys/tips.txt")
 	return tips[rnd * tips.len].replace("\n", char(13))
 end function
@@ -408,7 +408,7 @@ _bootOpt = function(key, default=false)
 	return env.bootOpts[key]
 end function
 
-welcome = function()
+welcome = function
 	clear
 	text.color = color.gray
 	text.delimiter = ""

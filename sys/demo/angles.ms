@@ -52,7 +52,7 @@ printCentered = function(s, x, y, textColor)
 	gfx.print s, x - s.len*9/2, y, textColor, "small"
 end function
 
-drawCircleDisplay = function()
+drawCircleDisplay = function
 	gfx.fillRect circCX-circR-150, circCY-circR-150,
 	circR*2+300, circR*2+200, bgColor
 	sprite.rotation = curAng
@@ -105,7 +105,7 @@ drawCircleDisplay = function()
 	gfx.print degStr, x, y, degreeColor, "small"
 end function
 
-drawTriDisplay = function()
+drawTriDisplay = function
 	gfx.fillRect triX-triR-80, triY-triR-100,
 	triR*2+200, triR*2+100, bgColor
 	
@@ -197,7 +197,7 @@ printMarkup = function(s)
 	print
 end function
 
-printInfo = function()
+printInfo = function
 	text.row = 25
 	text.color = color.white
 	printMarkup "Angles can be measured in two"
@@ -228,7 +228,7 @@ printInfo = function()
 	text.row = 25; text.delimiter = char(13)
 end function
 
-toggleNegativeAngles = function()
+toggleNegativeAngles = function
 	globals.negativeAngles = not negativeAngles
 	if negativeAngles then b = chars.checkedBox else b = chars.emptyBox
 	text.setCell 0, 0, b

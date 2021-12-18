@@ -37,7 +37,7 @@ Balloon.image = file.loadImage("/sys/pics/Balloon.png")
 Balloon.speed = 100
 Balloon.burstTime = null
 
-Balloon.init = function()
+Balloon.init = function
 	self.pathPoint = PathPoint.make(path)
 	type = floor(rnd*4)
 	if type == 0 then
@@ -55,7 +55,7 @@ Balloon.init = function()
 	disp.sprites.push self
 end function
 
-Balloon.remove = function()
+Balloon.remove = function
 	disp.sprites.remove disp.sprites.indexOf(self)
 	balloons.remove balloons.indexOf(self)
 end function
@@ -71,7 +71,7 @@ Balloon.update = function(dt=0.1)
 	if self.pathPoint.isAtEnd then self.remove
 end function
 
-Balloon.pop = function()
+Balloon.pop = function
 	pop.play
 	self.image = burstImg
 	self.tint = color.lerp(self.tint, color.white, 0.7)
@@ -113,7 +113,7 @@ Dart.update = function(dt=0.1)
 	end if
 end function
 
-Dart.remove = function()
+Dart.remove = function
 	darts.remove darts.indexOf(self)
 	disp.sprites.remove disp.sprites.indexOf(self)
 end function
@@ -132,7 +132,7 @@ tower.nextFireTime = 0.5
 tower.gotTarget = false
 disp.sprites.push tower
 
-tower.faceNearest = function()
+tower.faceNearest = function
 	self.gotTarget = false
 	if not balloons then return
 	best = null
@@ -148,7 +148,7 @@ tower.faceNearest = function()
 	self.gotTarget = (bestDist < 400)
 end function
 
-tower.update = function()
+tower.update = function
 	self.faceNearest
 	if time < self.nextFireTime then return
 	// Fire!

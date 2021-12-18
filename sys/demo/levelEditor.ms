@@ -63,7 +63,7 @@ inputNumber = function(prompt, default, help="")
 	return val(s)
 end function
 
-editMapParams = function()
+editMapParams = function
 	d = sizeToXY(tiles.tileSetTileSize)
 	d.x = inputNumber("Tile set tile width ", d.x, "Width of one tile in the tile set image, in pixels.")
 	d.y = inputNumber("Tile set tile height", d.y, "Height of one tile in the tile set image, in pixels.")
@@ -88,7 +88,7 @@ editMapParams = function()
 	tiles.oddColOffset = inputNumber("Tile map odd col offset", tiles.oddColOffset, "Normally 0, but set to 0.5 for column-aligned hex map.")
 end function	
 	
-createNew = function()
+createNew = function
 	while true
 		globals.tileSetPath = input("Tile set path? ") - ".png" + ".png"
 		tiles.tileSet = file.loadImage(tileSetPath)
@@ -104,7 +104,7 @@ createNew = function()
 	globals.layoutFilePath = ""
 end function
 
-loadExisting = function()
+loadExisting = function
 	while true
 		path = input("Layout path? ")
 		if not path then continue
@@ -123,7 +123,7 @@ loadExisting = function()
 	tileUtil.loadFromFile layoutFilePath, tiles
 end function
 
-saveToFile = function()
+saveToFile = function
 	text.column = 0
 	if layoutFilePath == "" then
 		globals.layoutFilePath = input("Save layout to path: ")
@@ -143,7 +143,7 @@ selectBrush = function(index)
 	globals.brush = index
 end function
 
-pickBrushDialog = function()
+pickBrushDialog = function
 	img = tiles.tileSet
 	scale = min(512/img.width, 512/img.height)
 	destw = img.width * scale
@@ -192,7 +192,7 @@ showCursorInfo = function(col, row)
 	end for
 end function
 
-checkKeys = function()
+checkKeys = function
 	if not key.available then return
 	k = key.get.upper
 	if k == char(17) then  // left arrow
@@ -224,7 +224,7 @@ scroll = function(dx, dy)
 	if tiles.scrollY < 0 then tiles.scrollY = 0
 end function
 
-mouseScroll = function()
+mouseScroll = function
 	if mouse.x < 1 then scroll -1, 0
 	if mouse.x > gfx.width-2 then scroll 1, 0
 	if mouse.y < 1 then scroll 0, -1
@@ -233,13 +233,13 @@ end function
 
 brush = 0
 
-handleClickInBottomBar = function()
+handleClickInBottomBar = function
 	while mouse.button; end while
 	pickBrushDialog
 end function
 
 // Main edit loop: paint the map with the mouse!
-editLoop = function()
+editLoop = function
 	cellSize = sizeToXY(tiles.cellSize)
 	overlap = sizeToXY(tiles.overlap)
 	grid = {"x":cellSize.x + overlap.x, "y":cellSize.y + overlap.y}

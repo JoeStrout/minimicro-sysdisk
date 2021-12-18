@@ -146,13 +146,13 @@ CellInfo.make = function(col, row)
 	noob.row = row
 	return noob
 end function
-CellInfo.desc = function()
+CellInfo.desc = function
 	n = "Unclaimed"
 	if self.owner >= 0 then n = teams[self.owner].name
 	return n + " cell at " + self.col + "," + self.row + 
 	    " with " + self.soldiers + " soldiers"
 end function
-CellInfo.show = function()
+CellInfo.show = function
 	if self.isWater then
 		tint = bgColor
 	else if self.owner >= 0 then
@@ -288,7 +288,7 @@ end function
 //----------------------------------------------------------------------
 // Detect when the game is over
 //----------------------------------------------------------------------
-isGameOver = function()
+isGameOver = function
 	count = 0
 	for team in teams
 		if not team.eliminated then count = count + 1
@@ -417,11 +417,11 @@ addLandHex = function(col, row, newColor="#888888")
 end function
 
 // Generate a random map.
-genMap = function()
-	randRow = function()
+genMap = function
+	randRow = function
 		return round(rnd * rows/2 + rnd * rows/2)
 	end function
-	randCol = function()
+	randCol = function
 		return round(rnd * colums/2 + rnd * columns/2)
 	end function
 	
@@ -450,7 +450,7 @@ genMap = function()
 end function
 
 // Assign random starting positions.
-genStart = function()
+genStart = function
 	for teamNum in teams.indexes
 		// gather all the hexes that belong to this team
 		hexes = []
@@ -481,7 +481,7 @@ drawStatus = function(s)
 	text.delimiter = char(13)
 end function
 
-drawPrompt = function()
+drawPrompt = function
 	text.color = teams[curPlayer].color
 	prompt = teams[curPlayer].name + "'s turn.  "
 	if state == kStateSelectingAttacker then
@@ -514,7 +514,7 @@ drawDoneButton = function(drawIt=true)
 	end for
 end function
 
-doneButtonClicked = function()
+doneButtonClicked = function
 	if mouse.x > 875 and mouse.y < 30 then	// "DONE" button
 		// ToDo: we really should do proper button tracking here.
 		// But for now we'll just react to the mouse-down.
@@ -537,7 +537,7 @@ end function
 //----------------------------------------------------------------------
 // doBattle: resolve one hex attacking another
 //----------------------------------------------------------------------
-doBattle = function()
+doBattle = function
 	drawDoneButton false
 	text.row = 0; text.column = 0; text.delimiter = ""
 	print " " * 66
@@ -584,7 +584,7 @@ end function
 //----------------------------------------------------------------------
 // doReinforcements: add new armies for the current player
 //----------------------------------------------------------------------
-doReinforcements = function()
+doReinforcements = function
 	drawDoneButton false
 	groups = findGroups(curPlayer)
 	if groups then
@@ -620,7 +620,7 @@ end function
 //----------------------------------------------------------------------
 // endTurn: do all the stuff we do at the end of one player's turn
 //----------------------------------------------------------------------
-endTurn = function()
+endTurn = function
 	if attackingCell != null then
 		attackingCell.setSelected false
 		globals.attackingCell = null
@@ -639,7 +639,7 @@ end function
 // AI
 //----------------------------------------------------------------------
 ai = {}
-ai.selectAttacker = function()
+ai.selectAttacker = function
 	//drawStatus teams[curPlayer].name + " is thinking..."
 	if not hurry then wait
 	
@@ -684,7 +684,7 @@ ai.selectAttacker = function()
 	return null
 end function
 
-ai.selectTarget = function()	
+ai.selectTarget = function	
 	// target was actually set in selectAttacker.
 	return target
 end function
@@ -748,7 +748,7 @@ end function
 lastMouseButton = mouse.button
 attackingCell = null
 defendingCell = null
-update = function()
+update = function
 	mouseDown = mouse.button and not lastMouseButton
 	if mouseDown then clicked = cellAt(mouse) else clicked = null
 	globals.lastMouseButton = mouse.button

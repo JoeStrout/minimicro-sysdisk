@@ -79,7 +79,7 @@ wumpus.row = 5
 wumpus.x = xForCell(wumpus.col, wumpus.row)
 wumpus.y = yForCell(wumpus.col, wumpus.row) + 20
 wumpus.moving = false
-wumpus.update = function()
+wumpus.update = function
 	targetX = xForCell(self.col, self.row)
 	targetY = yForCell(self.col, self.row) + 10
 	self.x = moveTowards(self.x, targetX, 3.895)
@@ -119,7 +119,7 @@ end function
 // Function to calculate the distance from every cell
 // to the nearest edge.
 distMap = {}
-updateDistMap = function()
+updateDistMap = function
 	//gfx.clear color.clear
 	//gfx.color = color.red
 	toDo = []
@@ -153,7 +153,7 @@ updateDistMap = function()
 end function
 
 // Move the wumpus towards the edge.
-moveWumpus = function()
+moveWumpus = function
 	bestDist = 99
 	bestNeighbor = null
 	for n in neighbors(wumpus.col, wumpus.row)
@@ -182,7 +182,7 @@ blockCell = function(col, row)
 end function
 
 // Handle mouse input.    
-checkMouse = function()
+checkMouse = function
 	col = colForXY(mouse.x, mouse.y)
 	row = rowForXY(mouse.x, mouse.y)
 	if not mouse.button then return

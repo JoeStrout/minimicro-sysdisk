@@ -44,7 +44,7 @@ discard = []
 
 // Function to deal a card from our deck,
 // leaving it on the discard pile.
-deal = function()
+deal = function
 	if deck.len == 0 then
 		globals.deck = discard
 		globals.discard = []
@@ -62,7 +62,7 @@ cardRank = function(card, aceHigh=false)
 end function
 
 // Get the user's bet.  Make sure it's valid.
-getBet = function()
+getBet = function
 	while true
 		betStr = input("Enter bet (0 to skip, Q to quit): ").upper
 		if betStr == "Q" then return betStr

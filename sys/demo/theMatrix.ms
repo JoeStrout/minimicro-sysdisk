@@ -22,19 +22,19 @@ Drop.framesPerUpdate = 2
 Drop.framesTillNextUpdate = 1
 
 // Initialize a drop with random settings.
-Drop.init = function()
+Drop.init = function
 	self.x = floor(68 * rnd)
 	self.framesPerUpdate = 1 + ceil(3*rnd)
 	self.length = round(10 + 10*rnd + 10*rnd)
 end function
 
 // Calculate the topmost row in the drop
-Drop.top = function()
+Drop.top = function
 	return self.y + self.length
 end function
 
 // Update a drop.
-Drop.update = function()
+Drop.update = function
 	self.framesTillNextUpdate = self.framesTillNextUpdate - 1
 	if self.framesTillNextUpdate > 0 then return
 	self.framesTillNextUpdate = self.framesPerUpdate

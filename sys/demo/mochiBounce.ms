@@ -30,7 +30,7 @@ Player = new Sprite
 Player.vx = 0
 Player.vy = 0
 
-Player.idleBounce = function()
+Player.idleBounce = function
 	t = time * 10
 	dscale = -(sin(t)+1)^2 * 0.03
 	dy = 10 * abs(sin(t/2 - 0.785398))
@@ -132,7 +132,7 @@ addPlatform = function(size, x, y)
 end function
 
 // Find the platform the player is touching, if any.
-platformHit = function()
+platformHit = function
 	for p in platforms
 		if p.pointInBounds(player.x, player.trueY) then
 			return p.y + 28
@@ -145,7 +145,7 @@ end function
 // of the screen, and if so, move it up to a random
 // position above the top of the screen.  This creates
 // the illusion of an infinite supply of platforms.
-loopPlatforms = function()
+loopPlatforms = function
 	if platforms[0].y - disp.scrollY < -40 then
 		p = platforms.pull
 		p.config ceil(rnd * 4), round(100 + 700 * rnd), 680 + disp.scrollY

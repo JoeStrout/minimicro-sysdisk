@@ -70,7 +70,7 @@ EventSprite._dragging = false
 EventSprite.ignoreClicks = false
 EventSprite.joystick = "any" // or, assign 1 through 29
 
-EventSprite._update = function()
+EventSprite._update = function
 	self.update
 	self.onKey._check self
 	self.onKeyUp._check self
@@ -81,7 +81,7 @@ end function
 // a place to add code when you change states via spr.enterState.
 EventSprite.state = ""
 EventSprite.stateStartTime = time
-EventSprite.timeInState = function()
+EventSprite.timeInState = function
 	return time - self.stateStartTime
 end function
 EventSprite.onEnterState = function(newState); end function
@@ -94,7 +94,7 @@ EventSprite.enterState = function(newState)
 	self.stateStartTime = time
 end function
 
-EventSprite.start = function()
+EventSprite.start = function
 	// ensure we have a valid bounds
 	if not self.localBounds then
 		self.localBounds = new Bounds
@@ -118,7 +118,7 @@ eventLoop.onDragEnd = null
 eventLoop.running = false
 eventLoop.delayedCalls = []
 eventLoop.lastMouseOver = null
-eventLoop.stop = function()
+eventLoop.stop = function
 	self.running = false
 end function
 spriteHitBy = function(pos)
@@ -134,7 +134,7 @@ eventLoop.doAfter = function(delay, f)
 	self.delayedCalls.sort "time"
 end function
 
-eventLoop.update = function()
+eventLoop.update = function
 	self.onKey._check self
 	self.onKeyUp._check self
 	self.onKeyDown._check self
@@ -177,7 +177,7 @@ eventLoop.update = function()
 	end if
 end function
 
-eventLoop.run = function()
+eventLoop.run = function
 	lastTime = time
 	now = time
 	outer.dt = now - lastTime
@@ -191,31 +191,31 @@ eventLoop.run = function()
 	end while
 end function
 
-test = function()
+test = function
 	clear
 	display(4).mode = displayMode.sprite
 	spr = new EventSprite
 	spr.image = file.loadImage("/sys/pics/Wumpus.png")
 	spr.onKey = new KeyHandler
-	spr.onKey["left"] = function()
+	spr.onKey["left"] = function
 		self.x = self.x - 10
 		if self.x < 50 then eventLoop.stop
 	end function
-	spr.onKey["right"] = function()
+	spr.onKey["right"] = function
 		self.x = self.x + 10
 	end function
-	eventLoop.onKeyDown["space"] = function(); print "space down"; end function
-	eventLoop.onKey["space"] = function(); print "space held"; end function
-	eventLoop.onKeyUp["space"] = function(); print "space up"; end function
+	eventLoop.onKeyDown["space"] = function; print "space down"; end function
+	eventLoop.onKey["space"] = function; print "space held"; end function
+	eventLoop.onKeyUp["space"] = function; print "space up"; end function
 
-	spr.onClick = function()
+	spr.onClick = function
 		self.scale = 1.5
 	end function
-	spr.onDrag = function()
+	spr.onDrag = function
 		self.x = mouse.x
 		self.y = mouse.y
 	end function
-	spr.onDragEnd = function()
+	spr.onDragEnd = function
 		self.scale = 1
 	end function
 

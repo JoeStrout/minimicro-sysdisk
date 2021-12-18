@@ -23,7 +23,7 @@ Option.label = "?"
 Option.func = null
 Option.enabled = true
 Option.nominalTime = 1
-Option.drawBox = function()
+Option.drawBox = function
 	if self.enabled then
 		text.setCell 0, self.textRow, boxChecked
 	else
@@ -68,7 +68,7 @@ end function
 // Individual tests
 //----------------------------------------------------------------------
 
-semiprime = function()
+semiprime = function
 	isSemiprime = function(num)
 		divisor = 2
 		primes = 0
@@ -91,7 +91,7 @@ end function
 addOption @semiprime, "Semiprime (math, looping)", 0.459
 
 //----------------------------------------------------------------------
-pixelDrawing = function()
+pixelDrawing = function
 	gfx.clear
 	colors = [color.red, color.green, color.blue, "#FF000088", "#00FF0088", "#0000FF88"]
 	for rep in range(0,10)
@@ -115,7 +115,7 @@ end function
 addOption @pixelDrawing, "Misc. Drawing", 0.292
 
 //----------------------------------------------------------------------
-jsonParse = function()
+jsonParse = function
 	showProgress
 	yield
 	s = file.open("/sys/data/benchmark/random.json").read
@@ -126,7 +126,7 @@ end function
 addOption @jsonParse, "JSON Parsing", 0.531
 
 //----------------------------------------------------------------------
-jsonGeneration = function()
+jsonGeneration = function
 	showProgress
 	yield
 	map = {"x": 123.456, "y": -987.654}
@@ -141,7 +141,7 @@ end function
 addOption @jsonGeneration, "JSON Generation", 0.706
 
 //----------------------------------------------------------------------
-recursiveFill = function()
+recursiveFill = function
 	gfx.clear color.black
 	gfx.drawEllipse 300,50,300,200, color.blue
 	fillAtPoint 400, 80
@@ -159,7 +159,7 @@ end function
 addOption @recursiveFill, "Recursive Flood Fill", 1.5
 
 //----------------------------------------------------------------------
-iterativeFill = function()
+iterativeFill = function
 	gfx.clear color.black
 	gfx.drawEllipse 300,50,300,200, color.blue
 	toDoList = [[400, 80]]
@@ -177,7 +177,7 @@ end function
 addOption @iterativeFill, "Iterative Flood Fill", 2.0
 
 //----------------------------------------------------------------------
-carpet = function()
+carpet = function
 	xor = function(a, b)
 		result = 0
 		bit = 1
@@ -200,16 +200,16 @@ end function
 addOption @carpet, "Carpet (xor, setPixel, color.rgb)", 0.915
 
 //----------------------------------------------------------------------
-raceSim = function()
+raceSim = function
 	Ant = {}
 	Ant.simWins = 0
-	Ant.init = function()
+	Ant.init = function
 		self.meanStepTime = mathUtil.randNormal(0.5, 0.01)
 		if self.meanStepTime < 0.1 then self.meanStepTime = 0.1
 		self.stddev = rnd * 0.1
 	end function
 	
-	Ant.genStepTimes = function()
+	Ant.genStepTimes = function
 		result = []
 		t = 0
 		for i in range(0,61)
@@ -257,7 +257,7 @@ measure = function(func)
 	return elapsed
 end function
 
-runAll = function()
+runAll = function
 	for i in options.indexes
 		globals.curOptIdx = i
 		if not options[i].enabled then continue
@@ -267,7 +267,7 @@ runAll = function()
 	end for
 end function
 
-handleClick = function()
+handleClick = function
 	row = textUtil.textRow(mouse.y)
 	idx = 23 - row
 	if idx >= 0 and idx < options.len then
@@ -283,7 +283,7 @@ handleClick = function()
 	end if
 end function
 
-configure = function()
+configure = function
 	wasDown = false
 	while not key.available
 		isDown = mouse.button

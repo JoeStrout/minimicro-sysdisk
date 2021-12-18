@@ -95,10 +95,10 @@ lightColumn = function(col)
 end function
 
 // functions to find the grid row and column hit by the mouse
-mouseRow = function()
+mouseRow = function
 	return floor((mouse.y + tile.scrollY) / (tile.cellSize[1] - tile.overlap[1]))
 end function
-mouseCol = function()
+mouseCol = function
 	return floor((mouse.x + tile.scrollX) / (tile.cellSize[0] - tile.overlap[0]))
 end function
 
@@ -124,7 +124,7 @@ end function
 
 // handle mouse clicks
 wasPressed = false
-checkMouse = function()
+checkMouse = function
 	if mouse.button and not wasPressed then
 		x = mouseCol
 		y = mouseRow
@@ -138,7 +138,7 @@ end function
 // update the lit column and play selected sounds
 bpm = 90
 next16th = time
-updateMusic = function()
+updateMusic = function
 	if time < next16th then return
 	lightColumn (litCol + 1) % columns
 	for row in range(0, rows-1)

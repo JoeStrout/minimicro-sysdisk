@@ -30,14 +30,14 @@ wumpus.x = 100
 wumpus.y = 100
 
 // Move the target to a new random position
-moveTarget = function()
+moveTarget = function
 	target.x = 100 + 760*rnd
 	target.y = 100 + 440*rnd
 end function
 moveTarget
 
 // Handle catching the target
-catchTarget = function()
+catchTarget = function
 	// move the target to a new position
 	moveTarget
 	// draw a star in the background (because why not?)

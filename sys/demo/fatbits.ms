@@ -91,7 +91,7 @@ Sprite.addBounds = function(inset=0)
 end function
 
 
-updatePaintScroll = function()
+updatePaintScroll = function
 	hsz = 32 * previewArea.scale  // (half scrollbox size)
 	fatbits.scrollX = (previewArea.scrollbox.x-hsz - previewArea.left) / 
 		previewArea.scale * fatbits.scale - paintArea.left
@@ -106,11 +106,11 @@ Rect.left = 0
 Rect.bottom = 0
 Rect.width = 0
 Rect.height = 0
-Rect.area = function(); return self.width * self.height; end function
-Rect.right = function(); return self.left + self.width; end function
-Rect.top = function(); return self.bottom + self.height; end function
-Rect.midX = function(); return self.left + self.width/2; end function
-Rect.midY = function(); return self.bottom + self.height/2; end function
+Rect.area = function; return self.width * self.height; end function
+Rect.right = function; return self.left + self.width; end function
+Rect.top = function; return self.bottom + self.height; end function
+Rect.midX = function; return self.left + self.width/2; end function
+Rect.midY = function; return self.bottom + self.height/2; end function
 Rect.make = function(left, bottom, width, height)
 	r = new Rect
 	r.left = left
@@ -216,13 +216,13 @@ Button.make = function(imageName, left, top, toggles=false)
 	return btn
 end function
 
-Button.handleClick = function()
+Button.handleClick = function
 	if self.toggles then
 		self.isDown = not self.isDown
 	end if
 end function
 
-Button.checkEvents = function()
+Button.checkEvents = function
 	if mouse.button and self.bgSprite.contains(mouse) then
 		// track mouse until released
 		while mouse.button
@@ -268,14 +268,14 @@ Slider.set = function(value)
 	self.knob.x = self.bgSprite.x - w/2 + w * value
 end function
 
-Slider.value = function()
+Slider.value = function
 	w = self.bgSprite.image.width
 	return (self.knob.x - self.bgSprite.x + w/2) / w
 end function
 
 Slider.snap = null
 
-Slider.checkEvents = function()
+Slider.checkEvents = function
 	if mouse.button and not mouseWasDown and self.bgSprite.contains(mouse) then
 		w = self.bgSprite.image.width
 		while mouse.button
@@ -293,20 +293,20 @@ end function
 
 Slider.applyValue = null
 
-Slider.toggleHidden = function()
+Slider.toggleHidden = function
 	self.bgSprite.x = -self.bgSprite.x
 	self.knob.x = -self.knob.x
 end function
 
-Slider.isHidden = function()
+Slider.isHidden = function
 	return self.bgSprite.x < 0
 end function
 
-Slider.hide = function()
+Slider.hide = function
 	if not self.isHidden then self.toggleHidden
 end function
 
-Slider.show = function()
+Slider.show = function
 	if self.isHidden then self.toggleHidden
 end function
 
@@ -321,7 +321,7 @@ alphaSlider.applyValue = function(value)
 end function
 
 scaleSlider = Slider.make("scaleSlider", 804, 360)
-scaleSlider.value = function()
+scaleSlider.value = function
 	// Our scale slider has 11 divisions (bracketing sizes from 1 to 12), 10 pixels apart.
 	leftx = self.bgSprite.x - 64
 	dx = self.knob.x - leftx
@@ -330,7 +330,7 @@ scaleSlider.value = function()
 	if value > 12 then return 12
 	return value
 end function
-scaleSlider.snap = function()
+scaleSlider.snap = function
 	v = self.value
 	self.knob.x = self.bgSprite.x - 64 + v*10
 end function
@@ -361,7 +361,7 @@ Tool.make = function(name, left, top, mode)
 	return tool
 end function
 
-Tool.isDown = function()
+Tool.isDown = function
 	return mode == self.mode
 end function
 
@@ -369,7 +369,7 @@ end function
 // and use this to remember what to switch back to:
 Tool.optKeySwitchedFrom = null
 
-Tool.checkEvents = function()
+Tool.checkEvents = function
 	optKeyIsDown = key.pressed("left alt") or key.pressed("right alt")
 	if optKeyIsDown then
 		if self.mode == kModeEyedrop and mode != self.mode then
@@ -384,7 +384,7 @@ Tool.checkEvents = function()
 	super.checkEvents
 end function
 
-Tool.handleClick = function()
+Tool.handleClick = function
 	setMode self.mode
 end function
 
@@ -403,7 +403,7 @@ end function
 //---------------------------------------------------------------------
 // screen layout
 paintArea = Rect.make(180, 10, 64*ps, 64*ps)
-prepareScreen = function()
+prepareScreen = function
 	paintArea.offset(5,5).fill bkgnd, color.clear
 	paintArea.grow(1,1).frame gfx, color.black, 4, -4
 	backdrop.clear color.black
@@ -411,7 +411,7 @@ prepareScreen = function()
 	previewArea.draw
 	gfx.print "press ? for help", 955 - 16*9, 640-18, color.silver, "small"
 end function
-drawGrid = function()
+drawGrid = function
 	// Select current image
 	img = selectedTab.image
 	// Calculate backdrop rectangle
@@ -445,7 +445,7 @@ drawGrid = function()
 	backdropRect.frame(gfx, spriteBoundsColor)
 end  function
 
-makeTools = function()
+makeTools = function
 	tools = [
 	["Pencil", kModeDraw], ["Erase", kModeErase], ["Move", kModeMove], ["Select", kModeSelect],
 	["Brush", kModePaint], ["Fill", kModeFill], ["ReplaceColor", kModeReplace],  ["Blur", kModeBlur],
@@ -514,7 +514,7 @@ end function
 // CLIPBOARD HELPER FUNCTIONS
 selection = null
 
-drawSelection = function()
+drawSelection = function
 	if selection == null then
 		drawGrid
 	else
@@ -525,19 +525,19 @@ drawSelection = function()
 	end if
 end function
 
-deselect = function()
+deselect = function
 	if selection == null then return
 	globals.selection = null
 	drawGrid
 end function
 
-copy = function()
+copy = function
 	if selection == null then return
 	globals.clip = fatbits.getImage(selection.left, selection.bottom, selection.width, selection.height)
 	drawGrid
 end function
 
-deleteSelection = function()
+deleteSelection = function
 	if mode == kModePasting then
 		fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 		fatbits.drawImage picAtStart, 0, 0
@@ -548,7 +548,7 @@ deleteSelection = function()
 	end if
 end function
 
-paste = function()
+paste = function
 	if not globals.hasIndex("clip") or clip == null then
 		print char(7) // Beep!
 		return
@@ -817,7 +817,7 @@ colorWheel.knob.x = colorWheel.x
 colorWheel.knob.y = colorWheel.y
 spriteDisp.sprites.push colorWheel.knob
 
-colorWheel.checkEvents = function()
+colorWheel.checkEvents = function
 	if mouse.button and not mouseWasDown and self.contains(mouse) then
 		while mouse.button
 			rx = mouse.x - self.x  // get mouse position relative to circle center
@@ -835,7 +835,7 @@ colorWheel.checkEvents = function()
 	end if
 end function
 
-colorWheel.updateColor = function()
+colorWheel.updateColor = function
 	rx = self.knob.x - self.x
 	ry = self.knob.y - self.y
 	c = color.toList(self.image.pixel(rx / self.scale + self.image.width/2, 
@@ -869,13 +869,13 @@ kDone = "DONE"
 setupUI.state = kStart
 setupUI.buttons = []
 
-setupUI.drawButtons = function()
+setupUI.drawButtons = function
 	text.color = "#8888FF"
 	for b in self.buttons; b.draw; end for
 	text.color = "#333333"
 end function
 
-setupUI.doEvents = function()
+setupUI.doEvents = function
 	if self.buttons and mouse.button and mouse.y < 640-26 then
 		for btn in self.buttons
 			if not btn.contains(mouse) then continue
@@ -895,7 +895,7 @@ setupUI.inputAt = function(column, row, prompt)
 	return result
 end function
 
-setupUI.draw = function()
+setupUI.draw = function
 	text.color = "#333333"
 	text.backColor = "#929292"
 	text.delimiter = ""
@@ -959,7 +959,7 @@ setupUI.draw = function()
 	text.delimiter = char(13)
 end function
 
-setupUI.clear = function()
+setupUI.clear = function
 	text.backColor = color.clear
 	text.clear
 	gfx.fillRect 0, 0, 960, 640-26, color.clear
@@ -1020,17 +1020,17 @@ OpenFile.tabWidth = 0
 OpenFile.tabTitle = ""
 OpenFile.srcRect = null
 OpenFile.closeBtn = null
-OpenFile.saveFromEditArea = function()
+OpenFile.saveFromEditArea = function
 	self.image = fatbits.getImage(0, 0, self.image.width, self.image.height)
 end function
-OpenFile.loadToEditArea = function()
+OpenFile.loadToEditArea = function
 	globals.picW = self.image.width; globals.picH = self.image.height
 	fatbits.clear color.clear, picW, picH
 	fatbits.scale = ps
 	fatbits.drawImage self.image
 	updatePaintScroll
 end function
-OpenFile.saveToDisk = function()
+OpenFile.saveToDisk = function
 	if self == selectedTab then self.saveFromEditArea
 	err = file.saveImage(self.path, self.image)
 	if not err then
@@ -1043,7 +1043,7 @@ OpenFile.saveToDisk = function()
 		dlog.show
 	end if
 end function
-OpenFile.close = function()
+OpenFile.close = function
 	tabIdx = tabs.indexOf(self)
 	// Choose the tab before it, or the first one if none left
 	if tabIdx == 0 then newIdx = 0 else newIdx = tabIdx - 1
@@ -1059,7 +1059,7 @@ OpenFile.close = function()
 	layoutTabs; drawTabs
 	switchToTab newTab
 end function
-OpenFile.confirmAndClose = function()
+OpenFile.confirmAndClose = function
 	dlog = textUtil.Dialog.make("Save changes to " + self.tabTitle + "?",
 	  "If you do not save, your changes will be lost.")
 	dlog.okBtn.caption = "Save"
@@ -1077,7 +1077,7 @@ specialNewTabTab = {"tabWidth":40, "tabTitle":"+", "tabX":null, "closeBtn":null}
 specialNewTabTab.saveFromEditArea = null
 specialNewTabTab.loadToEditArea = null
 tabs.push specialNewTabTab
-layoutTabs = function()
+layoutTabs = function
 	x = 0
 	for t in tabs
 		t.targetX = x
@@ -1096,7 +1096,7 @@ layoutTabs = function()
 end function
 selectedTab = tabs[0]
 
-drawTabs = function()
+drawTabs = function
 	h = 26
 	gfx.fillRect 0, 640-h, 960, h, "#929292"
 	gfx.line 0, 640-h, 960, 640-h, color.black, 2
@@ -1111,14 +1111,14 @@ drawTabs = function()
 	end for
 end function
 
-updateTabs = function()
+updateTabs = function
 	for t in tabs
 		if t.closeBtn == null then continue
 		t.closeBtn.update false, t == selectedTab, false
 	end for
 end function
 
-handleTabClick = function()
+handleTabClick = function
 	// first handle clicks on a close button
 	for t in tabs
 		if t.closeBtn == null or not t.closeBtn.contains(mouse) then continue
@@ -1203,7 +1203,7 @@ previewArea.prepare = function(img)
 	if img.height <= 64 then self.scrollbox.y = self.midY
 end function
 
-previewArea.draw = function()
+previewArea.draw = function
 	if not self.hasIndex("scale") then; print "WTF?"; exit; end if
 	previewArea.fill gfx, backdrop.color
 	previewArea.frame gfx, color.black
@@ -1213,7 +1213,7 @@ previewArea.draw = function()
 		img.width * self.scale, img.height * self.scale//, 0, 0, img.width, img.height
 end function
 
-previewArea.handleClick = function()
+previewArea.handleClick = function
 	hsz = 32 * self.scale  // (half the size of our scrollbox)
 	while mouse.button
 		x = mathUtil.clamp(mouse.x - previewArea.left, hsz, self.width-hsz)
@@ -1264,7 +1264,7 @@ Swatch.contains = function(pos)
 	return self.frame.contains(pos)
 end function
 
-Swatch.checkEvents = function()
+Swatch.checkEvents = function
 	if mouse.button and not mouseWasDown and self.contains(mouse) then
 		// track the mouse until it goes up!
 		while mouse.button
@@ -1275,7 +1275,7 @@ Swatch.checkEvents = function()
 	end if
 end function
 
-Swatch.color = function()
+Swatch.color = function
 	return self.swatch.tint
 end function
 
@@ -1336,7 +1336,7 @@ PalButton.make = function(c)
 	end if
 end function
 
-PalButton.checkEventsForAll = function()
+PalButton.checkEventsForAll = function
 	if mouse.x > 260 or mouse.y < 255 or not mouse.button then return
 	for btn in PalButton.instances
 		if not btn.contains(mouse) then continue
@@ -1360,7 +1360,7 @@ PalButton.selectMatchingColor = function(c)
 	palSelectionRing.x = -999
 end function
 
-makeDefaultPalette = function()
+makeDefaultPalette = function
 	for r in range(0,5)
 		for g in range(0,6)
 			for b in range(0,5)
@@ -1404,7 +1404,7 @@ handleClick = function(justDown)
 	previewArea.draw
 end function
 
-showHelp = function()
+showHelp = function
 	lines = []
 	lines.push "Alt - Color Picker      "
 	lines.push "X - Cut                 "
@@ -1417,7 +1417,7 @@ showHelp = function()
 	d.show
 end function
 
-handleKeys = function()
+handleKeys = function
 	if not key.available then return
 	k = key.get.lower
 	if k == "c" then copy

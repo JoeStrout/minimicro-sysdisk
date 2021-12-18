@@ -54,7 +54,7 @@ walls.shuffle
 
 // Set corners from the rooms.  There's a solid corner
 // on either end of any solid wall.
-setCornersFromRooms = function()
+setCornersFromRooms = function
 	for x in range(0, tiles.extent[0]-1)
 		for y in range(0, tiles.extent[1]-1)
 			corners[x][y] = (x == tiles.extent[0]-1 or y == tiles.extent[1]-1)
@@ -82,7 +82,7 @@ pickTile = function(col, row)
 end function
 
 // Update all the tiles in our display from the corners map.
-updateTiles = function()
+updateTiles = function
 	for col in range(0, tiles.extent[0]-1)
 		for row in range(0, tiles.extent[1]-1)
 			tiles.setCell col, row, pickTile(col, row)
@@ -97,7 +97,7 @@ removeWall = function(room, whichWall)
 	//updateTiles
 end function
 
-doOneStep = function()
+doOneStep = function
 	w = walls.pop
 	room = w[0]
 	whichWall = w[1]
@@ -120,7 +120,7 @@ doOneStep = function()
 	end for
 end function
 
-generate = function()
+generate = function
 	// Generate a maze!
 	while walls
 		doOneStep
@@ -143,13 +143,13 @@ applyColor = function(colorIdx)
 	end for
 end function
 
-toggleGrid = function()
+toggleGrid = function
 	if tiles.overlap then tiles.overlap = 0 else tiles.overlap = -1
 	tiles.cellSize = tiles.tileSetTileSize/2 + tiles.overlap
 end function
 
 // Find the corner closest to the mouse cursor.
-cornerAtMouse = function()
+cornerAtMouse = function
 	d = {}
 	spacing = tiles.cellSize - tiles.overlap
 	d.col = floor(mouse.x/spacing - 0.5)

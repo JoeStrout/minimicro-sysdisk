@@ -62,7 +62,7 @@ end function
 // makePathWithMouse
 //	This is a little utility function to help you define a path, by clicking
 //	a series of points on the screen with the mouse.
-makePathWithMouse = function()
+makePathWithMouse = function
 	import "textUtil"  // needed for printWrap
 	clear
 	text.row = 25
@@ -166,19 +166,19 @@ PathPoint.nearPoint = function(path, nearestToPoint)
 end function
 
 // PathPoint.distance: return our total distance from the start of the path.
-PathPoint.distance = function()
+PathPoint.distance = function
 	return self.distAtIndex + self.distToNext * t
 end function
 
 // PathPoint.isAtEnd: returns true when we have reached
 //	the end of our path.
-PathPoint.isAtEnd = function()
+PathPoint.isAtEnd = function
 	return self.curIndex == self.path.len-1
 end function
 
 // PathPoint.updatePosition: recalculate our position [x,y] from
 //	our other data (curIndex and t).
-PathPoint.updatePosition = function()
+PathPoint.updatePosition = function
 	if self.curIndex < 0 then return [0,0]	// (happens on empty paths)
 	self.position = self.path[self.curIndex]
 	if self.distToNext > 0 and self.curIndex+1 < self.path.len then
@@ -189,7 +189,7 @@ end function
 // PathPoint.forwardAngle: get the angle, in degrees, that points forward along
 //	the path at our current position.   This could be assigned to the .rotation
 //	of a sprite to make it face forward as it travels along the path.
-PathPoint.forwardAngle = function()
+PathPoint.forwardAngle = function
 	if self.curIndex < 0 then return 0   // (happens on empty paths)
 	i = self.curIndex
 	if i == self.path.len - 1 then i = i - 1
@@ -251,7 +251,7 @@ PathPoint.retreat = function(distance)
 	end while	
 end function
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: pathUtil"
 	import "listUtil"  // needed for list.apply
 	

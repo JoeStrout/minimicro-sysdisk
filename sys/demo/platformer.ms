@@ -75,7 +75,7 @@ kip.canClimb = function(dir)
 end function
 
 // adjust kip's X position to avoid penetrating walls or stage bounds
-kip.checkLeftRight = function()
+kip.checkLeftRight = function
 	if self.x < 20 then
 		self.x = 20
 		return
@@ -103,7 +103,7 @@ kip.checkLeftRight = function()
 end function
 
 // make sure we're not hitting our head, and if we are, move down
-kip.checkAbove = function()
+kip.checkAbove = function
 	if self.vy <= 0 then return
 	col = floor(self.x / grid.x)
 	row = floor((self.y + 20) / grid.y)
@@ -149,7 +149,7 @@ SCROLLBOX_BOTTOM = gfx.height * 0.25
 SCROLLBOX_TOP = gfx.height * 0.75
 
 // Update the "camera" by scrolling the displays
-updateCamera = function()
+updateCamera = function
 	// scroll horizontally to keep Kip in the scroll box
 	kx = kip.x - tiles.scrollX
 	off = SCROLLBOX_LEFT - kx
@@ -182,7 +182,7 @@ updateCamera = function()
 end function
 
 // Main loop:
-mainLoop = function()
+mainLoop = function
 	lastTime = time
 	while not key.pressed("escape")
 		dt = time - lastTime

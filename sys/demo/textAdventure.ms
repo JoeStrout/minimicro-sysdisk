@@ -71,7 +71,7 @@ Object.isCalled = function(s)
 	return false
 end function
 
-Object.fullName = function()
+Object.fullName = function
 	return self.name
 end function
 
@@ -96,7 +96,7 @@ Object.contentNamed = function(s)
 	return null
 end function
 
-Object.descInRoom = function()
+Object.descInRoom = function
 	if rnd > 0.5 then
 		print "You see a " + self.name + " lying here."
 	else
@@ -104,7 +104,7 @@ Object.descInRoom = function()
 	end if
 end function
 
-Object.describe = function()
+Object.describe = function
 	printWrap self.desc
 	self.listContents("The " + self.name + " contains:")
 end function
@@ -166,7 +166,7 @@ Object.handleCommand = function(cmd, pass)
 	end if
 end function
 
-Object.canGet = function()
+Object.canGet = function
 	print "Don't be ridiculous."
 	return false
 end function
@@ -179,7 +179,7 @@ end function
 Room = new Object
 Room.name = "Room"
 Room.desc = "You are in a nondescript room."
-Room.darkDesc = function()
+Room.darkDesc = function
 	return self.desc
 end function
 Room.visited = false
@@ -199,11 +199,11 @@ Exit.desc = "It looks like an ordinary exit."
 Exit.open = true
 Exit.dest = null	// destination: Room this exit leads to
 
-Exit.fullName = function()
+Exit.fullName = function
 	return self.type  + " to the " + self.name
 end function
 
-Exit.descInRoom = function()
+Exit.descInRoom = function
 	if self.open then
 		return "There is an open " + self.fullName + "."
 	else
@@ -231,7 +231,7 @@ Exit.handleCommand = function(cmd, pass)
 	return super.handleCommand(cmd, pass)
 end function
 
-Exit.openDoor = function()
+Exit.openDoor = function
 	if self.open then
 		print "The " + self.fullName + " is already open."
 	else
@@ -239,7 +239,7 @@ Exit.openDoor = function()
 		print "You open the " + self.fullName + "."
 	end if
 end function
-Exit.closeDoor = function()
+Exit.closeDoor = function
 	if not self.open then
 		print "The " + self.fullName + " is already closed."
 	else
@@ -250,11 +250,11 @@ end function
 
 Exit.successMsg = ""
 
-Exit.failureMsg = function()
+Exit.failureMsg = function
 	return "The " + self.fullName + " is closed."
 end function
 
-Exit.invoke = function()
+Exit.invoke = function
 	if self.open and self.dest != null then
 		printIfNonEmpty self.successMsg
 		Player.moveTo self.dest
@@ -288,15 +288,15 @@ end function
 Thing = new Object
 Thing.name = "Thing"
 Thing.desc = "You see a nondescript thing."
-Thing.a = function()
+Thing.a = function
 	if "aeiou".indexOf(self.name[0]) != null then return "an "
 	return "a"
 end function
-Thing.fullName = function()
+Thing.fullName = function
 	return self.a + " " + self.name
 end function
 Thing.size = 1
-Thing.canGet = function()
+Thing.canGet = function
 	if self.size > 10 then
 		printWrap "The "+ self.name + " is much too large to pick up."
 		return false
@@ -307,21 +307,21 @@ end function
 //----------------------------------------------------------------------
 CountableThing = new Thing
 CountableThing.name = "Countable"
-CountableThing.pluralName = function()
+CountableThing.pluralName = function
 	return self.name + "s"
 end function
 CountableThing.count = 1
-CountableThing.fullName = function()
+CountableThing.fullName = function
 	if self.count == 1 then return aOrAn(self.name)
 	return self.count + " " + self.pluralName
 end function
 CountableThing.singleDesc = "You see #FULLNAME#."
 CountableThing.pluralDesc = "You see #FULLNAME#."
-CountableThing.desc = function()
+CountableThing.desc = function
 	if self.count == 1 then return self.singleDesc.replace("#FULLNAME#", self.fullName)
 	return self.pluralDesc.replace("#FULLNAME#", self.fullName)
 end function
-CountableThing.descInRoom = function()
+CountableThing.descInRoom = function
 	return self.desc - "." + " here."
 end function
 CountableThing.isCalled = function(s)
@@ -356,7 +356,7 @@ Liquid = new Thing
 Liquid.name = "Liquid"
 Liquid.desc = "You see some nondescript liquid."
 Liquid.a = "some"
-Liquid.canGet = function()
+Liquid.canGet = function
 	print "You try to pick up " + self.fullName + ", but it just falls through your fingers."
 	return false
 end function
@@ -488,7 +488,7 @@ Player.put = function(obj, container)
 	return true
 end function
 
-Player.canGet = function()
+Player.canGet = function
 	print "You can't get yourself.  Except in a metaphorical sense."
 	return false
 end function
@@ -594,7 +594,7 @@ if locals == globals then
 	doors[1].altNames = ["s"]
 	exit.open = false
 	exit.salient = false
-	exit.openDoor = function()
+	exit.openDoor = function
 		print "The stone door won't budge."
 	end function
 	
@@ -633,12 +633,12 @@ if locals == globals then
 	lamp.name = "lamp"
 	lamp.altNames = ["lantern"]
 	lamp.lit = true
-	lamp.fullName = function()
+	lamp.fullName = function
 		result = self.a + " " + self.name + " "
 		if self.lit then result = result + "(lit)" else result = result + "(not lit)"
 		return result
 	end function
-	lamp.desc = function()
+	lamp.desc = function
 		if self.lit then return "Your trusty oil lamp is burning brightly."
 		return "Your trusty oil lamp is currently dark, much like the room itself."
 	end function
@@ -681,7 +681,7 @@ if locals == globals then
 	tinCoin.altNames = ["coin", "fake"]
 	tinCoin.singleDesc = "This is a fake coin made of worthless tin."
 	tinCoin.pluralDesc = "These are fake coins made of worthless tin."
-	tinCoin.descInRoom = function()
+	tinCoin.descInRoom = function
 		return "You see " + self.fullName + " lying here."
 	end function
 	tinCoin.count = 3
