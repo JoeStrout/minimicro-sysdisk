@@ -21,3 +21,4 @@ food: commissioned artwork by Karekis on fiverr.com.
 
 vehicles: adapted from artwork by TRBRY on OpenGameArt.com (https://opengameart.org/users/trbry).
 
+textures: from publicdomaintextures.com
