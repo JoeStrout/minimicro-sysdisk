@@ -106,11 +106,13 @@ EventSprite.start = function
 end function
 
 eventLoop = {}
+eventLoop.onUpdate = null
 eventLoop.onKey = new KeyHandler
 eventLoop.onKeyDown = new KeyHandler
 eventLoop.onKeyDown.mode = 0
 eventLoop.onKeyUp = new KeyHandler
 eventLoop.onKeyUp.mode = 2
+eventLoop.onGotKey = function(keyChar); end function
 eventLoop.onClick = null
 eventLoop.onRightClick = null
 eventLoop.onDrag = null
@@ -135,9 +137,11 @@ eventLoop.doAfter = function(delay, f)
 end function
 
 eventLoop.update = function
+	self.onUpdate
 	self.onKey._check self
 	self.onKeyUp._check self
 	self.onKeyDown._check self
+	if key.available then self.onGotKey(key.get)
 	while self.delayedCalls and self.delayedCalls[0].time < time
 		self.delayedCalls.pull.action
 	end while

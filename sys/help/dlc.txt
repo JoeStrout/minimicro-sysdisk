@@ -15,7 +15,7 @@ menu that appears, choose `Mount Disk File…`.
 
 4. Select the .minidisk file you downloaded in Step 2.
 
-5. Quit and relaunch Mini Micro (or enter `cd; load "start"; run`).
+5. Enter `reboot` to reboot Mini Micro with the new disk.
 
 To get back to your own files, click the disk slot again, and use 
 either `Mount Folder` or `Mount Disk File` to load your own user disk.
