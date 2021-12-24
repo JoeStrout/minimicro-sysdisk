@@ -9,9 +9,11 @@ SimplePlatformTiles, KP sprites: from Kenney's "Simplified Platformer Pack".
 
 1bitTiles: from Kenney's "1 Bit Pack".  (Yeah, we love Kenney.)
 
-animals, germs: pixel artwork by Joe Strout
+animals:
 	bats based on (bat-32x32 by MoikMellah on OpenGameArt)
-	turtle.png based on art licensed from FlatIcon.com
+	other animals based on art licensed from FlatIcon.com
+
+germs: pixel artwork by Joe Strout
 
 Mochi.png, Pipe.png, PipeCap.png, Wumpus.png, Spaceship.png, UFO.png: all by Joe Strout
 
