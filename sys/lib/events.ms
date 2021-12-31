@@ -106,6 +106,11 @@ EventSprite.start = function
 	spriteDisplay.sprites.push self
 end function
 
+EventSprite.stop = function
+	idx = spriteDisplay.sprites.indexOf(self)
+	if idx >= 0 then spriteDisplay.sprites.remove self
+end function
+
 eventLoop = {}
 eventLoop.onUpdate = null
 eventLoop.onKey = new KeyHandler
@@ -124,6 +129,7 @@ eventLoop.lastMouseOver = null
 eventLoop.stop = function
 	self.running = false
 end function
+
 spriteHitBy = function(pos)
 	if spriteDisplay == null or not spriteDisplay.sprites then return null
 	for i in range(spriteDisplay.sprites.len-1)
