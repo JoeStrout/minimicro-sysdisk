@@ -7,6 +7,7 @@
 // Then call eventLoop.run.  The various events will get invoked
 // at the appropriate times.  (See test method below.)
 
+import "mapUtil"
 
 // Sprite display used by EventSprite and eventLoop; reassign this
 // after importing if you want your sprites on a different display.
@@ -124,9 +125,12 @@ eventLoop.stop = function
 	self.running = false
 end function
 spriteHitBy = function(pos)
+	if spriteDisplay == null or not spriteDisplay.sprites then return null
 	for i in range(spriteDisplay.sprites.len-1)
 		sp = spriteDisplay.sprites[i]
-		if not sp.ignoreClicks and sp.contains(pos) then return sp
+		if not sp isa map then continue
+		if sp.get("ignoreClicks", false) then continue
+		if sp.contains(pos) then return sp
 	end for
 	return null
 end function
