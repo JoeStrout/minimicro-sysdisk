@@ -21,6 +21,8 @@ hextiles: adapted from "Pastel Resources Hex Tiles" by qubodup on OpenGameart.or
 
 food: commissioned artwork by Karekis on fiverr.com.
 
-vehicles: adapted from artwork by TRBRY on OpenGameArt.com (https://opengameart.org/users/trbry).
+plants: adapted from artwork by ak-blanc on OpenGameArt.org.
 
-textures: from publicdomaintextures.com
+vehicles: adapted from artwork by TRBRY and TituroFox on OpenGameArt.org.
+
+textures: mostly from publicdomaintextures.com, except for the "Toon" textures which were commissioned from lucasserapiao on fiverr.com, and the Road textures which are by drummyfish on OpenGameArt.org.
