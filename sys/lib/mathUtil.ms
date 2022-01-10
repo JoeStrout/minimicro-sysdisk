@@ -277,7 +277,9 @@ numToStr = function(n, precision=null)
 	s = str(round(n, precision))
 	if precision > 0 then
 		dotPos = s.indexOf(".")
-		if dotPos > s.len - precision - 1 then
+		if dotPos == null then
+			s = s + "." + "0" * precision
+		else if dotPos > s.len - precision - 1 then
 			s = s + "0" * (dotPos - s.len + precision + 1)
 		end if
 	end if
