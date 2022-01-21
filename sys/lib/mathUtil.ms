@@ -169,6 +169,28 @@ distanceToLineSegment = function(endA, endB, p)
 	return distance(p, ptOnLine)
 end function
 
+// lineIntersectProportion: look for an intersection between
+// line p1-p2 and line p3-p4.  Return the fraction of the way
+// from p1 to p2 where this intersection occurs.  If the two
+// lines are parallel, there is no intersection and this
+// function returns null.
+lineIntersectProportion = function(p1, p2, p3, p4)
+	return _lineIntersectProportion(p1, p2, p3, p4)
+end function
+
+// lineSegmentsIntersect: return whether the line segment p1-p2
+// intersects segment p3-p4.
+lineSegmentsIntersect = function(p1, p2, p3, p4)
+	return _lineSegmentsIntersect(p1, p2, p3, p4)
+end function
+
+// _lineLineIntersection: return the point at which line p1-p2
+// intersects line p3-p4.  If there is no intersection, this
+// function returns null.
+lineLineIntersection = function(p1, p2, p3, p4)
+	return _lineLineIntersection(p1, p2, p3, p4)
+end function
+
 // polyPerimeter: Measure the total distance around the given polygon
 // (including from the last point back to the first).
 //
@@ -311,6 +333,12 @@ runUnitTests = function
 	assertEqual distanceToLine(endA, endB, [200,80]), 100, "nearestPointOnLine"
 	assertEqual distanceToLineSegment(endA, endB, [100,200]), 50, "nearestPointOnLineSegment"
 
+	endA2 = {"x":80, "y":70}
+	endB2 = [120, 70]
+	assertEqual lineSegmentsIntersect(endA, endB, endA2, endB2), true, "lineSegmentsIntersect"
+	assertEqual round(lineIntersectProportion(endA, endB, endA2, endB2),2), 0.20, "proportionAlongLine"
+	assertEqual lineLineIntersection(endA, endB, endA2, endB2), [100,70], "lineLineIntersection"
+	
 	assertEqual moveTowards(100, 25, 10), 90, "moveTowards"
 	mover = {"x":50, "y":25}
 	target = {"x":60, "y":25}
