@@ -6,8 +6,6 @@ file-related commands:
    `load "filename"` -- load a program into memory
    `save "filename"` -- save current program to disk
    `view "filename"` -- preview any file	
-   `file.import "filename"` -- import a file from the host OS
-   `file.export "filename"` -- extract a file to the host OS
 		
 Note that there are three disks available:
     `"/sys"` -- system disk (read-only)

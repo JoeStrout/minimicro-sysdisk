@@ -23,7 +23,8 @@ drawPath = function(gfx, path, color, penSize)
 		end if
 	end for
 	if penSize > 2 then
-	gfx.fillEllipse path[-1][0]-hw, path[-1][1]-hw, fw, fw, color
+		gfx.fillEllipse path[-1][0]-hw, path[-1][1]-hw, fw, fw, color
+	end if
 end function
 
 // nearestPointOnPath

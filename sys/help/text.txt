@@ -1,5 +1,5 @@
 Basic text-related commands:
-   `text.clear` -- clear the text display and move cursor to top
+   `text.clear` -- clear the text display
    `print s` -- print contents of `s`
    `input(prompt)` -- print prompt, then return user input
    `text.color = color.yellow` -- change text foreground color
