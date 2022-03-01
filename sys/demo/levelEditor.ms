@@ -5,6 +5,7 @@ print "This program allows you to create, edit, and save an arrangement of tiles
 print
 
 import "tileUtil"
+import "textUtil"
 sizeToXY = @tileUtil.sizeToXY
 
 EOL = char(13)
@@ -192,6 +193,21 @@ showCursorInfo = function(col, row)
 	end for
 end function
 
+showHelp = function
+	lines = []
+	lines.push "   click - Paint/Erase    "
+	lines.push "   arrows - Change Brush  "
+	lines.push "   click bar - Pick Brush "
+	lines.push "   S - Save               "
+	lines.push "   E - Edit Parameters    "
+	lines.push "   Esc - Exit             "
+	lines.push "                          "
+	lines.push "   Push mouse against edge"
+	lines.push "     of screen to scroll. "
+	d = textUtil.Dialog.make("Level Editor Help", lines.join(char(13)))
+	d.show
+end function
+
 checkKeys = function
 	if not key.available then return
 	k = key.get.upper
@@ -214,6 +230,8 @@ checkKeys = function
 		editMapParams
 		text.clear
 		gfx.fillRect 0, 32, gfx.width, gfx.height-32, color.clear	
+	else
+		showHelp
 	end if
 end function
 
@@ -280,6 +298,8 @@ tiles = display(6)
 tiles.clear
 tiles.scrollX = 0
 tiles.scrollY = 0
+tiles.oddRowOffset = 0
+tiles.oddColOffset = 0
 
 display(5).mode = displayMode.pixel
 gfx = display(5)

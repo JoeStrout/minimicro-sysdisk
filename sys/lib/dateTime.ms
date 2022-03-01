@@ -70,6 +70,7 @@ weekday = function(date)
 end function
 
 runUnitTests = function
+	print "It is now: " + now
 	print "Unit testing: dateTime"
 	
 	errorCount = 0

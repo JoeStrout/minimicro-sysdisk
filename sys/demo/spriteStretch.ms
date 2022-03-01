@@ -6,7 +6,7 @@ stretch = file.loadSound("/sys/sounds/stretch.wav")
 stretch.loop = true
 
 spr = new Sprite
-spr.image = file.loadImage("/sys/pics/textures/Grid.png")
+spr.image = file.loadImage("/sys/pics/textures/BricksRed.png")
 spr.x = 480
 spr.y = 320
 display(4).sprites.push spr

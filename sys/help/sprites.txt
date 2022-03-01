@@ -5,7 +5,7 @@ rotate.  To use them you must:
 
 `display(4).mode = displayMode.sprite` // prepare display 4
 `disp = display(4)`        // get a reference to it called `disp`
-`disp.clear`		       // clear any previous sprites
+`disp.clear`               // clear any previous sprites
 
 2. Load a sprite from an image on disk:
 
