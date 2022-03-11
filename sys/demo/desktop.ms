@@ -211,54 +211,55 @@ end function
 //----------------------------------------------------------------------
 // Window class and related methods
 //----------------------------------------------------------------------
-
-// Make an image for the window sprite, given the content size and title bar parameters.
-makeWindowImage = function(width, height, titleLeft=0, titleWidth=150, title="Untitled", content)
-	clearScratch width+16, height+48, color.clear
-	images.windowBox.draw scratchDisp, 0, 0, width+16, height+16
-	images.titleBar.draw scratchDisp, titleLeft, height+12, titleWidth, 36
-	scratchDisp.print title, titleLeft+16, height+24, "#444444", "small"
-	if content != null then
-		w = min(width, content.width)
-		h = min(height, content.height)
-		scratchDisp.drawImage content, 8, 8+height-h, w, h,
-		   0, content.height - h, w, h
-	end if
-	return scratchDisp.getImage(0, 0, width+16, height+48)
-end function
-
-// Make a shadow image to go under the window sprite.
-makeWindowShadow = function(width, height, titleLeft=0, titleWidth=150)
-	scratchDisp.clear width+48, height+88, color.clear
-	images.shadow.draw scratchDisp, 0, 0, width+48, height+48
-	images.titleShadow.draw scratchDisp, titleLeft, height+20, titleWidth+32, 64
-	return scratchDisp.getImage(0, 0, width+48, height+88)
-end function
-
 Window = new events.EventSprite
 Window.dragMode = null
 Window.dragOffset = [0,0]  // (position of window relative to mouse)
 Window.contentImage = null
 
-Window.initWithImage = function(image, width, height, titleLeft, titleWidth, title)
+// Make an image for the window sprite.
+// Uses self: width, height, titleLeft, titleWidth, title, and contentImage
+Window.makeImage = function
+	clearScratch self.width+16, self.height+48, color.clear
+	images.windowBox.draw scratchDisp, 0, 0, self.width+16, self.height+16
+	images.titleBar.draw scratchDisp, self.titleLeft, self.height+12, self.titleWidth, 36
+	scratchDisp.print self.title, self.titleLeft+16, self.height+24, "#444444", "small"
+	if self.contentImage != null then
+		w = min(self.width, self.contentImage.width)
+		h = min(self.height, self.contentImage.height)
+		scratchDisp.drawImage self.contentImage, 8, 8+self.height-h, w, h,
+		   0, self.contentImage.height - h, w, h
+	end if
+	self.image = scratchDisp.getImage(0, 0, self.width+16, self.height+48)
+end function
+
+// Make a shadow image to go under the window sprite.
+Window.makeShadow = function
+	clearScratch self.width+48, self.height+88, color.clear
+	images.shadow.draw scratchDisp, 0, 0, self.width+48, self.height+48
+	images.titleShadow.draw scratchDisp, self.titleLeft, self.height+20, self.titleWidth+32, 64
+	return scratchDisp.getImage(0, 0, self.width+48, self.height+88)
+end function
+
+Window.init = function(width, height, titleLeft, titleWidth, title)
 	self.width = width
 	self.height = height
-	self.image = image
+	self.title = title
+	self.titleWidth = titleWidth
+	self.titleLeft = titleLeft
+	self.makeImage
+	
 	self.localBounds = new Bounds
 	self.localBounds.width = width + 16
 	self.localBounds.height = height + 16
 	self.localBounds.x = 0
 	self.localBounds.y = -16
 	
-	self.title = title
-	self.titleWidth = titleWidth
-	self.titleLeft = titleLeft
 	self.titleBounds = new Bounds
 	self.titleBounds.width = titleWidth
 	self.titleBounds.height = 32
 	
 	self.shadow = new Sprite
-	self.shadow.image = makeWindowShadow(width, height, titleLeft, titleWidth)
+	self.shadow.image = self.makeShadow
 	
 	spriteDisp.sprites.push self.shadow
 	spriteDisp.sprites.push self
@@ -266,8 +267,7 @@ end function
 
 Window.make = function(width=300, height=200, titleLeft=0, titleWidth=150, title="Untitled")
 	w = new Window
-	img = makeWindowImage(width, height, titleLeft, titleWidth, title)
-	w.initWithImage img, width, height, titleLeft, titleWidth, title
+	w.init width, height, titleLeft, titleWidth, title
 	return w
 end function
 
@@ -290,11 +290,11 @@ Window.partHit = function(xy)
 	return kPartFrame
 end function
 
-Window.update = function
-if self.isFrontmost then
-	text.row = 2; text.col = 0; print self.contains(mouse) + " " + self.partHit(mouse) + "      "
-end if
-end function
+//Window.update = function
+//	if self.isFrontmost then
+//		text.row = 2; text.col = 0; print self.contains(mouse) + " " + self.partHit(mouse) + "      "
+//	end if
+//end function
 
 Window.goTo = function(x, y)
 	self.x = x
@@ -309,10 +309,9 @@ end function
 Window.resize = function(newWidth, newHeight)
 	if newWidth == self.width and newHeight == self.height then return
 	left = self.x - self.width/2; top = self.y + self.height/2
-	img = makeWindowImage(newWidth, newHeight, self.titleLeft, self.titleWidth, self.title, self.contentImage)
 	self.width = newWidth
 	self.height = newHeight
-	self.image = img
+	self.makeImage
 	self.localBounds.width = newWidth + 16
 	self.localBounds.height = newHeight + 16
 	self.x = left + newWidth/2
@@ -371,9 +370,7 @@ FileWindow.make = function(path, width=300, height=200, titleLeft=0, titleWidth=
 	w.width = width; w.height = height
 	w.path = path
 	w.contentImage = w.makeContentImage
-	img = makeWindowImage(width, height, titleLeft, titleWidth, path, w.contentImage)
-	w.initWithImage img, width, height, titleLeft, titleWidth, path
-	
+	w.init width, height, titleLeft, titleWidth, path
 	return w
 end function
 
@@ -419,5 +416,7 @@ window1 = FileWindow.make("/", 384, 128, 0, 80)
 window1.goTo 200, 450
 window2 = FileWindow.make("/sys/pics", 512, 350, 125, 150)
 window2.goTo 600, 400
+//window3 = Window.make(200,200, 25, 150, "Accessory")
+//window3.goTo 750, 500
 
 events.eventLoop.run
