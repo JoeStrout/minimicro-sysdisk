@@ -227,7 +227,12 @@ drawFile = function(g, nameOrPath, left, bottom, width, height, isSelected=false
 		images.rounded4.draw g, midx - nameWidth/2 - 4, midy - 50, nameWidth + 8, 16, selectionColor
 	end if
 	icon = getIconForFile(nameOrPath)
-	g.drawImage icon, midx - 32, midy - 32, 64, 64
+	if icon.width > 64 or icon.height > 64 then
+		f = min(64/icon.width, 64/icon.height)
+		g.drawImage icon, midx - icon.width*f/2, midy - icon.height*f/2, icon.width*f, icon.height*f
+	else
+		g.drawImage icon, midx - icon.width/2, midy - icon.height/2
+	end if
 	g.print name, midx - nameWidth/2, midy - 48, color.black, "small"
 end function
 
@@ -556,9 +561,11 @@ openFile = function(filePath, fromWindow=null)
 		display(4).color = color.black
 		text.color = color.silver
 		view filePath
+		text.color = color.gray; print "(Press any key.)"; key.get
 		text.clear
 		display(4).mode = displayMode.sprite
 	else if filePath.endsWith(".ms") then
+		text.color = color.orange
 		clear; reset; load filePath; run
 		exit
 	else
