@@ -2,9 +2,33 @@
 
 import "events"
 import "listUtil"
+import "stringUtil"
+import "mathUtil"
 
-// ToDo: update this path when we have updated the sys disk!
+//----------------------------------------------------------------------
+// General utility functions
+//----------------------------------------------------------------------
+
+min = function(a,b)
+	if a < b then return a else return b
+end function
+
+//----------------------------------------------------------------------
+// Load resources
+//----------------------------------------------------------------------
+
 gfxSource = file.loadImage("/usr/data/desktop/desktopGfx.png")
+if gfxSource == null then
+	gfxSource = file.loadImage("/sys/data/desktop/desktopGfx.png")
+end if
+fileIcons = {}	// key: file name (without .png); value: Image
+for iconFolder in ["/sys/data/desktop/icons", "/usr/data/desktop/icons"]
+	for f in file.children(iconFolder)
+		if not f.endsWith(".png") then continue
+		img = file.loadImage(iconFolder + "/" + f)
+		if img != null then fileIcons[f - ".png"] = img
+	end for
+end for
 
 //----------------------------------------------------------------------
 // Image9Slice class: an image wrapper with margins that are not stretched,
@@ -112,6 +136,14 @@ menuDisp.scrollX = 8; menuDisp.scrollY = 7
 // General drawing functions
 //----------------------------------------------------------------------
 
+clearScratch = function(width=256, height=256, color="#FFFFFF")
+	if width > scratchDisp.width or height > scratchDisp.height then
+		scratchDisp.clear color, width, height
+	else
+		scratchDisp.clear color, scratchDisp.width, scratchDisp.height
+	end if
+end function
+
 drawMenuBar = function
 	menuDisp.drawImage images.menuBar, 0, 624, 960+16, 24
 end function
@@ -119,28 +151,85 @@ end function
 //----------------------------------------------------------------------
 // Constants
 //----------------------------------------------------------------------
-for k in ("kDragMove kDragResizeR kDragResizeBR kDragResizeB kDragResizeBL" +
-" kDragResizeL kDragResizeTL kDragResizeT kDragResizeTR").split
-	globals[k] = k		// just defines a unique global constant
-end for
+// Values for Window.dragMode:
+kDragMove = "kDragMove"			// moving the window
+kDragResize = "kDragResize"		// stretching the window
+kDragSelect = "kDragSelect"		// selecting stuff within the window
+// Values returtned by Window.partHit:
+kPartTitle = "kPartTitle"		// the window title bar
+kPartFrame = "kPartFrame"		// the window frame
+kPartResize = "kPartResize"		// the window resize box
+kPartContent = "kPartContent"	// the window content area
 
+//----------------------------------------------------------------------
+// File icons and related methods
+//----------------------------------------------------------------------
+
+iconCache = {}	// key: file path; value: icon (Image)
+
+getFreshIconForFile = function(path)
+	if iconCache.hasIndex(path) then return iconCache(path)
+	info = file.info(path)
+	if path[-1] == "/" or (info != null and info.isDirectory) then
+		if path[-1] != "/" then path = path + "/"
+		if path == "/usr/" or path == "/usr2/" then return fileIcons.disk
+		if path == "/sys/" then return fileIcons.hardDrive
+		if path.endsWith("/lib/") then return fileIcons.folderLib
+		return fileIcons.folder
+	end if
+	ext = path[-4:]
+	if ext == ".ms" then return fileIcons.miniscript
+	if ext == ".wav" or ext == ".ogg" then return fileIcons.sound
+	if ext == ".png" or ext == ".jpg" or path[-5:] == ".jpeg" then
+		p = file.loadImage(path)
+		if p == null then return fileIcons.picture
+		clearScratch 128, 128, color.white
+		scratchDisp.drawImage fileIcons["picture-2x"]
+		scaleFactor = min(96/p.width, 96/p.height)
+		dw = p.width * scaleFactor; dh = p.height * scaleFactor
+		scratchDisp.drawImage p, 64-dw/2, 64-dh/2, dw, dh
+		return scratchDisp.getImage(0, 0, 128, 128)
+	end if
+	return fileIcons.document
+end function
+
+getIconForFile = function(path)
+	if iconCache.hasIndex(path) then return iconCache[path]
+	result = getFreshIconForFile(path)
+	iconCache[path] = result
+	return result
+end function
+
+drawFile = function(g, path, left, bottom, width, height)
+	icon = getIconForFile(path)
+	g.drawImage icon, left+width/2 - 32, bottom+height/2 - 24, 64, 64
+	name = path.split("/")[-1]
+	w = name.len * 8
+	g.print name, left+width/2 - w/2, bottom+height/2 - 40, color.black, "small"
+end function
 
 //----------------------------------------------------------------------
 // Window class and related methods
 //----------------------------------------------------------------------
 
 // Make an image for the window sprite, given the content size and title bar parameters.
-makeWindowImage = function(width, height, titleLeft=0, titleWidth=150, title="Untitled")
-	scratchDisp.clear color.clear
+makeWindowImage = function(width, height, titleLeft=0, titleWidth=150, title="Untitled", content)
+	clearScratch width+16, height+48, color.clear
 	images.windowBox.draw scratchDisp, 0, 0, width+16, height+16
 	images.titleBar.draw scratchDisp, titleLeft, height+12, titleWidth, 36
 	scratchDisp.print title, titleLeft+16, height+24, "#444444", "small"
+	if content != null then
+		w = min(width, content.width)
+		h = min(height, content.height)
+		scratchDisp.drawImage content, 8, 8+height-h, w, h,
+		   0, content.height - h, w, h
+	end if
 	return scratchDisp.getImage(0, 0, width+16, height+48)
 end function
 
 // Make a shadow image to go under the window sprite.
 makeWindowShadow = function(width, height, titleLeft=0, titleWidth=150)
-	scratchDisp.clear color.clear
+	scratchDisp.clear width+48, height+88, color.clear
 	images.shadow.draw scratchDisp, 0, 0, width+48, height+48
 	images.titleShadow.draw scratchDisp, titleLeft, height+20, titleWidth+32, 64
 	return scratchDisp.getImage(0, 0, width+48, height+88)
@@ -149,21 +238,62 @@ end function
 Window = new events.EventSprite
 Window.dragMode = null
 Window.dragOffset = [0,0]  // (position of window relative to mouse)
+Window.contentImage = null
+
+Window.initWithImage = function(image, width, height, titleLeft, titleWidth, title)
+	self.width = width
+	self.height = height
+	self.image = image
+	self.localBounds = new Bounds
+	self.localBounds.width = width + 16
+	self.localBounds.height = height + 16
+	self.localBounds.x = 0
+	self.localBounds.y = -16
+	
+	self.title = title
+	self.titleWidth = titleWidth
+	self.titleLeft = titleLeft
+	self.titleBounds = new Bounds
+	self.titleBounds.width = titleWidth
+	self.titleBounds.height = 32
+	
+	self.shadow = new Sprite
+	self.shadow.image = makeWindowShadow(width, height, titleLeft, titleWidth)
+	
+	spriteDisp.sprites.push self.shadow
+	spriteDisp.sprites.push self
+end function
 
 Window.make = function(width=300, height=200, titleLeft=0, titleWidth=150, title="Untitled")
 	w = new Window
-	w.image = makeWindowImage(width, height, titleLeft, titleWidth, title)
-	w.localBounds = new Bounds
-	w.localBounds.width = width + 16
-	w.localBounds.height = height + 16
-	w.localBounds.y = -16  // (accounting for title bar)
-	
-	w.shadow = new Sprite
-	w.shadow.image = makeWindowShadow(width, height, titleLeft, titleWidth)
-	
-	spriteDisp.sprites.push w.shadow
-	spriteDisp.sprites.push w
+	img = makeWindowImage(width, height, titleLeft, titleWidth, title)
+	w.initWithImage img, width, height, titleLeft, titleWidth, title
 	return w
+end function
+
+Window.contains = function(x, y)
+	return self.worldBounds.contains(x,y) or self.titleBounds.contains(x,y)
+end function
+
+Window.partHit = function(xy)
+	midX = self.x
+	midY = self.y - 16  // (accounting for title bar)
+	x = xy.x; y = xy.y
+	if y > midY + self.height/2 + 8 then return kPartTitle
+	if x > midX + self.width/2-8 and y < midY - self.height/2+6 then
+		return kPartResize
+	end if
+	if x > midX - self.width/2 and x < midX + self.width/2 and
+	   y > midY - self.height/2 and y < midY + self.height/2 then
+		return kPartContent
+	end if
+	return kPartFrame
+end function
+
+Window.update = function
+if self.isFrontmost then
+	text.row = 2; text.col = 0; print self.contains(mouse) + " " + self.partHit(mouse) + "      "
+end if
 end function
 
 Window.goTo = function(x, y)
@@ -172,6 +302,26 @@ Window.goTo = function(x, y)
 	extra = 2 * (self.dragMode == kDragMove)
 	self.shadow.x = x + 4 + extra
 	self.shadow.y = y - 4 - extra
+	self.titleBounds.x = self.x - self.width/2 + self.titleLeft + self.titleWidth/2
+	self.titleBounds.y = self.y + self.height/2 + 14
+end function
+
+Window.resize = function(newWidth, newHeight)
+	if newWidth == self.width and newHeight == self.height then return
+	left = self.x - self.width/2; top = self.y + self.height/2
+	img = makeWindowImage(newWidth, newHeight, self.titleLeft, self.titleWidth, self.title, self.contentImage)
+	self.width = newWidth
+	self.height = newHeight
+	self.image = img
+	self.localBounds.width = newWidth + 16
+	self.localBounds.height = newHeight + 16
+	self.x = left + newWidth/2
+	self.y = top - newHeight/2
+end function
+
+Window.debugDrawBounds = function
+	menuDisp.drawPoly self.worldBounds.corners, color.orange
+	menuDisp.drawPoly self.titleBounds.corners, color.orange
 end function
 
 Window.moveToFront = function
@@ -181,30 +331,93 @@ Window.moveToFront = function
 	spriteDisp.sprites.push self
 end function
 
+Window.isFrontmost = function
+	return spriteDisp.sprites[-1] == self
+end function
+
 Window.onClick = function
-	self.dragMode = kDragMove
 	self.moveToFront
-	self.goTo self.x-2, self.y+2
-	self.dragOffset = [self.x - mouse.x, self.y - mouse.y]
+	hit = self.partHit(mouse)
+	if hit == kPartTitle or hit == kPartFrame then
+		self.dragMode = kDragMove
+		self.goTo self.x-2, self.y+2
+		self.dragOffset = [self.x - mouse.x, self.y - mouse.y]
+	else if hit == kPartResize then
+		self.dragMode = kDragResize
+		self.dragOffset = [self.width - mouse.x, mouse.y + self.height]
+	end if
 end function
 
 Window.onDrag = function
 	if self.dragMode == kDragMove then
 		self.goTo mouse.x + self.dragOffset[0], mouse.y + self.dragOffset[1]
+	else if self.dragMode == kDragResize then
+		self.resize mouse.x + self.dragOffset[0], self.dragOffset[1] - mouse.y
 	end if
 end function
 
 Window.onDragEnd = function
+	if self.dragMode == kDragMove then self.goTo self.x+2, self.y-2
 	self.dragMode = null
-	self.goTo self.x+2, self.y-2
 end function
 
+//----------------------------------------------------------------------
+// FileWindow (subclass of Window)
+//----------------------------------------------------------------------
 
+FileWindow = new Window
+FileWindow.make = function(path, width=300, height=200, titleLeft=0, titleWidth=150)
+	w = new FileWindow
+	w.width = width; w.height = height
+	w.path = path
+	w.contentImage = w.makeContentImage
+	img = makeWindowImage(width, height, titleLeft, titleWidth, path, w.contentImage)
+	w.initWithImage img, width, height, titleLeft, titleWidth, path
+	
+	return w
+end function
+
+FileWindow.makeContentImage = function
+	spacing = 128
+	files = file.children(self.path)
+
+	base = self.path
+	if base[-1] != "/" then base = base + "/"
+	if base == "/" then base = ""  // (special case; may be a flaw in Mini Micro)
+	
+	// prefetch the icons first, in case they need to use the scratch space
+	for f in files
+		getIconForFile base + f
+	end for
+	
+	// then, draw the content
+	columns = floor(self.width / spacing)
+	rows = ceil(files.len / columns)
+	contentHeight = rows * spacing
+	col = 0
+	row = 0
+	clearScratch columns*spacing, contentHeight, color.white	
+	for f in files
+		x = col * spacing
+		y = contentHeight - spacing - row * spacing
+		drawFile scratchDisp, base + f, x, y, spacing, spacing
+		col = col + 1
+		if col >= columns then
+			col = 0
+			row = row + 1
+		end if
+	end for
+	return scratchDisp.getImage(0, 0, columns*spacing, contentHeight)
+end function
+
+//----------------------------------------------------------------------
+// Main program
+//----------------------------------------------------------------------
 
 drawMenuBar
-window1 = Window.make(300, 200, 0, 150, "Window One")
-window1.goTo 600, 300
-window2 = Window.make(400, 250, 125, 150, "Window Two")
-window2.goTo 300, 400
+window1 = FileWindow.make("/", 384, 128, 0, 80)
+window1.goTo 200, 450
+window2 = FileWindow.make("/sys/pics", 512, 350, 125, 150)
+window2.goTo 600, 400
 
 events.eventLoop.run
