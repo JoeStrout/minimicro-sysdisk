@@ -188,10 +188,12 @@ getFreshIconForFile = function(path)
 		if path.endsWith("/lib/") then return fileIcons.folderLib
 		return fileIcons.folder
 	end if
-	ext = path[-4:]
-	if ext == ".ms" then return fileIcons.miniscript
-	if ext == ".wav" or ext == ".ogg" then return fileIcons.sound
-	if ext == ".png" or ext == ".jpg" or path[-5:] == ".jpeg" then
+	ext2 = path[-3:]
+	ext3 = path[-4:]
+	ext4 = path[-5:]
+	if ext2 == ".ms" then return fileIcons.miniscript
+	if ext3 == ".wav" or ext3 == ".ogg" then return fileIcons.sound
+	if ext3 == ".png" or ext3 == ".jpg" or ext4 == ".jpeg" then
 		p = file.loadImage(path)
 		if p == null then return fileIcons.picture
 		clearScratch 128, 128, color.white
@@ -542,8 +544,27 @@ openFile = function(filePath, fromWindow=null)
 		else
 			w.goTo 20 + w.width/2, 50 - w.height/2
 		end if
+	else if filePath.endsWith(".png") or
+			filePath.endsWith(".jpg") or
+			filePath.endsWith(".jpeg") then
+		view filePath
+	else if filePath.endsWith(".txt") or
+			filePath.endsWith(".csv") or
+			filePath.endsWith(".grfon") or
+			filePath.endsWith(".json") then
+		display(4).mode = displayMode.solidColor
+		display(4).color = color.black
+		text.color = color.silver
+		view filePath
+		text.clear
+		display(4).mode = displayMode.sprite
+	else if filePath.endsWith(".ms") then
+		clear; reset; load filePath; run
+		exit
 	else
-		// can't launch other files yet
+		// can't launch other files yet, but maybe:
+		view filePath
+		text.clear
 	end if
 end function
 
