@@ -13,6 +13,12 @@ min = function(a,b)
 	if a < b then return a else return b
 end function
 
+pathJoin = function(base, filename)
+	if filename[0] == "/" then filename = filename[1:]
+	if base[-1] == "/" then return base + filename
+	return base + "/" + filename
+end function
+
 //----------------------------------------------------------------------
 // Load resources
 //----------------------------------------------------------------------
@@ -52,7 +58,7 @@ Image9Slice.make = function(image, left=12, bottom=12, right=12, top=12)
 	return noob
 end function
 
-Image9Slice.draw = function(g, left, bottom, width, height)
+Image9Slice.draw = function(g, left, bottom, width, height, tint="#FFFFFF")
 	midH = height - self.bottomMargin - self.topMargin
 	srcH = self.image.height - self.bottomMargin - self.topMargin
 	nearTop = bottom + height - self.topMargin
@@ -65,35 +71,35 @@ Image9Slice.draw = function(g, left, bottom, width, height)
 	// left side (bottom, middle, top)
 	g.drawImage self.image, 
 		left, bottom, self.leftMargin, self.bottomMargin,
-		0, 0, self.leftMargin, self.bottomMargin
+		0, 0, self.leftMargin, self.bottomMargin, tint
 	g.drawImage self.image, 
 		left, bottom + self.bottomMargin, self.leftMargin, midH,
-		0, self.bottomMargin, self.leftMargin, srcH
+		0, self.bottomMargin, self.leftMargin, srcH, tint
 	g.drawImage self.image, 
 		left, nearTop, self.leftMargin, self.topMargin,
-		0, srcNearTop, self.leftMargin, self.topMargin
+		0, srcNearTop, self.leftMargin, self.topMargin, tint
 	
 	// center section (bottom, middle, top)
 	g.drawImage self.image, 
 		left + self.leftMargin, bottom, midW, self.bottomMargin,
-		self.leftMargin, 0, srcW, self.bottomMargin
+		self.leftMargin, 0, srcW, self.bottomMargin, tint
 	g.drawImage self.image, 
 		left + self.leftMargin, bottom + self.bottomMargin, midW, midH,
-		self.leftMargin, self.bottomMargin, srcW, srcH
+		self.leftMargin, self.bottomMargin, srcW, srcH, tint
 	g.drawImage self.image, 
 		left + self.leftMargin, nearTop, midW, self.topMargin,
-		self.leftMargin, srcNearTop, srcW, self.topMargin
+		self.leftMargin, srcNearTop, srcW, self.topMargin, tint
 	
 	// right section (bottom, middle, top)
 	g.drawImage self.image, 
 		nearRight, bottom, self.rightMargin, self.bottomMargin,
-		srcNearRight, 0, self.rightMargin, self.bottomMargin
+		srcNearRight, 0, self.rightMargin, self.bottomMargin, tint
 	g.drawImage self.image, 
 		nearRight, bottom + self.bottomMargin, self.rightMargin, midH,
-		srcNearRight, self.bottomMargin, self.rightMargin, srcH
+		srcNearRight, self.bottomMargin, self.rightMargin, srcH, tint
 	g.drawImage self.image, 
 		nearRight, nearTop, self.rightMargin, self.topMargin,
-		srcNearRight, srcNearTop, self.rightMargin, self.topMargin	
+		srcNearRight, srcNearTop, self.rightMargin, self.topMargin, tint
 end function
 
 //----------------------------------------------------------------------
@@ -106,6 +112,9 @@ images.windowBox = Image9Slice.make(gfxSource.getImage(0, 0, 48, 48))
 images.titleBar = Image9Slice.make(gfxSource.getImage(96, 0, 64, 36), 12, 0, 12, 0)
 images.shadow = Image9Slice.make(gfxSource.getImage(0, 48, 80, 80), 32, 32, 32, 32)
 images.titleShadow = Image9Slice.make(gfxSource.getImage(80, 64, 96, 48), 32, 0, 32, 32)
+images.iconHighlight = gfxSource.getImage(192, 0, 80, 80)
+images.rounded4 = Image9Slice.make(gfxSource.getImage(280, 0, 32, 32), 8, 8, 8, 8)
+
 clear; print
 
 display(6).mode = displayMode.solidColor
@@ -160,6 +169,8 @@ kPartTitle = "kPartTitle"		// the window title bar
 kPartFrame = "kPartFrame"		// the window frame
 kPartResize = "kPartResize"		// the window resize box
 kPartContent = "kPartContent"	// the window content area
+// Things that may become options some day
+selectionColor = "#CCCCFF"
 
 //----------------------------------------------------------------------
 // File icons and related methods
@@ -200,12 +211,37 @@ getIconForFile = function(path)
 	return result
 end function
 
-drawFile = function(g, path, left, bottom, width, height)
-	icon = getIconForFile(path)
-	g.drawImage icon, left+width/2 - 32, bottom+height/2 - 24, 64, 64
-	name = path.split("/")[-1]
-	w = name.len * 8
-	g.print name, left+width/2 - w/2, bottom+height/2 - 40, color.black, "small"
+// Draw the icon and name for a file, centered in the given area.
+drawFile = function(g, nameOrPath, left, bottom, width, height, isSelected=false)
+	name = nameOrPath.split("/")[-1]
+	nameWidth = name.len * 8
+	midx = left + width/2
+	midy = bottom + height/2 + 8
+	if isSelected then
+		w = images.iconHighlight.width
+		h = images.iconHighlight.height
+		g.drawImage images.iconHighlight, midx - w/2, midy - h/2, w, h,
+		  0, 0, w, h, selectionColor
+		images.rounded4.draw g, midx - nameWidth/2 - 4, midy - 50, nameWidth + 8, 16, selectionColor
+	end if
+	icon = getIconForFile(nameOrPath)
+	g.drawImage icon, midx - 32, midy - 32, 64, 64
+	g.print name, midx - nameWidth/2, midy - 48, color.black, "small"
+end function
+
+// Return whether the given mouse position is over the actual drawn image
+// of the file (including name), as drawn by drawFile above.
+isOverFile = function(xyMap, nameOrPath, left, bottom, width, height)
+	midx = left + width/2
+	midy = bottom + height/2 + 8
+	// check if over the icon itself (with a little extra slop allowed)
+	if abs(xyMap.x - midx) < 40 and abs(xyMap.y - midy) < 40 then return true
+	// check if over the name
+	name = nameOrPath.split("/")[-1]
+	nameWidth = name.len * 8
+	nameMidY = midy - 42
+	if abs(xyMap.x - midx) < nameWidth/2+8 and abs(xyMap.y - nameMidY) < 12 then return true
+	return false
 end function
 
 //----------------------------------------------------------------------
@@ -271,9 +307,20 @@ Window.make = function(width=300, height=200, titleLeft=0, titleWidth=150, title
 	return w
 end function
 
+Window.close = function
+	print "Closing " + self.title
+	spriteDisp.sprites.removeVal self.shadow
+	spriteDisp.sprites.removeVal self
+end function
+
 Window.contains = function(x, y)
 	return self.worldBounds.contains(x,y) or self.titleBounds.contains(x,y)
 end function
+
+Window.left = function; return self.x - self.width/2; end function
+Window.top = function; return self.y - 16 + self.height/2; end function
+Window.right = function; return self.x + self.width/2; end function
+Window.bottom = function; return self.y - 16 - self.height/2; end function
 
 Window.partHit = function(xy)
 	midX = self.x
@@ -289,12 +336,6 @@ Window.partHit = function(xy)
 	end if
 	return kPartFrame
 end function
-
-//Window.update = function
-//	if self.isFrontmost then
-//		text.row = 2; text.col = 0; print self.contains(mouse) + " " + self.partHit(mouse) + "      "
-//	end if
-//end function
 
 Window.goTo = function(x, y)
 	self.x = x
@@ -365,17 +406,83 @@ end function
 //----------------------------------------------------------------------
 
 FileWindow = new Window
+FileWindow.selectedFiles = null	// list of selected file names
+FileWindow.spacing = 128
+FileWindow.lastClickTime = 0
+FileWindow.isDoubleClick = false
 FileWindow.make = function(path, width=300, height=200, titleLeft=0, titleWidth=150)
 	w = new FileWindow
 	w.width = width; w.height = height
 	w.path = path
+	w.selectedFiles = []
+	w.selectedFiles.push file.children(path)[0]  // HACK!
 	w.contentImage = w.makeContentImage
 	w.init width, height, titleLeft, titleWidth, path
 	return w
 end function
 
+FileWindow.update = function
+	if not self.isFrontmost then return
+	text.row = 2; text.col = 0; print self.fileAtXY(mouse) + " " * 30
+end function
+
+FileWindow.updateContent = function
+	self.contentImage = self.makeContentImage
+	self.makeImage
+end function
+
+FileWindow.onClick = function
+	self.moveToFront
+	if self.partHit(mouse) != kPartContent then return super.onClick
+	fileHit = self.fileAtXY(mouse)
+	anyChange = false
+	if not fileHit then
+		// clear selection
+		if self.selectedFiles then
+			self.selectedFiles = []
+			anyChange = true
+		end if
+		self.isDoubleClick = false
+	else if self.selectedFiles.len != 1 or self.selectedFiles[0] != fileHit then
+		// replace selection with new file
+		self.selectedFiles = [fileHit]
+		anyChange = true
+		self.isDoubleClick = false
+	else
+		// clicked previously-selected file (maybe a double-click?)
+		self.isDoubleClick = (time - self.lastClickTime < 0.5)
+	end if
+	if anyChange then self.updateContent
+	self.lastClickTime = time
+end function
+
+FileWindow.onDragEnd = function
+	if self.dragMode then super.onDragEnd
+	if self.selectedFiles.len == 1 and self.isDoubleClick then
+		// Open the selected file!
+		openFile pathJoin(self.path, self.selectedFiles[0]), self
+	end if
+end function
+
+// Figure out what file, if any, the mouse is over.
+FileWindow.fileAtXY = function(screenPos)
+	if self.partHit(screenPos) != kPartContent then return null
+	left = self.x - self.width/2
+	top = self.y - 16 + self.height/2  // (accounting for title bar)
+	col = floor((mouse.x - left) / self.spacing)
+	row = floor((top - mouse.y) / self.spacing)
+	if col < self.columns and row < self.rows then
+		if isOverFile(mouse, self.files[col][row],
+		  left + col * self.spacing, top - (row+1) * self.spacing, 
+		  self.spacing, self.spacing) then
+			// Found it: we are over the file icon/name at col, row.
+			return self.files[col][row]
+		end if
+	end if
+	return null
+end function
+
 FileWindow.makeContentImage = function
-	spacing = 128
 	files = file.children(self.path)
 
 	base = self.path
@@ -388,23 +495,79 @@ FileWindow.makeContentImage = function
 	end for
 	
 	// then, draw the content
-	columns = floor(self.width / spacing)
-	rows = ceil(files.len / columns)
-	contentHeight = rows * spacing
+	self.columns = floor(self.width / self.spacing)
+	self.rows = ceil(files.len / self.columns)
+	self.files = list.init2d(self.columns, self.rows)
+	contentHeight = self.rows * self.spacing
 	col = 0
 	row = 0
-	clearScratch columns*spacing, contentHeight, color.white	
+	clearScratch self.columns*self.spacing, contentHeight, color.white	
 	for f in files
-		x = col * spacing
-		y = contentHeight - spacing - row * spacing
-		drawFile scratchDisp, base + f, x, y, spacing, spacing
+		self.files[col][row] = f
+		x = col * self.spacing
+		y = contentHeight - self.spacing - row * self.spacing
+		isSelected = self.selectedFiles.contains(f)
+		drawFile scratchDisp, base + f, x, y, self.spacing, self.spacing, isSelected
 		col = col + 1
-		if col >= columns then
+		if col >= self.columns then
 			col = 0
 			row = row + 1
 		end if
 	end for
-	return scratchDisp.getImage(0, 0, columns*spacing, contentHeight)
+	return scratchDisp.getImage(0, 0, self.columns*self.spacing, contentHeight)
+end function
+
+//----------------------------------------------------------------------
+// Desktop global methods (open file, etc.) and event handlers
+//----------------------------------------------------------------------
+
+frontmostWindow = function
+	if not spriteDisp.sprites then return null
+	for i in range(spriteDisp.sprites.len-1)
+		if spriteDisp.sprites[i] isa Window then return spriteDisp.sprites[i]
+	end for
+	return null
+end function
+
+openFile = function(filePath, fromWindow=null)
+	info = file.info(filePath)
+	if ["/sys", "/usr", "/usr2"].contains(filePath) then info = {"isDirectory":1}
+	if info == null then
+		print "Can't open path: " + filePath
+		return
+	else if info.isDirectory then
+		w = FileWindow.make(filePath, 512, 350, 50, 40 + filePath.len*8)
+		if fromWindow then
+			w.goTo fromWindow.left + w.width/2 + 20, fromWindow.top - w.height/2 - 20
+		else
+			w.goTo 20 + w.width/2, 50 - w.height/2
+		end if
+	else
+		// can't launch other files yet
+	end if
+end function
+
+handleShortcutKey = function(key)
+	if key == "/" then
+		if rootWindow == null then
+			globals.rootWindow = FileWindow.make("/", 384, 128, 0, 80)
+			rootWindow.goTo 200, 450
+		else
+			rootWindow.moveToFront
+		end if
+	else if key == "w" then
+		w = frontmostWindow
+		if w then w.close
+	end if
+end function
+
+events.eventLoop.onGotKey = function(key)
+	if key.code < 27 then
+		handleShortcutKey char(key.code + 26)
+	else
+		// for now, treat unmodified keys as shortcut keys
+		handleShortcutKey key
+	end if
 end function
 
 //----------------------------------------------------------------------
@@ -412,10 +575,10 @@ end function
 //----------------------------------------------------------------------
 
 drawMenuBar
-window1 = FileWindow.make("/", 384, 128, 0, 80)
-window1.goTo 200, 450
-window2 = FileWindow.make("/sys/pics", 512, 350, 125, 150)
-window2.goTo 600, 400
+rootWindow = FileWindow.make("/", 384, 128, 0, 80)
+rootWindow.goTo 200, 450
+//window2 = FileWindow.make("/sys/pics", 512, 350, 125, 150)
+//window2.goTo 600, 400
 //window3 = Window.make(200,200, 25, 150, "Accessory")
 //window3.goTo 750, 500
 
