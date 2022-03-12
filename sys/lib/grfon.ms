@@ -179,12 +179,14 @@ Parser._parseElement = function(asValue=false)
 				result = tok
 			else if result isa list then
 				result.push tok
-			else
+			else if result isa map then
 				if result.hasIndex("_") then
 					result["_"].push tok
 				else
 					result["_"] = [tok]
 				end if
+			else
+				result = [result, tok]
 			end if
 			if next == "" then return result
 		end if
