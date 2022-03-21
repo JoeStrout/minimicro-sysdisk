@@ -62,16 +62,18 @@ update = function
 	end for
 end function
 
-// Prepare display
-clear
-text.row = 25; text.column = 28
-print "INPUT CHECK"
-print
-print "Press any key, mouse, or controller inputs to"
-print "see their names below.  (Press Ctrl+C to exit.)"
+if locals == globals then
+	// Prepare display
+	clear
+	text.row = 25; text.column = 28
+	print "INPUT CHECK"
+	print
+	print "Press any key, mouse, or controller inputs to"
+	print "see their names below.  (Press Ctrl+C to exit.)"
 
-// Main loop
-while true
-	update
-	yield
-end while
+	// Main loop
+	while true
+		update
+		yield
+	end while
+end if

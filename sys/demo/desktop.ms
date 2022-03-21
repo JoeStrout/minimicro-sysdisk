@@ -171,6 +171,7 @@ kPartResize = "kPartResize"		// the window resize box
 kPartContent = "kPartContent"	// the window content area
 // Things that may become options some day
 selectionColor = "#CCCCFF"
+scrollWheelSpeed = 50
 
 //----------------------------------------------------------------------
 // File icons and related methods
@@ -239,6 +240,7 @@ end function
 // Return whether the given mouse position is over the actual drawn image
 // of the file (including name), as drawn by drawFile above.
 isOverFile = function(xyMap, nameOrPath, left, bottom, width, height)
+	if not nameOrPath then return false
 	midx = left + width/2
 	midy = bottom + height/2 + 8
 	// check if over the icon itself (with a little extra slop allowed)
@@ -258,6 +260,7 @@ Window = new events.EventSprite
 Window.dragMode = null
 Window.dragOffset = [0,0]  // (position of window relative to mouse)
 Window.contentImage = null
+Window.scrollX = 0; Window.scrollY = 0
 
 // Make an image for the window sprite.
 // Uses self: width, height, titleLeft, titleWidth, title, and contentImage
@@ -270,7 +273,7 @@ Window.makeImage = function
 		w = min(self.width, self.contentImage.width)
 		h = min(self.height, self.contentImage.height)
 		scratchDisp.drawImage self.contentImage, 8, 8+self.height-h, w, h,
-		   0, self.contentImage.height - h, w, h
+		   self.scrollX, self.contentImage.height - h - self.scrollY, w, h
 	end if
 	self.image = scratchDisp.getImage(0, 0, self.width+16, self.height+48)
 end function
@@ -315,7 +318,6 @@ Window.make = function(width=300, height=200, titleLeft=0, titleWidth=150, title
 end function
 
 Window.close = function
-	print "Closing " + self.title
 	spriteDisp.sprites.removeVal self.shadow
 	spriteDisp.sprites.removeVal self
 end function
@@ -357,13 +359,21 @@ end function
 Window.resize = function(newWidth, newHeight)
 	if newWidth == self.width and newHeight == self.height then return
 	left = self.x - self.width/2; top = self.y + self.height/2
+	self.x = left + newWidth/2; self.y = top - newHeight/2
 	self.width = newWidth
 	self.height = newHeight
 	self.makeImage
+	self.shadow.image = self.makeShadow
+	self.shadow.x = self.x + 4
+	self.shadow.y = self.y - 4
 	self.localBounds.width = newWidth + 16
 	self.localBounds.height = newHeight + 16
-	self.x = left + newWidth/2
-	self.y = top - newHeight/2
+end function
+
+Window.scroll = function(dx, dy)
+	self.scrollX = mathUtil.clamp(self.scrollX + dx, 0, self.contentImage.width - self.width)
+	self.scrollY = mathUtil.clamp(self.scrollY + dy, 0, self.contentImage.height - self.height)
+	self.updateContent
 end function
 
 Window.debugDrawBounds = function
@@ -430,7 +440,6 @@ end function
 
 FileWindow.update = function
 	if not self.isFrontmost then return
-	text.row = 2; text.col = 0; print self.fileAtXY(mouse) + " " * 30
 end function
 
 FileWindow.updateContent = function
@@ -474,8 +483,8 @@ end function
 // Figure out what file, if any, the mouse is over.
 FileWindow.fileAtXY = function(screenPos)
 	if self.partHit(screenPos) != kPartContent then return null
-	left = self.x - self.width/2
-	top = self.y - 16 + self.height/2  // (accounting for title bar)
+	left = self.x - self.width/2 + self.scrollX
+	top = self.y - 16 + self.height/2 + self.scrollY // (accounting for title bar)
 	col = floor((mouse.x - left) / self.spacing)
 	row = floor((top - mouse.y) / self.spacing)
 	if col < self.columns and row < self.rows then
@@ -532,6 +541,16 @@ frontmostWindow = function
 	if not spriteDisp.sprites then return null
 	for i in range(spriteDisp.sprites.len-1)
 		if spriteDisp.sprites[i] isa Window then return spriteDisp.sprites[i]
+	end for
+	return null
+end function
+
+windowUnderMouse = function
+	if not spriteDisp.sprites then return null
+	for i in range(spriteDisp.sprites.len-1)
+		if spriteDisp.sprites[i] isa Window and spriteDisp.sprites[i].contains(mouse) then
+			return spriteDisp.sprites[i]
+		end if
 	end for
 	return null
 end function
@@ -595,6 +614,14 @@ events.eventLoop.onGotKey = function(key)
 	else
 		// for now, treat unmodified keys as shortcut keys
 		handleShortcutKey key
+	end if
+end function
+
+events.eventLoop.onUpdate = function
+	scroll = key.axis("Mouse ScrollWheel")
+	if scroll != 0 then
+		wind = windowUnderMouse
+		if wind then wind.scroll 0, -scroll * scrollWheelSpeed
 	end if
 end function
 
