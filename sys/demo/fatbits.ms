@@ -1215,11 +1215,12 @@ end function
 
 previewArea.handleClick = function
 	hsz = 32 * self.scale  // (half the size of our scrollbox)
+	img = selectedTab.image
 	while mouse.button
 		x = mathUtil.clamp(mouse.x - previewArea.left, hsz, self.width-hsz)
 		y = mathUtil.clamp(mouse.y - previewArea.bottom, hsz, self.height-hsz)
-		self.scrollbox.x = self.left + x
-		self.scrollbox.y = self.bottom + y
+		if img.width > 64 then self.scrollbox.x = self.left + x
+		if img.height > 64 then self.scrollbox.y = self.bottom + y
 		updatePaintScroll
 	end while
 end function

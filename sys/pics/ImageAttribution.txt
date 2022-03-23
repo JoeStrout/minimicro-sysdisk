@@ -21,6 +21,8 @@ hextiles: adapted from "Pastel Resources Hex Tiles" by qubodup on OpenGameart.or
 
 food: commissioned artwork by Karekis on fiverr.com.
 
+maelstrom: artwork from the classic Mac game Maelstrom by Andrew Welch and Ian Gilman, released under the "Attribution" Creative Commons license.
+
 plants: adapted from artwork by ak-blanc on OpenGameArt.org.
 
 vehicles: adapted from artwork by TRBRY and TituroFox on OpenGameArt.org.

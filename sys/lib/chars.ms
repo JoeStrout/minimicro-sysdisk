@@ -87,7 +87,7 @@ printable = [leftArrow, upArrow, rightArrow, downArrow, unprintable,
 	buttonCapLeft, buttonCapRight, 
 	figureStanding, figureWaitingToeDown, figureWaitingToeUp, figureAkimbo,
 	mu, invertedBang, copyright, lineEndSymbol, registered, degrees, 
-	invertedQuestion, multSign, divSign, pi, bullet, tree, 
+	invertedQuestion, multSign, divSign, pi, bullet, tree, ellipsis,
 	emptyBox, checkedBox, boxWithX,
 	spade, club, heart, diamond] + dieFace.values
 
