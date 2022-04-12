@@ -75,7 +75,7 @@ list.multiplyBy = function(factor)
 end function
 
 // times: multiply all elements of a list by a scalar factor, OR do
-// element-wise multiplication with another list of teh same size, returning
+// element-wise multiplication with another list of the same size, returning
 // a new list (leaving this one untouched).
 //
 // Example 1:

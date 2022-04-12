@@ -4,6 +4,7 @@ import "events"
 import "listUtil"
 import "stringUtil"
 import "mathUtil"
+import "bmfFonts"
 
 //----------------------------------------------------------------------
 // General utility functions
@@ -35,6 +36,15 @@ for iconFolder in ["/sys/data/desktop/icons", "/usr/data/desktop/icons"]
 		if img != null then fileIcons[f - ".png"] = img
 	end for
 end for
+
+smallFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-12.bmf")
+if smallFont == null then
+	smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
+end if
+largeFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-20.bmf")
+if largeFont == null then
+	largeFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-20.bmf")
+end if
 
 //----------------------------------------------------------------------
 // Image9Slice class: an image wrapper with margins that are not stretched,
@@ -154,7 +164,14 @@ clearScratch = function(width=256, height=256, color="#FFFFFF")
 end function
 
 drawMenuBar = function
-	menuDisp.drawImage images.menuBar, 0, 624, 960+16, 24
+	globals.gfx = menuDisp
+	y = 624
+	menuDisp.drawImage images.menuBar, 0, y, 960+16, 24
+	x = 40
+	for title in ["File", "Edit", "Window", "Help"]
+		largeFont.print title, x, y + 4, 1, color.black
+		x = x + largeFont.width(title) + 20
+	end for
 end function
 
 //----------------------------------------------------------------------
@@ -234,7 +251,8 @@ drawFile = function(g, nameOrPath, left, bottom, width, height, isSelected=false
 	else
 		g.drawImage icon, midx - icon.width/2, midy - icon.height/2
 	end if
-	g.print name, midx - nameWidth/2, midy - 48, color.black, "small"
+	globals.gfx = g
+	smallFont.print name, midx - nameWidth/2, midy - 52, 1, color.black
 end function
 
 // Return whether the given mouse position is over the actual drawn image
@@ -432,7 +450,6 @@ FileWindow.make = function(path, width=300, height=200, titleLeft=0, titleWidth=
 	w.width = width; w.height = height
 	w.path = path
 	w.selectedFiles = []
-	w.selectedFiles.push file.children(path)[0]  // HACK!
 	w.contentImage = w.makeContentImage
 	w.init width, height, titleLeft, titleWidth, path
 	return w

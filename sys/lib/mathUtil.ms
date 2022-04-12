@@ -232,7 +232,7 @@ end function
 //	delta: amount to inset/outset the polygon points
 // Returns: new list of points defining offset polygon
 offsetPoly = function(polygon, delta)
-	return _offsetPoly(point, delta)
+	return _offsetPoly(polygon, delta)
 end function
 
 // shiftPoly: translates a polygon by adding some amount to the X
@@ -245,7 +245,7 @@ end function
 //	dy: amount to add to the Y coordinate of each point
 // Returns: new list of points defining translated polygon
 shiftPoly = function(polygon, dx=0, dy=0)
-	return _translatePoly(point, dx, dy)
+	return _translatePoly(polygon, dx, dy)
 end function
 
 // rotatePoly: rotates all points in the given list around 0,0.
@@ -257,7 +257,7 @@ end function
 //	degrees: amount of rotation to apply, in degrees clockwise
 // Returns: new list of points defining rotated polygon
 rotatePoly = function(polygon, degrees)
-	return _rotatePoly(point, degrees)
+	return _rotatePoly(polygon, degrees)
 end function
 
 // randNormal: return a normally-destributed (i.e. Gaussian) number
