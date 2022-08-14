@@ -1,7 +1,7 @@
-// This module is to support creation of "tweetcarts", i.e.,
+// This module is to support creation of "tweetcodes", i.e.,
 // cool little programs that can fit into a single tweet
 // (i.e. 280 characters or less).  The Mini Micro API tends
-// to spell things out explicitly, so to help with tweetcarts,
+// to spell things out explicitly, so to help with tweetcodes,
 // this module defines some shorter aliases for commonly-used
 // functions and constants.
 

@@ -91,6 +91,29 @@ end function
 addOption @semiprime, "Semiprime (math, looping)", 0.459
 
 //----------------------------------------------------------------------
+recursiveFib = function(n=28)
+    if n < 1 then return 0
+    if n == 1 then return 1
+    return recursiveFib(n-1) + recursiveFib(n-2)
+end function
+addOption @recursiveFib, "Recursive Fibonnaci", 2.837
+
+//----------------------------------------------------------------------
+iterativeFib = function(n=28)
+    if n < 1 then return 0
+    if n == 1 then return 1
+	b = 0
+	sum = 1
+	for i in range(n-2)
+		a = b
+		b = sum
+		sum = a + b
+	end for
+	return sum
+end function
+addOption @iterativeFib, "Iterative Fibonnaci", 0.0001
+
+//----------------------------------------------------------------------
 pixelDrawing = function
 	gfx.clear
 	colors = [color.red, color.green, color.blue, "#FF000088", "#00FF0088", "#0000FF88"]

@@ -1,0 +1,94 @@
+// This GRFON file defines the on-screen keyboard layout used with the mobile
+// version of Mini Micro (or any time a virtual on-screen keyboard appears).
+// It is a map with an index like "h2" (for "home row key 2") for every key
+// on the keyboard.  The corresponding value is a list of little maps; each
+// of these little maps defines the function of the key.  There's a list of 
+// these in order to define up to four different functions, depending on the
+// state of the modifier keys:
+//
+//		h2: { 
+//			{text:d; keyName:d}				// plain function (no shift or alt)
+//			{text:D; keyName:d}				// with Shift
+//			{keyName:right; label:right} 	// with Alt
+//			{keyName:right; label:right} 	// with Shift + Alt
+//		}
+//
+// Each of the little function maps can contain:
+//	text: literal text to be inserted into the input buffer
+//	keyName: which key.pressed value this key will return true for
+//	label: text to show instead of text or keyname
+//	sprite: name of a sprite icon to show instead of any text label
+//
+// Note that if fewer than four maps are given, then the last one will be
+// used for subsequent modifier states.
+//
+// In the code below, we've formatted the GROFN with one key definition per 
+// line.  Remember to backslash-escape any characters that have special
+// meaning in GRFON: {, }, \, :, ;, and space.
+
+
+// Extra Row (on top, above numbers)
+e0: { {text:(}; {text:`; keyName:`}; {text:break}; {} }
+e1: { {text:)}; {text:~}; {text:if}; {} }
+e2: { {text:[; keyName:[}; {text:\{; keyName:[}; {text:then}; {} }
+e3: { {text:]; keyName:]}; {text:\}; keyName:]}; {text:else}; {} }
+e4: { {text:,; keyName:,}; {text:<; keyName:,}; {text:yield}; {} }
+e5: { {text:.; keyName:.}; {text:>; keyName:.}; {text:function}; {} }
+e6: { {text:"; keyName:"}; {text:'; keyName:'}; {text:new}; {} }
+e7: { {text:-; keyName:-}; {text:_; keyName:-}; {text:not}; {} }
+e8: { {text:+ }; {text:|}; {text:and}; {} }
+e9: { {text:=; keyName:=}; {text:\\; keyName:\\}; {text:true}; {} }
+
+// Number Row
+n0: { {text:1; keyName:1}; {text:!; keyName:1}; {text:continue}; {} }
+n1: { {text:2; keyName:2}; {text:@; keyName:2}; {text:for}; {} }
+n2: { {text:3; keyName:3}; {text:#; keyName:3}; {text:in}; {} }
+n3: { {text:4; keyName:4}; {text:$; keyName:4}; {text:while}; {} }
+n4: { {text:5; keyName:5}; {text:%; keyName:5}; {text:end}; {} }
+n5: { {text:6; keyName:6}; {text:^; keyName:6}; {text:return}; {} }
+n6: { {text:7; keyName:7}; {text:&; keyName:7}; {text:null }; {} }
+n7: { {text:8; keyName:8}; {text:*; keyName:8}; {text:isa}; {} }
+n8: { {text:9; keyName:9}; {text:\;; keyName:9}; {text:or}; {} }
+n9: { {text:0; keyName:0}; {text:\:; keyName:0}; {text:false}; {} }
+
+// Upper Row
+u0: { {text:q; keyName:q}; {text:Q; keyName:q}; {keyName:tab} }
+u1: { {text:w; keyName:w}; {text:W; keyName:w}; {keyName:up; label:up} }
+u2: { {text:e; keyName:e}; {text:E; keyName:e}; {text:print}; {} }
+u3: { {text:r; keyName:r}; {text:R; keyName:r}; {text:range}; {text:®} }
+u4: { {text:t; keyName:t}; {text:T; keyName:t}; {text:text}; {text:τ} }
+u5: { {text:y; keyName:y}; {text:Y; keyName:y}; {text:clear}; {} }
+u6: { {text:u; keyName:u}; {text:U; keyName:u}; {text:color} }
+u7: { {text:i; keyName:i}; {text:I; keyName:i}; {text:globals} }
+u8: { {text:o; keyName:o}; {text:O; keyName:o}; {keyName:home} }
+u9: { {text:p; keyName:p}; {text:P; keyName:p}; {keyName:page up; label:pgUp}; {text:π} }
+
+// Home Row
+h0: { {text:a; keyName:a}; {text:A; keyName:a}; {keyName:left; label:left} }
+h1: { {text:s; keyName:s}; {text:S; keyName:s}; {keyName:down; label:down} }
+h2: { {text:d; keyName:d}; {text:D; keyName:d}; {keyName:right; label:right} }
+h3: { {text:f; keyName:f}; {text:F; keyName:f}; {text:file}; {text:♠} }
+h4: { {text:g; keyName:g}; {text:G; keyName:g}; {text:gfx}; {text:♣} }
+h5: { {text:h; keyName:h}; {text:H; keyName:h}; {text:help}; {text:♥} }
+h6: { {text:j; keyName:j}; {text:J; keyName:j}; {text:super}; {text:♦} }
+h7: { {text:k; keyName:k}; {text:K; keyName:k}; {keyName:delete} }
+h8: { {text:l; keyName:l}; {text:L; keyName:l}; {keyName:end}; {text:¬} }
+h9: { {text:/; keyName:/}; {text:?; keyName:/}; {keyName:page down; label:pgDn}; {text:¿} }
+
+// Lower Row
+l0: { {keyName:left shift; label:shift} }
+l1: { {text:z; keyName:z}; {text:Z; keyName:z}; {keyName:^Z} }
+l2: { {text:x; keyName:x}; {text:X; keyName:x}; {keyName:^X} }
+l3: { {text:c; keyName:c}; {text:C; keyName:c}; {keyName:^C}; {text:©} }
+l4: { {text:v; keyName:v}; {text:V; keyName:v}; {keyName:^V} }
+l5: { {text:b; keyName:b}; {text:B; keyName:b}; {text:self}; {} }
+l6: { {text:n; keyName:n}; {text:N; keyName:n}; {text:new}; {} }
+l7: { {text:m; keyName:m}; {text:M; keyName:m}; {text:mouse}; {text:µ} }
+l8: { {keyName:backspace; label:<X]; sprite:keyCapBackspace.png} }
+
+// Spacebar Row
+sb0: { {keyName:escape; label:esc} }
+sb1: { {keyName:left alt; label:alt} }
+sb2: { {text:\ } }
+sb3: { {keyName:right alt; label:alt} }
+sb4: { {keyName:return}; {keyName:return}; {keyName:enter}; {keyName:enter} }

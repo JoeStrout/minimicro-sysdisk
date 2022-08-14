@@ -33,7 +33,8 @@ end for
 
 // Also gather the names of all analog axes.
 allAxes = ["Horizontal", "Vertical", 
-           "Mouse X", "Mouse Y", "Mouse ScrollWheel"]
+           "Mouse X", "Mouse Y", "Mouse ScrollWheel",
+           "Tilt X", "Tilt Y", "Tilt Z"]
 for i in range(1,16)
 	allAxes.push "JoyAxis" + i
 	for joyNum in range(1,8)

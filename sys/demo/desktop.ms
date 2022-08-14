@@ -37,9 +37,9 @@ for iconFolder in ["/sys/data/desktop/icons", "/usr/data/desktop/icons"]
 	end for
 end for
 
-smallFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-12.bmf")
+smallFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-16.bmf")
 if smallFont == null then
-	smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
+	smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
 end if
 largeFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-20.bmf")
 if largeFont == null then
@@ -80,36 +80,36 @@ Image9Slice.draw = function(g, left, bottom, width, height, tint="#FFFFFF")
 	
 	// left side (bottom, middle, top)
 	g.drawImage self.image, 
-		left, bottom, self.leftMargin, self.bottomMargin,
-		0, 0, self.leftMargin, self.bottomMargin, tint
+	left, bottom, self.leftMargin, self.bottomMargin,
+	0, 0, self.leftMargin, self.bottomMargin, tint
 	g.drawImage self.image, 
-		left, bottom + self.bottomMargin, self.leftMargin, midH,
-		0, self.bottomMargin, self.leftMargin, srcH, tint
+	left, bottom + self.bottomMargin, self.leftMargin, midH,
+	0, self.bottomMargin, self.leftMargin, srcH, tint
 	g.drawImage self.image, 
-		left, nearTop, self.leftMargin, self.topMargin,
-		0, srcNearTop, self.leftMargin, self.topMargin, tint
+	left, nearTop, self.leftMargin, self.topMargin,
+	0, srcNearTop, self.leftMargin, self.topMargin, tint
 	
 	// center section (bottom, middle, top)
 	g.drawImage self.image, 
-		left + self.leftMargin, bottom, midW, self.bottomMargin,
-		self.leftMargin, 0, srcW, self.bottomMargin, tint
+	left + self.leftMargin, bottom, midW, self.bottomMargin,
+	self.leftMargin, 0, srcW, self.bottomMargin, tint
 	g.drawImage self.image, 
-		left + self.leftMargin, bottom + self.bottomMargin, midW, midH,
-		self.leftMargin, self.bottomMargin, srcW, srcH, tint
+	left + self.leftMargin, bottom + self.bottomMargin, midW, midH,
+	self.leftMargin, self.bottomMargin, srcW, srcH, tint
 	g.drawImage self.image, 
-		left + self.leftMargin, nearTop, midW, self.topMargin,
-		self.leftMargin, srcNearTop, srcW, self.topMargin, tint
+	left + self.leftMargin, nearTop, midW, self.topMargin,
+	self.leftMargin, srcNearTop, srcW, self.topMargin, tint
 	
 	// right section (bottom, middle, top)
 	g.drawImage self.image, 
-		nearRight, bottom, self.rightMargin, self.bottomMargin,
-		srcNearRight, 0, self.rightMargin, self.bottomMargin, tint
+	nearRight, bottom, self.rightMargin, self.bottomMargin,
+	srcNearRight, 0, self.rightMargin, self.bottomMargin, tint
 	g.drawImage self.image, 
-		nearRight, bottom + self.bottomMargin, self.rightMargin, midH,
-		srcNearRight, self.bottomMargin, self.rightMargin, srcH, tint
+	nearRight, bottom + self.bottomMargin, self.rightMargin, midH,
+	srcNearRight, self.bottomMargin, self.rightMargin, srcH, tint
 	g.drawImage self.image, 
-		nearRight, nearTop, self.rightMargin, self.topMargin,
-		srcNearRight, srcNearTop, self.rightMargin, self.topMargin, tint
+	nearRight, nearTop, self.rightMargin, self.topMargin,
+	srcNearRight, srcNearTop, self.rightMargin, self.topMargin, tint
 end function
 
 //----------------------------------------------------------------------
@@ -169,8 +169,8 @@ drawMenuBar = function
 	menuDisp.drawImage images.menuBar, 0, y, 960+16, 24
 	x = 40
 	for title in ["File", "Edit", "Window", "Help"]
-		largeFont.print title, x, y + 4, 1, color.black
-		x = x + largeFont.width(title) + 20
+		smallFont.print title, x, y + 5, 1, color.black
+		x = x + smallFont.width(title) + 20
 	end for
 end function
 
@@ -517,7 +517,7 @@ end function
 
 FileWindow.makeContentImage = function
 	files = file.children(self.path)
-
+	
 	base = self.path
 	if base[-1] != "/" then base = base + "/"
 	if base == "/" then base = ""  // (special case; may be a flaw in Mini Micro)
@@ -586,13 +586,13 @@ openFile = function(filePath, fromWindow=null)
 			w.goTo 20 + w.width/2, 50 - w.height/2
 		end if
 	else if filePath.endsWith(".png") or
-			filePath.endsWith(".jpg") or
-			filePath.endsWith(".jpeg") then
+	filePath.endsWith(".jpg") or
+	filePath.endsWith(".jpeg") then
 		view filePath
 	else if filePath.endsWith(".txt") or
-			filePath.endsWith(".csv") or
-			filePath.endsWith(".grfon") or
-			filePath.endsWith(".json") then
+	filePath.endsWith(".csv") or
+	filePath.endsWith(".grfon") or
+	filePath.endsWith(".json") then
 		display(4).mode = displayMode.solidColor
 		display(4).color = color.black
 		text.color = color.silver

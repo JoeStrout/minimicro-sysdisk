@@ -1,3 +1,6 @@
+_EOL = char(13)
+_TAB = char(9)
+
 _printMark = function(s, altColor="#008000")
 	colors = [text.color, altColor]
 	which = 0
@@ -30,10 +33,10 @@ help = function(topic)
 		for topic in file.children("/sys/help").sort
 			if topic[0] == "_" then continue
 			topic = topic - ".txt"
-			if text.column > 44 then print char(13)
+			if text.column > 44 then print _EOL
 			print """" + topic + """" + " " * (20 - topic.len)
 		end for
-		text.delimiter = char(13)
+		text.delimiter = _EOL
 		print
 	else
 		for line in lines
@@ -52,7 +55,6 @@ sys = function
 	_printMark "   Wrong: `cd /sys`", "#800000"
 	_printMark "   Right: `cd ""/sys""`"
 end function
-
 
 gfx = display(5)
 text = display(3)
@@ -110,6 +112,16 @@ color.fromListHSV = function(hsvaList)
 	return _HSVAtoColor(hsvaList)
 end function
 
+prepareKeyboard = function
+	f = file.open("/sys/data/keyLayout.grfon", "r")
+	data = f.read
+	f.close
+	import "grfon"
+	key.standardLayout = grfon.parse(data)
+	key.layout = key.standardLayout
+end function
+prepareKeyboard
+
 pageThrough = function(lines)
 	text.delimiter = ""
 	printed = 0
@@ -117,7 +129,7 @@ pageThrough = function(lines)
 		line = "" + lines[i]
 		print line[:67]
 		if line.len > 67 then text.setCell 67,text.row, line[67]
-		print char(13)
+		print _EOL
 		printed = printed + 1
 		if printed > 24 and i+1 < lines.len then
 			text.inverse = true
@@ -138,7 +150,7 @@ pageThrough = function(lines)
 			printed = 0
 		end if
 	end for
-	text.delimiter = char(13)
+	text.delimiter = _EOL
 end function
 
 dir = function(path=".")
@@ -262,7 +274,7 @@ _viewImage = function(pic)
 	g.clear
 	prevDisp.install 0
 	display(0).mode = prevDisp.mode
-	text.delimiter = char(13)		
+	text.delimiter = _EOL		
 end function
 
 view = function(path)
@@ -290,7 +302,7 @@ view = function(path)
 			// Wrap each line to 68 columns.
 			i = 0
 			while i < lines.len
-				lines[i] = lines[i].replace(char(9), "    ")
+				lines[i] = lines[i].replace(_TAB, "    ")
 				if lines[i].len > 68 then
 					lines.insert i+1, lines[i][68:]
 					lines[i] = lines[i][:68]
@@ -352,7 +364,7 @@ end function
 source = function(fromLine=0, toLine=-1)
 	if not globals.hasIndex("_source") or not _source then return
 	if toLine == -1 then toLine = _source.len-1
-	return _source[fromLine:toLine+1].join(char(13))
+	return _source[fromLine:toLine+1].join(_EOL)
 end function
 
 clear = function
@@ -398,7 +410,7 @@ end function
 
 tip = function
 	tips = _fileReadLines("/sys/tips.txt")
-	return tips[rnd * tips.len].replace("\n", char(13))
+	return tips[rnd * tips.len].replace("\n", _EOL)
 end function
 
 _saveGlobals
@@ -416,7 +428,7 @@ welcome = function
 	text.color = "#8888FF"
 	print "Mini Micro"
 	text.color = color.gray
-	text.delimiter = char(13)
+	text.delimiter = _EOL
 	print "!"
 	text.color = "#444444"
 	print "(version " + version.host + ", " + version.buildDate + ")"
