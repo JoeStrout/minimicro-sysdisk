@@ -6,8 +6,6 @@
 //	 w = f.width("Hello world!")
 //   f.print "Hello world!", 480 - w/2, 320
 
-print "Imported new bmfFonts"
-
 // CharData class, storing data about just one character in a particular font.
 CharData = {}
 
@@ -425,6 +423,16 @@ Font.print = function(s, x=20, y=320, scale=1, tint="#FFFFFF")
 	end for
 end function
 
+// Print the given string to gfx, centered horizontally on the given x.
+Font.printCentered = function(s, x=480, y=320, scale=1, tint="#FFFFFF")
+	self.print s, x - self.width(s, scale)/2, y, scale, tint
+end function
+
+// Print the given string to gfx, right-aligned on x.
+Font.printRight = function(s, x=940, y=320, scale=1, tint="#FFFFFF")
+	self.print s, x - self.width(s, scale), y, scale, tint
+end function
+
 // Return the width of the given string in this font.
 Font.width = function(s, scale=1)
 	sum = 0
@@ -436,6 +444,24 @@ Font.width = function(s, scale=1)
 		lastc = c
 	end for
 	return sum
+end function
+
+// Return the number of characters of the given string that
+// fit a given width.
+Font.lenToFit = function(s, width=100)
+	if not s or not (s isa string) then return 0
+	if self.width(s) <= width then return s.len
+	lo = 1
+	hi = s.len
+	while lo + 1 < hi
+		mid = floor((lo + hi) / 2)
+		if self.width(s[:mid]) <= width then
+			lo = mid
+		else
+			hi = mid
+		end if
+	end while
+	return lo
 end function
 
 // Demo program: find the fonts directory, then load and display
