@@ -294,6 +294,13 @@ list.any = function
 	return self[self.len * rnd]
 end function
 
+// swap: exchange two values in place, by their indexes
+list.swap = function(index1, index2)
+	temp = self[index1]
+	self[index1] = self[index2]
+	self[index2] = temp
+end function
+
 // init: build an array initialized with an initial value.
 // Note that initialValue may be a function passed in with @
 // (for example, @rnd), in which case it will be invoked for
@@ -363,6 +370,10 @@ runUnitTests = function
 	a.reverse
 	assertEqual a, [4,3,2,1], "reverse"
 	
+	a = ["zero", "one", "two"]
+	a.swap 1, 2
+	assertEqual a, ["zero", "two", "one"], "swap"
+
 	a = [1.1, 1.9, 3.45]
 	a.apply @round
 	assertEqual a, [1, 2, 3], "apply"
