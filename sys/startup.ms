@@ -153,6 +153,16 @@ pageThrough = function(lines)
 	text.delimiter = _EOL
 end function
 
+cd = function(path="")
+	if not path then path = env.home
+	dirInfo = file.info(path)
+	if not dirInfo or not dirInfo.isDirectory then
+		print "No such directory: " + path
+	else
+		file.setdir path
+	end if
+end function
+
 dir = function(path=".")
 	spaces = " "*80
 	if path == "/" then
