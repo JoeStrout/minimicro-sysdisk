@@ -5,6 +5,8 @@ Heart.png, Key.png, Gem.png: from Planet Cute art pack by Daniel Cook (Lostgarde
 
 cards, gamePieces: from Kenney's Board Game pack (www.kenney.nl) and OpenClipArt (openclipart.org).
 
+earth_day and earth_night: public domain images from NASA.
+
 SimplePlatformTiles, KP sprites: from Kenney's "Simplified Platformer Pack".
 
 1bitTiles: from Kenney's "1 Bit Pack".  (Yeah, we love Kenney.)
