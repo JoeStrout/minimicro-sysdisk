@@ -272,6 +272,8 @@ Window.debugDrawBounds = function
 end function
 
 Window.moveToFront = function
+	x = null
+	x.push self
 	spriteDisp.sprites.removeVal self
 	spriteDisp.sprites.removeVal self.shadow
 	spriteDisp.sprites.push self.shadow
