@@ -115,9 +115,12 @@ images.titleShadow = Image9Slice.make(gfxSource.getImage(80, 64, 96, 48), 32, 0,
 images.iconHighlight = gfxSource.getImage(192, 0, 80, 80)
 images.rounded4 = Image9Slice.make(gfxSource.getImage(280, 0, 32, 32), 8, 8, 8, 8)
 
-// scrollbar parts (these are a little complex)
+// scrollbar parts (H = Horizontal, V = Vertical)
 images.sbThumbH = Image9Slice.make(gfxSource.getImage(0, 176, 32, 16), 8, 0, 8, 0)
 images.sbNubsH = gfxSource.getImage(0, 160, 16, 16)
+images.sbThumbV = Image9Slice.make(gfxSource.getImage(0, 192, 16, 32), 0, 8, 0, 8)
+images.sbNubsV = gfxSource.getImage(16, 160, 16, 16)
+
 
 //----------------------------------------------------------------------
 // General drawing functions
@@ -175,6 +178,30 @@ ScrollbarH.draw = function(g, x, y, width, tint="#FFFFFF")
 		  0, 0, 10, 16, tint
 	end if
 end function
+
+ScrollbarV = new Scrollbar
+ScrollbarV.height = 100
+
+// Draw a vertical scrollbar within our bounds, to the given pixel display.
+// x, y, and height are optional and if not provided, use values from self.
+// So you can call this as a static method with 4 arguments, or an instance
+// method with only 1.
+ScrollbarV.draw = function(g, x, y, height, tint="#FFFFFF")
+	if x == null then x = self.left
+	if y == null then y = self.bottom
+	if height == null then height = self.height
+	if height < 16 then height = 16
+	images.sbThumbV.draw g, x, y, 16, height, tint
+	if height > 19 then
+		g.drawImage images.sbNubsV, x, y + ceil(height/2-8), -1, -1,
+		  0, 0, -1, -1, tint
+	else
+		// no room for full nubs -- draw only 10 pixels' worth
+		g.drawImage images.sbNubsV, x, y + ceil(height/2-5), 16, 10,
+		  0, 0, 16, 10, tint
+	end if
+end function
+
 
 //----------------------------------------------------------------------
 // Window class and related methods
@@ -433,8 +460,23 @@ testWindows = function
 	events.eventLoop.run
 end function
 
+testDrawScrollbars = function
+	clear
+	y = 620
+	for w in range(16, 100, 3)
+    	ScrollbarH.draw gfx, 650, y, w
+    	y = y - 20
+	end for
+
+	x = 50
+	for h in range(16, 100, 3)
+    	ScrollbarV.draw gfx, x, 50, h
+    	x = x + 20
+	end for	
+end function
 
 
 if locals == globals then
-	testWindows
+//	testWindows
+	testDrawScrollbars
 end if
