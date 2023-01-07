@@ -115,6 +115,9 @@ images.titleShadow = Image9Slice.make(gfxSource.getImage(80, 64, 96, 48), 32, 0,
 images.iconHighlight = gfxSource.getImage(192, 0, 80, 80)
 images.rounded4 = Image9Slice.make(gfxSource.getImage(280, 0, 32, 32), 8, 8, 8, 8)
 
+// scrollbar parts (these are a little complex)
+images.sbThumbH = Image9Slice.make(gfxSource.getImage(0, 176, 32, 16), 8, 0, 8, 0)
+images.sbNubsH = gfxSource.getImage(0, 160, 16, 16)
 
 //----------------------------------------------------------------------
 // General drawing functions
@@ -140,6 +143,37 @@ drawMenuBar = function
 		smallFont.print title, x, y + 5, 1, color.black
 		x = x + smallFont.width(title) + 20
 	end for
+end function
+
+// Scrollbar class and related methods
+
+Scrollbar = {}
+Scrollbar.left = 0
+Scrollbar.bottom = 0
+Scrollbar.width = 16
+Scrollbar.height = 16
+
+ScrollbarH = new Scrollbar
+ScrollbarH.width = 100
+
+// Draw a horizontal scrollbar within our bounds, to the given pixel display.
+// x, y, and width are optional and if not provided, use values from self.
+// So you can call this as a static method with 4 arguments, or an instance
+// method with only 1.
+ScrollbarH.draw = function(g, x, y, width, tint="#FFFFFF")
+	if x == null then x = self.left
+	if y == null then y = self.bottom
+	if width == null then width = self.width
+	if width < 16 then width = 16
+	images.sbThumbH.draw g, x, y, width, 16, tint
+	if width > 19 then
+		g.drawImage images.sbNubsH, x + ceil(width/2-8), y, -1, -1,
+		  0, 0, -1, -1, tint
+	else
+		// no room for full nubs -- draw only 10 pixels' worth
+		g.drawImage images.sbNubsH, x + ceil(width/2-5), y, 10, 16,
+		  0, 0, 10, 16, tint
+	end if
 end function
 
 //----------------------------------------------------------------------

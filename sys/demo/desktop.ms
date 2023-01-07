@@ -304,7 +304,7 @@ events.eventLoop.onUpdate = function
 	scroll = key.axis("Mouse ScrollWheel")
 	if scroll != 0 then
 		wind = gui.windowUnderMouse
-		if wind then wind.scroll 0, -scroll * scrollWheelSpeed
+		if wind then wind.scroll 0, -scroll * gui.scrollWheelSpeed
 	end if
 end function
 
