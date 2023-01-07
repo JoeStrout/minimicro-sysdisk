@@ -116,8 +116,10 @@ images.iconHighlight = gfxSource.getImage(192, 0, 80, 80)
 images.rounded4 = Image9Slice.make(gfxSource.getImage(280, 0, 32, 32), 8, 8, 8, 8)
 
 // scrollbar parts (H = Horizontal, V = Vertical)
+images.sbTrackH = gfxSource.getImage(32, 176, 32, 16)
 images.sbThumbH = Image9Slice.make(gfxSource.getImage(0, 176, 32, 16), 8, 0, 8, 0)
 images.sbNubsH = gfxSource.getImage(0, 160, 16, 16)
+images.sbTrackV = gfxSource.getImage(16, 192, 16, 32)
 images.sbThumbV = Image9Slice.make(gfxSource.getImage(0, 192, 16, 32), 0, 8, 0, 8)
 images.sbNubsV = gfxSource.getImage(16, 160, 16, 16)
 
@@ -155,18 +157,21 @@ Scrollbar.left = 0
 Scrollbar.bottom = 0
 Scrollbar.width = 16
 Scrollbar.height = 16
+Scrollbar.minValue = 0
+Scrollbar.maxValue = 100
+Scrollbar.value = 0
+Scrollbar.pageSize = 30
 
 ScrollbarH = new Scrollbar
 ScrollbarH.width = 100
 
-// Draw a horizontal scrollbar within our bounds, to the given pixel display.
-// x, y, and width are optional and if not provided, use values from self.
-// So you can call this as a static method with 4 arguments, or an instance
-// method with only 1.
-ScrollbarH.draw = function(g, x, y, width, tint="#FFFFFF")
-	if x == null then x = self.left
-	if y == null then y = self.bottom
-	if width == null then width = self.width
+// Draw a horizontal scrollbar track.
+ScrollbarH.drawTrack = function(g, x, y, width)
+	g.drawImage images.sbTrackH, x, y, width, 16
+end function
+
+// Draw a horizontal scrollbar thumb to the given pixel display.
+ScrollbarH.drawThumb = function(g, x, y, width, tint="#FFFFFF")
 	if width < 16 then width = 16
 	images.sbThumbH.draw g, x, y, width, 16, tint
 	if width > 19 then
@@ -182,14 +187,13 @@ end function
 ScrollbarV = new Scrollbar
 ScrollbarV.height = 100
 
-// Draw a vertical scrollbar within our bounds, to the given pixel display.
-// x, y, and height are optional and if not provided, use values from self.
-// So you can call this as a static method with 4 arguments, or an instance
-// method with only 1.
-ScrollbarV.draw = function(g, x, y, height, tint="#FFFFFF")
-	if x == null then x = self.left
-	if y == null then y = self.bottom
-	if height == null then height = self.height
+// Draw a vertical scrollbar track.
+ScrollbarV.drawTrack = function(g, x, y, height)
+	g.drawImage images.sbTrackV, x, y, 16, height
+end function
+
+// Draw a vertical scrollbar thumb to the given pixel display.
+ScrollbarV.drawThumb = function(g, x, y, height, tint="#FFFFFF")
 	if height < 16 then height = 16
 	images.sbThumbV.draw g, x, y, 16, height, tint
 	if height > 19 then
@@ -464,13 +468,13 @@ testDrawScrollbars = function
 	clear
 	y = 620
 	for w in range(16, 100, 3)
-    	ScrollbarH.draw gfx, 650, y, w
+    	ScrollbarH.drawThumb gfx, 650, y, w
     	y = y - 20
 	end for
 
 	x = 50
 	for h in range(16, 100, 3)
-    	ScrollbarV.draw gfx, x, 50, h
+    	ScrollbarV.drawThumb gfx, x, 50, h
     	x = x + 20
 	end for	
 end function
