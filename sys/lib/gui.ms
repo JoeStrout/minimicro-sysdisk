@@ -198,12 +198,15 @@ Window.init = function(width, height, titleLeft, titleWidth, title)
 	
 	spriteDisp.sprites.push self.shadow
 	spriteDisp.sprites.push self
+	
+	self.moveToFront // a new window should always be frontmost
 end function
 
 Window.make = function(width=300, height=200, titleLeft=0, titleWidth=150, title="Untitled")
 	w = new Window
 	w.init width, height, titleLeft, titleWidth, title
 	w.goTo 480, 320
+	
 	return w
 end function
 
@@ -272,12 +275,16 @@ Window.debugDrawBounds = function
 end function
 
 Window.moveToFront = function
-	x = null
-	x.push self
 	spriteDisp.sprites.removeVal self
 	spriteDisp.sprites.removeVal self.shadow
 	spriteDisp.sprites.push self.shadow
 	spriteDisp.sprites.push self
+	// dim out all windows...
+	for i in spriteDisp.sprites.indexes
+		spriteDisp.sprites[i].tint="#DDDDEE"
+	end for
+	//... and undim the frontmost one
+	spriteDisp.sprites[-1].tint="#FFFFFF"
 end function
 
 Window.isFrontmost = function
@@ -335,11 +342,11 @@ end function
 
 setupDisplays = function
 	clear; print
-
+	
 	display(6).mode = displayMode.solidColor
 	outer.backgroundDisp = display(6)
 	backgroundDisp.color = "#7EBDC5FF"
-
+	
 	if globals.hasIndex("DEBUG") and DEBUG then
 		display(5).mode = displayMode.pixel
 		outer.scratchDisp = display(5)
@@ -349,12 +356,12 @@ setupDisplays = function
 		outer.scratchDisp = display(7)
 	end if	
 	scratchDisp.clear color.clear
-
+	
 	display(4).mode = displayMode.sprite
 	outer.spriteDisp = display(4)
 	spriteDisp.clear
 	events.spriteDisplay = spriteDisp
-
+	
 	display(2).mode = displayMode.pixel
 	outer.menuDisp = display(2)
 	menuDisp.clear color.clear, 960+16, 640+16
@@ -371,13 +378,13 @@ testWindows = function
 	
 	globals.window1 = Window.make(600,400, 25, 150, "window1")
 	window1.goTo 480, 320
-
+	
 	globals.window2 = Window.make(100,100, 8, 100, "window2")
 	window2.goTo 750, 500
-
+	
 	globals.window3 = Window.make(200,200, 25, 150, "window3")
 	window3.goTo 150, 200
-
+	
 	events.eventLoop.onUpdate = function
 		wind = windowUnderMouse
 		s = "Window under mouse: "
@@ -388,7 +395,7 @@ testWindows = function
 		end if
 		text.row = 25; print s + " " * 30
 	end function
-
+	
 	events.eventLoop.run
 end function
 
