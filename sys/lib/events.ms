@@ -108,7 +108,7 @@ end function
 
 EventSprite.stop = function
 	idx = spriteDisplay.sprites.indexOf(self)
-	if idx >= 0 then spriteDisplay.sprites.remove self
+	if idx >= 0 then spriteDisplay.sprites.remove idx
 end function
 
 eventLoop = {}
