@@ -61,6 +61,14 @@ Style.blockColor = function; return self.color; end function
 Style.infoBlockColor = function; return self.blockColor; end function
 Style.buttonColor = "#FFAA00"
 Style.swoopColor = function; return self.infoBlockColor; end function
+Style.textColor = function; return self.infoBlockColor; end function
+
+//----------------------------------------------------------------------
+// Modifier keys that affect various clicks.
+modKey = {}
+modKey.doAll = function
+	return key.pressed("left alt") or key.pressed("right alt")
+end function
 
 //----------------------------------------------------------------------
 Panel = {}
@@ -115,12 +123,12 @@ Panel.grow = function(dwidth, dheight)
 	return Panel.make(self.left, self.bottom, self.width + dwidth, self.height + dheight)
 end function
 
-Panel.setTop = function(newTop)
-	self.bottom = newTop - self.height
+Panel.setTop = function(newTop, shiftBottom=true)
+	if shiftBottom then self.bottom = newTop - self.height else self.height = newTop - self.bottom
 end function
 
-Panel.setRight = function(newRight)
-	self.left = newRight - self.width
+Panel.setRight = function(newRight, shiftLeft=true)
+	if shiftLeft then self.left = newRight - self.width else self.width = newRight - self.left
 end function
 
 Panel.contains = function(pt)
@@ -185,8 +193,8 @@ end function
 Gap = new Block
 Gap._name = "Gap"
 Gap.make = function(parent)
-	p = new Gap
-	if parent != null then parent.addChild p
+	p = super.make(parent)
+	p.__isa = self
 	return p
 end function
 	
@@ -293,6 +301,11 @@ Button.makeSprite = function
 	self.sprite.onClick = function; self.button.onClick; end function
 	self.sprite.onDrag = function; self.button.onDrag; end function
 	self.sprite.onDragEnd = function; self.button.onDragEnd; end function
+end function
+Button.redrawSprite = function
+	if not self.sprite then return
+	self.drawToScratch
+	self.sprite.image = scratch.getImage(0, 0, self.width, self.height)
 end function
 
 Button.present = function
@@ -487,6 +500,7 @@ root = Panel.make(null, 0, 0, 960, 640)
 //----------------------------------------------------------------------
 // File Manager panel
 FileRow = new Button
+FileRow.selected = false
 FileRow.file = null  // a file.info map
 FileRow.make = function(parent, left, bottom, width, height)
 	p = super.make("", parent, left, bottom, width, height)
@@ -509,9 +523,13 @@ FileRow.drawToScratch = function
 	y = -1  // text baseline; seems to be currently incorrect in small font
 	globals.gfx = scratch
 	gfx.fillRect 0, 0, self.width, self.height, color.black
-	leftCap24.draw gfx, 0, 0, 16, 24
-	x0 = 16 + gap
+	if self.selected then gfx.fillEllipse 0, 6, 16, 12, color.white
+	x0 = 20
+	leftCap24.draw gfx, x0, 0, 16, 24
+	x0 += 16 + gap
 	x1 = self.width
+	if self.selected then gfx.fillEllipse x1-16, 6, 16, 12, color.white
+	x1 -= 20
 	rightCap24.draw gfx, x1-16, 0, 16, 24; x1 -= 16 + gap
 
 	w = 48
@@ -531,15 +549,17 @@ FileRow.drawToScratch = function
 	name = file.name(f.path)
 	if f.isDirectory then
 		w = 72 + 72
-		b = RoundButton.make(downInChar + " Directory", self, self.left + x1 - w, self.bottom, w, 24)
-		b.captionFont = smallFont
-		b.action = function
-			globals.wtf = self
-			fb = self.parent.parent
-			fb.load self.parent.file.path
-			fb.present
-		end function
-		self.children = [b]
+		if not self.children then
+			b = RoundButton.make(downInChar + " Directory", self, self.left + x1 - w, self.bottom, w, 24)
+			b.captionFont = smallFont
+			b.action = function
+				globals.wtf = self
+				fb = self.parent.parent
+				fb.load self.parent.file.path
+				fb.present
+			end function
+			self.children = [b]
+		end if
 		x1 -= w + gap
 	else
 		w = 72
@@ -563,8 +583,15 @@ FileRow.drawToScratch = function
 	
 	globals.gfx = display(5)
 end function
+FileRow.select = function(selectIt)
+	if self.selected == selectIt then return
+	self.selected = selectIt
+	self.redrawSprite
+end function
 
 fileManager = Panel.make(root, 168, 0, 960-168, 640)
+fileManager.style.color = "#7788ff"
+fileManager.style.buttonColor = "#88CCFF"
 fileManager.header = Frame.make(fileManager, null, fileManager.top - 108)
 fileManager.header.configure false, true, true, false
 Block.make fileManager.header.leftPanel
@@ -573,6 +600,22 @@ title = InfoBlock.make("FILE MANAGER", fileManager.header,
 	fileManager.header.right - 200, fileManager.top - 30, 200, 30)
 title.font = largeFont
 title.inverted = true
+fileManager.infoPanel = Panel.make(fileManager.header, 
+	fileManager.header.bottomPanel.left,
+	fileManager.header.bottomPanel.top + 8)
+fileManager.infoPanel.setTop 632, false
+fileManager.infoPanel.setRight title.left - 8, false
+fileManager.infoPanel.present = function
+	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
+	sel = fileManager.fileBox.selection
+	y = self.top - 20
+	smallFont.print "Files selected: " + sel.len, self.left, y, 1, self.style.textColor
+	if sel.len == 0 then return
+	y -= 16
+	totalSize = 0
+	for f in sel; totalSize += f.file.size; end for
+	smallFont.print "Total bytes: " + totalSize, self.left, y, 1, self.style.textColor
+end function
 
 fileManager.fileBox = Frame.make(fileManager, null, 0, null, fileManager.height - 118)
 fileManager.fileBox.configure true, true, true, false
@@ -597,22 +640,25 @@ fileManager.fileBox.setup = function
 	Button.make "Date", self.leftPanel, null, null, null, self.style.buttonHeight
 	Button.make "Selected", self.leftPanel, null, null, null, self.style.buttonHeight
 	Gap.make self.leftPanel
-	Button.make "Select All", self.leftPanel, null, null, null, self.style.buttonHeight
-	Button.make "Select None", self.leftPanel, null, null, null, self.style.buttonHeight
+	Button.make("Select All", self.leftPanel, null, null, null, self.style.buttonHeight).action = function
+		self.parent.parent.selectAll true
+	end function
+	Button.make("Select None", self.leftPanel, null, null, null, self.style.buttonHeight).action = function
+		self.parent.parent.selectAll false
+	end function
 	Gap.make self.leftPanel
 	Button.make "Move/Copy", self.leftPanel, null, null, null, self.style.buttonHeight
 	self.leftPanel.layout
 	
 	Button.make "Rename", self.bottomPanel, null, null, self.style.buttonWidth
 	delBtn = Button.make("Delete", self.bottomPanel, null, null, self.style.buttonWidth)
-	delBtn.color = "#FF3500"
+	delBtn.color = "#DD4444"
 	Gap.make self.bottomPanel
 	Button.make "Preview", self.bottomPanel, null, null, self.style.buttonWidth
 	launchBtn = Button.make("Launch", self.bottomPanel, null, null, self.style.buttonWidth)
-	launchBtn.color = "#00BB00"
+	launchBtn.color = "#33CC99"
 	self.bottomPanel.layout
 end function
-fileManager.fileBox.setup
 
 fileManager.fileBox.load = function(path)
 	self.path = path
@@ -620,9 +666,18 @@ fileManager.fileBox.load = function(path)
 	for i in range(0,13)
 		if i >= children.len then break
 		if i >= self.fileRows.len then
-			self.fileRows.push FileRow.make(self, 
-			  self.topPanel.left, self.topPanel.bottom - 36 - 32*i, 
-			  self.right - self.topPanel.left - 50, 24)
+			fr = FileRow.make(self, 
+			  self.topPanel.left-20, self.topPanel.bottom - 36 - 32*i, 
+			  self.right - self.topPanel.left - 10, 24)
+			fr.action = function
+				if modKey.doAll then
+					self.parent.selectAll not self.selected
+				else
+					self.select not self.selected
+					fileManager.infoPanel.present
+				end if
+			end function
+			self.fileRows.push fr
 		end if
 		self.fileRows[i].setPath file.child(self.path, children[i])
 	end for	
@@ -632,7 +687,21 @@ fileManager.fileBox.load = function(path)
 	end while
 	self.pathInfo.text = path
 end function
+
+fileManager.fileBox.selectAll = function(selectEm=true)
+	for fr in self.fileRows
+		fr.select selectEm
+	end for
+	fileManager.infoPanel.present
+end function
+
+fileManager.fileBox.selection = function
+	return self.fileRows.filtered("selected")
+end function
+
+fileManager.fileBox.setup
 fileManager.fileBox.load("/usr/")
+
 
 //----------------------------------------------------------------------
 // Clock panel
@@ -777,9 +846,10 @@ Button.make "Settings", mainMenu, null, null, null, mainMenu.style.buttonHeight
 // ...gap...
 Gap.make mainMenu
 // Main buttons, one for each mode
-Button.make("File Manager", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
-	mainMenu.switchTo fileManager
-end function
+b = Button.make("File Manager", mainMenu, null, null, null, mainMenu.style.buttonHeight)
+b.style.buttonColor = fileManager.style.buttonColor
+b.action = function; mainMenu.switchTo fileManager; end function
+
 Button.make("Clock", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
 	mainMenu.switchTo clock
 end function
