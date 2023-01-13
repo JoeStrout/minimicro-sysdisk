@@ -7,6 +7,7 @@
 import "importUtil"
 ensureImport "listUtil"
 ensureImport "mathUtil"
+ensureImport "stringUtil"
 ensureImport "events"
 ensureImport "bmfFonts"
 ensureImport "dateTime"
@@ -31,10 +32,20 @@ end for
 oval48 = gui.Image9Slice.make(resourcePic.getImage(464, 0, 48, 48), 24,24,24,24)
 oval32 = gui.Image9Slice.make(resourcePic.getImage(424, 0, 32, 32), 16,16,16,16)
 oval24 = gui.Image9Slice.make(resourcePic.getImage(392, 0, 24, 24), 12,12,12,12)
+leftCap24 = gui.Image9Slice.make(resourcePic.getImage(392, 0, 12, 24), 11,12,1,12)
+rightCap24 = gui.Image9Slice.make(resourcePic.getImage(404, 0, 12, 24), 1,12,11,12)
 
+// Let's add a couple special characters to our fonts.
+downInChar = char(8627)
+upOutChar = char(11025)
+smallFont.addChar downInChar, resourcePic.getImage(0,458,13,10), 0, 1, null
+smallFont.addChar upOutChar, resourcePic.getImage(0,468,13,13), 0, -1, null
+mediumFont.addChar downInChar, resourcePic.getImage(16,454,15,12), 0, 2, null
+mediumFont.addChar upOutChar, resourcePic.getImage(16,466,15,14), 0, 0, null
 
 //----------------------------------------------------------------------
 Style = {}
+Style._name = "Style"
 Style.spacing = 2
 Style.buttonHeight = 32
 Style.buttonWidth = 120
@@ -53,6 +64,7 @@ Style.swoopColor = function; return self.infoBlockColor; end function
 
 //----------------------------------------------------------------------
 Panel = {}
+Panel._name = "Panel"
 Panel.parent = null		// reference to parent
 Panel.children = null	// list of children
 Panel.left = 0
@@ -145,11 +157,17 @@ Panel.destroy = function
 		child.parent = null
 	end for
 	children = null
+	p = self.parent
+	if p then
+		self.parent = null
+		p.children.removeVal self
+	end if
 end function
 
 //----------------------------------------------------------------------
 // Block: a panel that just draws a solid color
 Block = new Panel
+Block._name = "Block"
 Block.make = function(parent, left, bottom, width, height)
 	p = super.make(parent, left, bottom, width, height)
 	p.__isa = self
@@ -165,6 +183,7 @@ end function
 //----------------------------------------------------------------------
 // Gap: a special panel that represents a flexible gap in a layout of subpanels.
 Gap = new Block
+Gap._name = "Gap"
 Gap.make = function(parent)
 	p = new Gap
 	if parent != null then parent.addChild p
@@ -232,6 +251,7 @@ end function
 //----------------------------------------------------------------------
 // Button: a panel that's clickable.
 Button = new Panel
+Button._name = "Button"
 Button.caption = ""
 Button.captionFont = mediumFont
 Button.sprite = null
@@ -277,7 +297,7 @@ end function
 
 Button.present = function
 	if self.sprite == null then self.makeSprite
-	self.sprite.start
+	if not spriteDisp.sprites.contains(self.sprite) then self.sprite.start
 	if self.key isa list then
 		for k in self.key
 			Button.keyButton[k] = self
@@ -289,7 +309,7 @@ Button.present = function
 end function
 
 Button.dismiss = function
-	self.sprite.stop
+	if self.sprite != null then self.sprite.stop
 	if self.key isa list then
 		for k in self.key
 			Button.keyButton.remove k
@@ -466,6 +486,84 @@ root = Panel.make(null, 0, 0, 960, 640)
 
 //----------------------------------------------------------------------
 // File Manager panel
+FileRow = new Button
+FileRow.file = null  // a file.info map
+FileRow.make = function(parent, left, bottom, width, height)
+	p = super.make("", parent, left, bottom, width, height)
+	p.__isa = self
+	return p
+end function
+FileRow.setPath = function(path)
+	if path.startsWith("//") then path = path[1:]
+	self.file = file.info(path)
+	if self.sprite then self.sprite.stop
+	self.sprite = null
+	if self.children then
+		self.children[0].dismiss; self.children[0].destroy
+		self.children = []
+	end if
+end function
+FileRow.drawToScratch = function
+	f = self.file
+	gap = self.style.spacing
+	y = -1  // text baseline; seems to be currently incorrect in small font
+	globals.gfx = scratch
+	gfx.fillRect 0, 0, self.width, self.height, color.black
+	leftCap24.draw gfx, 0, 0, 16, 24
+	x0 = 16 + gap
+	x1 = self.width
+	rightCap24.draw gfx, x1-16, 0, 16, 24; x1 -= 16 + gap
+
+	w = 48
+	gfx.fillRect x1-w, 0, w, 24, color.white
+	if f == null then
+		smallFont.printCentered self.file, (x0+x1)/2, y, 1, color.red
+		return
+		
+	end if
+	
+	smallFont.printCentered f.date[-8:-3], x1-w/2, y, 1, color.black; x1 -= w + gap
+
+	w = 88
+	gfx.fillRect x1-w, 0, w, 24, color.white
+	smallFont.printCentered f.date[:10], x1-w/2, y, 1, color.black; x1 -= w + gap
+
+	name = file.name(f.path)
+	if f.isDirectory then
+		w = 72 + 72
+		b = RoundButton.make(downInChar + " Directory", self, self.left + x1 - w, self.bottom, w, 24)
+		b.captionFont = smallFont
+		b.action = function
+			globals.wtf = self
+			fb = self.parent.parent
+			fb.load self.parent.file.path
+			fb.present
+		end function
+		self.children = [b]
+		x1 -= w + gap
+	else
+		w = 72
+		smallFont.printCentered f.size, x1-w/2, y, 1, color.white; x1 -= w + gap
+
+		extLen = name.reverse.indexOf(".")
+		if extLen == null or extLen >= name.len - 1 then
+			ext = ""
+		else
+			ext = name[-extLen-1:]
+			name = name[:-extLen-1]
+		end if
+		w = 72
+		gfx.fillRect x1-w, 0, w, 24, color.white
+		smallFont.print ext, x1-w+2, y, 1, color.black; x1 -= w + gap
+	end if
+	
+	w = x1 - x0
+	gfx.fillRect x0, 0, w, 24, color.white
+	smallFont.print name, x0+4, y, 1, color.black; x1 -= w + gap
+	
+	globals.gfx = display(5)
+end function
+
 fileManager = Panel.make(root, 168, 0, 960-168, 640)
 fileManager.header = Frame.make(fileManager, null, fileManager.top - 108)
 fileManager.header.configure false, true, true, false
@@ -478,9 +576,20 @@ title.inverted = true
 
 fileManager.fileBox = Frame.make(fileManager, null, 0, null, fileManager.height - 118)
 fileManager.fileBox.configure true, true, true, false
+fileManager.fileBox.fileRows = []
 fileManager.fileBox.setup = function
-	Button.make "UP", self.topPanel, null, null, self.style.buttonWidth
-	InfoBlock.make "/usr", self.topPanel, null, null, self.topPanel.width - self.style.buttonWidth
+	w = 60
+	Button.make "/usr", self.topPanel, null, null, w
+	Button.make "/usr2", self.topPanel, null, null, w
+	Button.make "/sys", self.topPanel, null, null, w
+	b = Button.make(upOutChar + " UP", self.topPanel, null, null, w)
+	b.action = function
+		fb = self.parent.parent
+		if fb.path == "/" then return
+		fb.load file.parent(fb.path)
+		fb.present
+	end function
+	self.pathInfo = InfoBlock.make("/usr", self.topPanel, null, null, self.topPanel.width - self.style.buttonWidth)
 	self.topPanel.layout
 	
 	Button.make "Name", self.leftPanel, null, null, null, self.style.buttonHeight
@@ -504,6 +613,26 @@ fileManager.fileBox.setup = function
 	self.bottomPanel.layout
 end function
 fileManager.fileBox.setup
+
+fileManager.fileBox.load = function(path)
+	self.path = path
+	children = file.children(path)
+	for i in range(0,13)
+		if i >= children.len then break
+		if i >= self.fileRows.len then
+			self.fileRows.push FileRow.make(self, 
+			  self.topPanel.left, self.topPanel.bottom - 36 - 32*i, 
+			  self.right - self.topPanel.left - 50, 24)
+		end if
+		self.fileRows[i].setPath file.child(self.path, children[i])
+	end for	
+	while self.fileRows.len > i
+		self.fileRows[-1].dismiss; self.fileRows[-1].destroy
+		self.fileRows.remove -1
+	end while
+	self.pathInfo.text = path
+end function
+fileManager.fileBox.load("/usr/")
 
 //----------------------------------------------------------------------
 // Clock panel
