@@ -520,7 +520,7 @@ end function
 FileRow.drawToScratch = function
 	f = self.file
 	gap = self.style.spacing
-	y = -1  // text baseline; seems to be currently incorrect in small font
+	y = 6
 	globals.gfx = scratch
 	gfx.fillRect 0, 0, self.width, self.height, color.black
 	if self.selected then gfx.fillEllipse 0, 6, 16, 12, color.white
