@@ -23,6 +23,7 @@ selectionColor = "#CCCCFF"
 scrollWheelSpeed = 50
 
 
+
 //----------------------------------------------------------------------
 // Image9Slice class: an image wrapper with margins that are not stretched,
 // and a middle that is stretched when drawn to any size.
@@ -152,8 +153,9 @@ drawMenuBar = function
 end function
 
 //----------------------------------------------------------------------
-// Scrollbar class and related methods
+// Scrollbar class and related methods and CONSTANTS
 //----------------------------------------------------------------------
+SB_THICKNESS = 16 //default thickness for any scrollbar
 
 Scrollbar = {}
 Scrollbar.left = 0
@@ -166,23 +168,23 @@ Scrollbar.value = 0
 Scrollbar.pageSize = 30
 Scrollbar.thumbSprite = null
 Scrollbar.onValueChanged = null
-
-ScrollbarH = new Scrollbar
-ScrollbarH.width = 100
-
 // Methods for subclasses to override:
 Scrollbar.drawTrack = function(g, x, y, widthOrHeight); end function
 Scrollbar.drawBackground = function(g); end function
 
+// ---------- HSB Methods ----------
+ScrollbarH = new Scrollbar
+ScrollbarH.width = 100
+
 // Draw a horizontal scrollbar track.
 ScrollbarH.drawTrack = function(g, x, y, width)
-	g.drawImage images.sbTrackH, x, y, width, 16
+	g.drawImage images.sbTrackH, x, y, width, SB_THICKNESS
 end function
 
 // Draw a horizontal scrollbar thumb to the given pixel display.
 ScrollbarH.drawThumb = function(g, x, y, width, tint="#FFFFFF")
 	if width < 16 then width = 16
-	images.sbThumbH.draw g, x, y, width, 16, tint
+	images.sbThumbH.draw g, x, y, width, SB_THICKNESS, tint
 	if width > 19 then
 		g.drawImage images.sbNubsH, x + ceil(width/2-8), y, -1, -1,
 		  0, 0, -1, -1, tint
@@ -216,6 +218,7 @@ ScrollbarH.createThumb = function
 end function
 
 ScrollbarH.onClick = function
+text.row = 24; print "In function: " + "ScrollbarH.onClick"
 	// determine if we hit the thumb, or the track (and if track, which side)
 	self.mouseOffset = null
 	thumbSize = self.thumbSprite.image.width
@@ -235,6 +238,8 @@ ScrollbarH.onClick = function
 end function
 
 ScrollbarH.onDrag = function
+text.row = 24; print "In function: " + "ScrollbarH.onDrag"
+
 	if self.mouseOffset == null then return
 	newX = mouse.x + self.mouseOffset
 	// Invert the math in updateThumb to calculate the value from the sprite position.
@@ -250,8 +255,9 @@ ScrollbarH.onDragEnd = function
 	self.thumbSprite.tint = "#EEEEFF"
 end function
 
-
 ScrollbarH.updateThumb = function
+text.row = 24; print "In function: " + "ScrollbarH.updateThumb"
+
 	if self.thumbSprite == null then self.createThumb
 	// Here are the somewhat tricky calculations for thumb size and position.
 	// First, the thumb size.  This reflects how much the pageSize is out
@@ -265,28 +271,30 @@ ScrollbarH.updateThumb = function
 	thumbLeft = self.left + (self.width - size) * frac
 	// Now we can prepare the actual sprite
 	if self.thumbSprite.image == null or self.thumbSprite.image.width != size then
-		clearScratch size, 16, color.clear
+		clearScratch size, SB_THICKNESS, color.clear
 		self.drawThumb scratchDisp, 0, 0, size
 		self.thumbSprite.image = scratchDisp.getImage(0, 0, size, 16)
 	end if
 	self.thumbSprite.x = thumbLeft + size/2
-	self.thumbSprite.y = self.bottom + 8
+	self.thumbSprite.y = self.bottom + SB_THICKNESS/2
 	self.thumbSprite.localBounds.x = self.left + self.width/2 - self.thumbSprite.x
 	self.onValueChanged
 end function
 
+// ---------- VSB Methods ----------
 ScrollbarV = new Scrollbar
 ScrollbarV.height = 100
 
 // Draw a vertical scrollbar track.
 ScrollbarV.drawTrack = function(g, x, y, height)
-	g.drawImage images.sbTrackV, x, y, 16, height
+	g.drawImage images.sbTrackV, x, y, SB_THICKNESS, height
 end function
 
 // Draw a vertical scrollbar thumb to the given pixel display.
 ScrollbarV.drawThumb = function(g, x, y, height, tint="#FFFFFF")
+text.row = 24; print "In function: " + "ScrollbarV.drawThumb"
 	if height < 16 then height = 16
-	images.sbThumbV.draw g, x, y, 16, height, tint
+	images.sbThumbV.draw g, x, y, SB_THICKNESS, height, tint
 	if height > 19 then
 		g.drawImage images.sbNubsV, x, y + ceil(height/2-8), -1, -1,
 		  0, 0, -1, -1, tint
@@ -295,6 +303,94 @@ ScrollbarV.drawThumb = function(g, x, y, height, tint="#FFFFFF")
 		g.drawImage images.sbNubsV, x, y + ceil(height/2-5), 16, 10,
 		  0, 0, 16, 10, tint
 	end if
+end function
+
+ScrollbarV.drawBackground = function(g)
+	self.drawTrack g, self.left, self.bottom, self.height
+end function
+
+ScrollbarV.createThumb = function
+text.row = 24; print "In function: " + "ScrollbarV.createThumb"
+	sp = new events.EventSprite
+	sp.localBounds = new Bounds
+	// We need to receive clicks in the entire scrollbar area, not just
+	// in the thumb.  So, we're going to set the bounds wide enough to
+	// cover that whole area, and we'll just have to adjust its position
+	// (in updateThumb) as it moves to keep it in the right place.
+	sp.localBounds.width = self.width
+	sp.localBounds.height = self.height
+	sp.start
+	sp.scrollbar = self
+	sp.onClick = function; self.scrollbar.onClick; end function
+	sp.onDrag = function; self.scrollbar.onDrag; end function
+	sp.onDragEnd = function; self.scrollbar.onDragEnd; end function
+	sp.tint = "#EEEEFF"
+	self.thumbSprite = sp
+end function
+
+ScrollbarV.onClick = function
+text.row = 24; print "In function: " + "ScrollbarV.onClick"
+	// determine if we hit the thumb, or the track (and if track, which side)
+	self.mouseOffset = null
+	thumbSize = self.thumbSprite.image.height
+	if mouse.y < self.thumbSprite.y - thumbSize/2 then
+		// page down
+		self.value = mathUtil.clamp(self.value - self.pageSize, self.minValue, self.maxValue)
+		self.updateThumb
+	else if mouse.y > self.thumbSprite.y + thumbSize/2 then
+		// page up
+		self.value = mathUtil.clamp(self.value + self.pageSize, self.minValue, self.maxValue)
+		self.updateThumb
+	else
+		// click on thumb -- start a drag
+		self.thumbSprite.tint = "#CCCCEE"
+		self.mouseOffset = self.thumbSprite.y - mouse.y
+
+	end if
+end function
+
+ScrollbarV.onDrag = function
+text.row = 24; print "In function: " + "ScrollbarV.onDrag"
+
+	if self.mouseOffset == null then return
+	newY = mouse.y + self.mouseOffset
+	// Invert the math in updateThumb to calculate the value from the sprite position.
+	valueRange = self.maxValue - self.minValue
+	size = self.thumbSprite.image.height
+	thumbBottom = newY - size/2
+	frac = (thumbBottom - self.bottom) / (self.height - size)
+	self.value = mathUtil.clamp(self.minValue + valueRange * frac, self.minValue, self.maxValue)
+	self.updateThumb 
+end function
+
+ScrollbarV.onDragEnd = function
+	self.thumbSprite.tint = "#EEEEFF"
+end function
+
+ScrollbarV.updateThumb = function
+text.row = 24; print "In function: " + "ScrollbarV.updateThumb"
+
+	if self.thumbSprite == null then self.createThumb
+	// Here are the somewhat tricky calculations for thumb size and position.
+	// First, the thumb size.  This reflects how much the pageSize is out
+	// of the total value range PLUS the pageSize.
+	valueRange = self.maxValue - self.minValue
+	size = round(self.height * (self.pageSize / (valueRange + self.pageSize)))
+	// Then, the position.  The bottom end of the thumb reflects the 
+	// position of the current value within the range, as a fraction
+	// of our total height MINUS the thumb size.
+	frac = (self.value - self.minValue) / valueRange
+	thumbBottom = self.bottom + (self.height - size) * frac
+	// Now we can prepare the actual sprite
+	if self.thumbSprite.image == null or self.thumbSprite.image.height != size then
+		clearScratch size, SB_THICKNESS, color.clear
+		self.drawThumb scratchDisp, 0, 0, size
+		self.thumbSprite.image = scratchDisp.getImage(0, 0, SB_THICKNESS, size)
+	end if
+	self.thumbSprite.x = self.left + SB_THICKNESS/2
+	self.thumbSprite.y = thumbBottom + size/2
+	self.thumbSprite.localBounds.y = self.bottom + self.height/2 - self.thumbSprite.y
+	self.onValueChanged
 end function
 
 
@@ -571,26 +667,44 @@ testDrawScrollbars = function
 end function
 
 testScrollbars = function
+// common to H or V
 	setupDisplays
 	display(5).mode = displayMode.pixel
 	gfx = display(5)
 	gfx.clear color.clear
-	globals.sbH = new ScrollbarH
-	sbH.left = 100
-	sbH.width = 300
-	sbH.bottom = 100
+	text.color=color.blue
+
+	// instantiate a HSB
+	globals.sbH = new ScrollbarH //
+	sbH.left = 100 // x coordinate where the HSB starts
+	sbH.bottom = 100 // y coordinate
+	sbH.width = 600 // width of the HSB in pixels
 	sbH.pageSize = 50
 	sbH.drawBackground gfx
 	sbH.onValueChanged = function
-		text.row = 2; print "Value: " + sbH.value + " " * 10
+		text.row = 2; print "H Value: " + sbH.value + " " * 5
 	end function
 	sbH.updateThumb
+
+	// instantiate a VSB
+	globals.sbV = new ScrollbarV //
+	sbV.left = 700 // x coordinate where the VSB starts
+	sbV.bottom = 100 // y coordinate
+	sbV.height = 500 // height of the VSB in pixels
+	sbV.pageSize = 50
+	sbV.drawBackground gfx
+	sbV.onValueChanged = function
+		text.row = 22; text.column = 52; print "V Value: "+ round (sbV.value,2) + " " * 5
+	end function
+	sbV.updateThumb
+
+	// poll for SB events
 	events.eventLoop.run
 end function
 
 
 if locals == globals then
 //	testWindows
-//	testDrawScrollbars
+// testDrawScrollbars
 	testScrollbars
 end if
