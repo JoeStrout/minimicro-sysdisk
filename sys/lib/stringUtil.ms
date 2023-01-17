@@ -218,6 +218,48 @@ string.rot13 = function
 	return self.cipher(rot13map)
 end function
 
+// urlEncode: Encode a string so it can be used as a URL query
+// parameter.
+string.urlEncode = function
+	urlSafeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+  	  "abcdefghijklmnopqrstuvwxyz0123456789-_.~"
+	bytes = new RawData
+	bytes.resize self.len * 3
+	len = bytes.setUtf8(0, self)
+	result = []
+	for i in range(0, len-1)
+		b = bytes.byte(i)
+		c = char(b)
+		if urlSafeChars.contains(c) then
+			result.push c
+		else
+			result.push "%" + hex2(b)
+		end if
+	end for
+	return result.join("")
+end function
+
+// urlDecode: convert a URL-encoded string back into plain text.
+string.urlDecode = function
+	bytes = new RawData
+	bytes.resize self.len + 2 * (self.split("%").len - 1)
+	i = 0		// where we are in self (input)
+	j = 0		// where we are in bytes (output)
+	while i < self.len
+		c = self[i]
+		if c == "%" then
+			hexStr = self[i+1:i+3]
+			i = i + 3
+			bytes.setByte j, hexVal(hexStr)
+		else
+			bytes.setByte j, c.code
+			i = i + 1
+		end if
+		j = j + 1
+	end while
+	return bytes.utf8(0, j)
+end function
+
 // between: find a string between two substrings.  This can be 
 // used, for example, to find text between two HTML tags.
 string.between = function(startTag, endTag, after=null)
@@ -419,6 +461,10 @@ runUnitTests = function
 	assertEqual "Now is the time for all good folks to come together".wrap(24),
 	["Now is the time for all", "good folks to come", "together"]
 
+	testing = "urlEncode/urlDecode"
+	assertEqual "Hello François!".urlEncode, "Hello%20Fran%C3%A7ois%21"
+	assertEqual "Hello%20Fran%C3%A7ois%21".urlDecode, "Hello François!"
+	
 	testing = "between"
 	s = "foobarbaz"
 	assertEqual s.between("foo","baz"), "bar"

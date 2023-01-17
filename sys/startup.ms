@@ -59,14 +59,26 @@ end function
 gfx = display(5)
 text = display(3)
 
-// Convert a 0-255 number to a 2-digit hex string
+// Convert a 0-255 number to a 2-digit hex string.
+// (Used by some of the color methods below.)
 hex2 = function(val)
-	result = 0
 	digits = "0123456789ABCDEF"
 	val = floor(val)
 	if val < 0 then return "00"
 	if val >= 255 then return "FF"
 	return digits[val / 16] + digits[val % 16]
+end function
+
+// HexVal: convert a hexadecimal string to a number.
+hexVal = function(hexstr)
+	result = 0
+	digits = "0123456789ABCDEF"
+	for c in hexstr
+		cval = digits.indexOf(c.upper)
+		if cval < 0 then break
+		result = result * 16 + cval
+	end for
+	return result
 end function
 
 color = {}
