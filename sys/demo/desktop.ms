@@ -60,6 +60,7 @@ getFreshIconForFile = function(path)
 	ext4 = path[-5:]
 	if ext2 == ".ms" then return fileIcons.miniscript
 	if ext3 == ".wav" or ext3 == ".ogg" then return fileIcons.sound
+	if ext3 == ".bmf" then return fileIcons.font
 	if ext3 == ".png" or ext3 == ".jpg" or ext4 == ".jpeg" then
 		p = file.loadImage(path)
 		if p == null then return fileIcons.picture
@@ -101,7 +102,7 @@ drawFile = function(g, nameOrPath, left, bottom, width, height, isSelected=false
 		g.drawImage icon, midx - icon.width/2, midy - icon.height/2
 	end if
 	globals.gfx = g
-	smallFont.print name, midx - nameWidth/2, midy - 52, 1, color.black
+	smallFont.print name, midx - nameWidth/2, midy - 46, 1, color.black
 end function
 
 // Return whether the given mouse position is over the actual drawn image

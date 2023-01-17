@@ -99,9 +99,13 @@ if gfxSource == null then
 	gfxSource = file.loadImage("/sys/data/desktop/desktopGfx.png")
 end if
 
-smallFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-16.bmf")
+smallFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-12.bmf")
 if smallFont == null then
-	smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
+	smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
+end if
+medFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-16.bmf")
+if medFont == null then
+	medFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
 end if
 largeFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-20.bmf")
 if largeFont == null then
@@ -147,8 +151,8 @@ drawMenuBar = function
 	menuDisp.drawImage images.menuBar, 0, y, 960+16, 24
 	x = 40
 	for title in ["File", "Edit", "Window", "Help"]
-		smallFont.print title, x, y + 5, 1, color.black
-		x = x + smallFont.width(title) + 20
+		medFont.print title, x, y + 5, 1, color.black
+		x = x + medFont.width(title) + 20
 	end for
 end function
 
