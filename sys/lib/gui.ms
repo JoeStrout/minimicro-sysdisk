@@ -168,6 +168,8 @@ Scrollbar.value = 0
 Scrollbar.pageSize = 30
 Scrollbar.thumbSprite = null
 Scrollbar.onValueChanged = null
+Scrollbar.right = function; return self.left + self.width; end function
+Scrollbar.top = function; return self.bottom + self.height; end function
 
 // Static method: draw a scrollbar track, without an instance.
 // Note: both width and height must be >= 16, and one of them
@@ -205,7 +207,7 @@ Scrollbar.onDragEnd = function
 end function
 
 
-// ---------- HSB Methods ----------
+// ---------- Horizontal Scrollbar ----------
 ScrollbarH = new Scrollbar
 ScrollbarH.width = 100
 
@@ -278,9 +280,10 @@ ScrollbarH.updateThumb = function
 	self.onValueChanged
 end function
 
-// ---------- VSB Methods ----------
+// ---------- Vertical Scrollbar ----------
 ScrollbarV = new Scrollbar
 ScrollbarV.height = 100
+ScrollbarV.topDown = true
 
 // Draw a vertical scrollbar thumb to the given pixel display.
 ScrollbarV.drawThumb = function(g, x, y, height, tint="#FFFFFF")
@@ -300,13 +303,14 @@ ScrollbarV.onClick = function
 	// determine if we hit the thumb, or the track (and if track, which side)
 	self.mouseOffset = null
 	thumbSize = self.thumbSprite.image.height
+	downSign = -1 + 2 * self.topDown
 	if mouse.y < self.thumbSprite.y - thumbSize/2 then
-		// page down
-		self.value = mathUtil.clamp(self.value - self.pageSize, self.minValue, self.maxValue)
+		// thumb down
+		self.value = mathUtil.clamp(self.value + downSign*self.pageSize, self.minValue, self.maxValue)
 		self.updateThumb
 	else if mouse.y > self.thumbSprite.y + thumbSize/2 then
-		// page up
-		self.value = mathUtil.clamp(self.value + self.pageSize, self.minValue, self.maxValue)
+		// thumb up
+		self.value = mathUtil.clamp(self.value - downSign*pageSize, self.minValue, self.maxValue)
 		self.updateThumb
 	else
 		// click on thumb -- start a drag
@@ -321,8 +325,11 @@ ScrollbarV.onDrag = function
 	// Invert the math in updateThumb to calculate the value from the sprite position.
 	valueRange = self.maxValue - self.minValue
 	size = self.thumbSprite.image.height
-	thumbBottom = newY - size/2
-	frac = (thumbBottom - self.bottom) / (self.height - size)
+	if self.topDown then
+		frac = (self.top - (newY + size/2)) / (self.height - size)
+	else
+		frac = (newY - size/2 - self.bottom) / (self.height - size)
+	end if
 	self.value = mathUtil.clamp(self.minValue + valueRange * frac, self.minValue, self.maxValue)
 	self.updateThumb 
 end function
@@ -338,7 +345,11 @@ ScrollbarV.updateThumb = function
 	// position of the current value within the range, as a fraction
 	// of our total height MINUS the thumb size.
 	frac = (self.value - self.minValue) / valueRange
-	thumbBottom = self.bottom + (self.height - size) * frac
+	if self.topDown then
+		newx = self.top - (self.height - size) * frac - size/2	
+	else
+		newx = self.bottom + (self.height - size) * frac + size/2
+	end if
 	// Now we can prepare the actual sprite
 	if self.thumbSprite.image == null or self.thumbSprite.image.height != size then
 		clearScratch size, SB_THICKNESS, color.clear
@@ -346,7 +357,7 @@ ScrollbarV.updateThumb = function
 		self.thumbSprite.image = scratchDisp.getImage(0, 0, SB_THICKNESS, size)
 	end if
 	self.thumbSprite.x = self.left + SB_THICKNESS/2
-	self.thumbSprite.y = thumbBottom + size/2
+	self.thumbSprite.y = newx
 	self.thumbSprite.localBounds.y = self.bottom + self.height/2 - self.thumbSprite.y
 	self.onValueChanged
 end function
@@ -647,7 +658,7 @@ testScrollbars = function
 	// instantiate a VSB
 	globals.sbV = new ScrollbarV //
 	sbV.left = 700 // x coordinate where the VSB starts
-	sbV.bottom = 100 // y coordinate
+	sbV.bottom = 116 // y coordinate
 	sbV.height = 500 // height of the VSB in pixels
 	sbV.pageSize = 50
 	sbV.drawBackground gfx
