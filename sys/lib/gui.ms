@@ -5,6 +5,7 @@ import "importUtil"
 ensureImport "events"
 ensureImport "bmfFonts"
 ensureImport "mathUtil"
+ensureImport "listUtil"
 
 //----------------------------------------------------------------------
 // Constants (and a few options)
@@ -375,21 +376,36 @@ Window.dragMode = null
 Window.dragOffset = [0,0]  // (position of window relative to mouse)
 Window.contentImage = null
 Window.scrollX = 0; Window.scrollY = 0
+Window.controls = null		// list of Sprites which are "children" of this window
+Window.contentSprite = null	// sprite representing window content
+Window.scrollbarH = null
+Window.scrollbarV = null
 
 // Make an image for the window sprite.
-// Uses self: width, height, titleLeft, titleWidth, title, and contentImage
+// Uses self: width, height, titleLeft, titleWidth, title
 Window.makeImage = function
 	clearScratch self.width+16, self.height+48, color.clear
 	images.windowBox.draw scratchDisp, 0, 0, self.width+16, self.height+16
 	images.titleBar.draw scratchDisp, self.titleLeft, self.height+12, self.titleWidth, 36
 	scratchDisp.print self.title, self.titleLeft+16, self.height+24, "#444444", "small"
-	if self.contentImage != null then
-		w = min(self.width, self.contentImage.width)
-		h = min(self.height, self.contentImage.height)
-		scratchDisp.drawImage self.contentImage, 8, 8+self.height-h, w, h,
-		   self.scrollX, self.contentImage.height - h - self.scrollY, w, h
+//	if self.contentImage != null then
+//		w = min(self.width, self.contentImage.width)
+//		h = min(self.height, self.contentImage.height)
+//		scratchDisp.drawImage self.contentImage, 8, 8+self.height-h, w, h,
+//		   self.scrollX, self.contentImage.height - h - self.scrollY, w, h
+//	end if
+
+	if self.scrollbarH then
+		Scrollbar.drawTrack scratchDisp, 0, 0, self.scrollbarH.width, SB_THICKNESS
 	end if
+
 	self.image = scratchDisp.getImage(0, 0, self.width+16, self.height+48)
+end function
+
+dump = function
+	for i in spriteDisp.sprites.indexes
+		print i + ". " + mapName(spriteDisp.sprites[i].__isa)
+	end for
 end function
 
 // Make a shadow image to go under the window sprite.
@@ -398,6 +414,19 @@ Window.makeShadow = function
 	images.shadow.draw scratchDisp, 0, 0, self.width+48, self.height+48
 	images.titleShadow.draw scratchDisp, self.titleLeft, self.height+20, self.titleWidth+32, 64
 	return scratchDisp.getImage(0, 0, self.width+48, self.height+88)
+end function
+
+Window.updateContent = function
+	if self.contentSprite == null then
+		self.contentSprite = new Sprite
+		spriteDisp.sprites.push self.contentSprite
+	end if
+	self.contentSprite.x = self.x
+	self.contentSprite.y = self.y - 16
+	if self.contentImage then
+		self.contentSprite.image = self.contentImage.getImage(self.scrollX, self.scrollY,
+			self.width, self.height)
+	end if
 end function
 
 Window.init = function(width, height, titleLeft, titleWidth, title)
@@ -431,8 +460,24 @@ Window.make = function(width=300, height=200, titleLeft=0, titleWidth=150, title
 	w = new Window
 	w.init width, height, titleLeft, titleWidth, title
 	w.goTo 480, 320
-	
 	return w
+end function
+
+Window.addScrollbars = function
+	self.scrollbarH = new ScrollbarH
+	self.scrollbarH.left = 0
+	self.scrollbarH.bottom = 0
+	self.scrollbarH.width = self.width - SB_THICKNESS
+	self.scrollbarH.height = SB_THICKNESS
+	self.scrollbarH.pageSize = 50
+	
+	self.makeImage
+end function
+
+Window.setContent = function(image, scrollIfNeeded=true)
+	self.contentImage = image
+	self.updateContent
+//	if scrollIfNeeded and not self.scrollbarH then self.addScrollbars
 end function
 
 Window.close = function
@@ -470,6 +515,10 @@ Window.goTo = function(x, y)
 	extra = 6 * (self.dragMode == kDragMove)
 	self.shadow.x = x + 4 + extra
 	self.shadow.y = y - 4 - extra
+	if self.contentSprite then
+		self.contentSprite.x = self.x
+		self.contentSprite.y = self.y - 16
+	end if
 	self.titleBounds.x = self.x - self.width/2 + self.titleLeft + self.titleWidth/2 - 8
 	self.titleBounds.y = self.y + self.height/2 + 8
 end function
@@ -504,6 +553,10 @@ Window.moveToFront = function
 	spriteDisp.sprites.removeVal self.shadow
 	spriteDisp.sprites.push self.shadow
 	spriteDisp.sprites.push self
+	if self.contentSprite then
+		spriteDisp.sprites.removeVal self.contentSprite
+		spriteDisp.sprites.push self.contentSprite
+	end if
 	// dim out all windows...
 	for i in spriteDisp.sprites.indexes
 		spriteDisp.sprites[i].tint="#DDDDEE"
@@ -602,11 +655,15 @@ testWindows = function
 	setupDisplays
 	
 	globals.window1 = Window.make(600,400, 25, 150, "window1")
+	scratchDisp.clear color.pink, 800,500
+	scratchDisp.line 0, 0, scratchDisp.width, scratchDisp.height, color.blue
+	scratchDisp.line 0, scratchDisp.height, scratchDisp.width, 0, color.blue
+	window1.setContent scratchDisp.getImage
 	window1.goTo 480, 320
 	
 	globals.window2 = Window.make(100,100, 8, 100, "window2")
 	window2.goTo 750, 500
-	
+
 	globals.window3 = Window.make(200,200, 25, 150, "window3")
 	window3.goTo 150, 200
 	
@@ -622,21 +679,6 @@ testWindows = function
 	end function
 	
 	events.eventLoop.run
-end function
-
-testDrawScrollbars = function
-	clear
-	y = 620
-	for w in range(16, 100, 3)
-    	ScrollbarH.drawThumb gfx, 650, y, w
-    	y = y - 20
-	end for
-
-	x = 50
-	for h in range(16, 100, 3)
-    	ScrollbarV.drawThumb gfx, x, 50, h
-    	x = x + 20
-	end for	
 end function
 
 testScrollbars = function
@@ -677,7 +719,6 @@ end function
 
 
 if locals == globals then
-//	testWindows
-// testDrawScrollbars
-	testScrollbars
+	testWindows
+//	testScrollbars
 end if

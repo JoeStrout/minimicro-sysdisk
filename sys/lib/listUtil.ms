@@ -19,7 +19,7 @@ list.deepCopy = function
 	return result
 end function
 
-// add: add a number to all elements of a list (in place),
+// add: add a number or string to all elements of a list (in place),
 // OR do element-wise addition with another list of the same size.
 //
 // Example 1:
@@ -35,10 +35,14 @@ list.add = function(addend)
 		for i in range(0,maxi)
 			self[i] = self[i] + addend[i]
 		end for
-	else
+	else if addend isa string or addend isa number then
 		for i in self.indexes
 			self[i] = self[i] + addend
 		end for
+	else
+		print "ERROR: list.add requires a number, string, or list."
+		print "(Did you mean to use list.push instead?)"
+		exit
 	end if
 end function
 
