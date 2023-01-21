@@ -177,13 +177,6 @@ end function
 
 dir = function(path=".")
 	spaces = " "*80
-	if path == "/" then
-		for p in ["/usr", "/usr2", "/sys"]
-			if file.info(p) == null then continue
-			print (p+spaces)[:39] + "DIR"
-		end for
-		return
-	end if
 	
 	dirInfo = file.info(path)
 	if dirInfo == null then
