@@ -1,6 +1,6 @@
-= Mini Micro v1.2 =
+# Mini Micro v1.2
 
-== MiniScript (language) v1.6 ==
+## MiniScript (language) v1.6
 
 - ☑︎ ︎add math-assignment operators (+=, etc.)
 - ☑︎ fix: using line continuation after `and` no longer produces unreliable, random results
@@ -27,7 +27,7 @@
   - ☐ document parsing edge case: `1-2` and `1 - 2` work as expected, but `1 -2` fails, seeing this as a call with an argument
   - ☐ document that mutating a list or map used as a map key produces undefined behavior
 
-== Contents of /sys disk ==
+## Contents of /sys disk
 
 - ☐ /sys/demo/demos: presents menu of demos, and includes an auto-run ("screen saver" or "attract mode") feature that auto-runs several of the smaller demos; also shows you how to load and run these manually
 - ☐ New `demo`, `desktop`, and `lcars` commands load and run the respective shells
@@ -42,7 +42,7 @@
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
 
-== Mini Micro itself ==
+## Mini Micro itself
 
 - ☑︎ Added key.axis("Tilt X") and similar "Tilt Y" and "Tilt Z" for reading the accelerometer on devices that have one.
 - ☑︎ `grfon.Parse` now returns an empty map for `{}`, rather than returning null.
@@ -86,7 +86,7 @@
   - ☐ code-sign the build for both Mac and Windows
   - ☐ release on Steam
 
-= Other Projects =
+# Other Projects
 
 While not on the direct path to Mini Micro 1.2, it's worth pointing out some of the related projects that are in the works and may need some time/attention during this development period too.  In the case of the font editor, some additional work is needed there in order to finish tweaking the built-in fonts for Mini Micro.
 
