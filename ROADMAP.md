@@ -43,7 +43,7 @@
   - ☑︎ calculator
   - ☐ clock
   - ☐ file manager
-  - ☑ primary file browser
+  - ☑︎ primary file browser
   - ☐ secondary (destination) file browser
   - copy, move, rename, delete files
   - preview of images, sounds, and text files
@@ -73,7 +73,7 @@
 - ☐ Make `edit` take an optional filename to `load`.  If you have unsaved changes, then tell the user to save or reset and bail out.  Consider same for `run`
 - ☐ BUG: Esc key does not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux, but does on Mac.
 - ☐ `key.axis`: add an optional parameter to get raw (unsmoothed) inputs
-- ☐ `Image.fromScreen` takes a screen shot, including all layers
+- ☑︎ `Image.fromScreen` takes a screen shot, including all layers
 - ☐ `Image.flip` and `Image.rotate` (in 90° increments)
 - ☐ BUG: if you assign to any property of a playing sound, you lose the ability to adjust or stop it or even tell if it's playing (because we wipe out the _handle)
 - ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
