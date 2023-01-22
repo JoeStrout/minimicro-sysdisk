@@ -33,7 +33,21 @@
 - ☐ New `demo`, `desktop`, and `lcars` commands load and run the respective shells
 - ☐ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
 - ☐ /sys/demo/desktop: a GUI shell
+  - ☐ scrollbars and close boxes on file windows
+  - ☐ working menubar: new Folder, etc.
+  - ☐ move/copy files by drag & drop
+  - ☐ contextual menu on files (Open/Launch/View, Rename, Delete, etc.)
+  - ☐ in-GUI viewer windows for pictures, source files, text files, and sounds
+  - ☐ launch a program
 - ☐ /sys/demo/lcars: a different GUI shell
+  - ☑︎ calculator
+  - ☐ clock
+  - ☐ file manager
+  - ☑ primary file browser
+  - ☐ secondary (destination) file browser
+  - copy, move, rename, delete files
+  - preview of images, sounds, and text files
+  - launch of program files
 - ☐ /sys/demo/minitracker: a music player for MOD files (based on [this](https://github.com/JoeStrout/minitracker))
 - ☐ /sys/data/music: contains several MOD files for use with minitracker
 - ☐ /sys/data/dailyPractice: loads challenges from [here](https://github.com/JoeStrout/daily-miniscript) and keeps track (in /usr/data) of which ones you've completed
@@ -57,8 +71,8 @@
 - ☑︎ `cd` now validates the given path, and refuses to change to an invalid path.
 - ☑︎ `"/"` is now a valid path (in cd, dir, etc.)
 - ☐ Make `edit` take an optional filename to `load`.  If you have unsaved changes, then tell the user to save or reset and bail out.  Consider same for `run`
-- ☐ BUG: Esc key does not enter the keyboard buffer (as seen by key.available and key.get) on Windows and Linux, but does on Mac.
-- ☐ key.axis: add an optional parameter to get raw (unsmoothed) inputs
+- ☐ BUG: Esc key does not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux, but does on Mac.
+- ☐ `key.axis`: add an optional parameter to get raw (unsmoothed) inputs
 - ☐ `Image.fromScreen` takes a screen shot, including all layers
 - ☐ `Image.flip` and `Image.rotate` (in 90° increments)
 - ☐ BUG: if you assign to any property of a playing sound, you lose the ability to adjust or stop it or even tell if it's playing (because we wipe out the _handle)
