@@ -74,7 +74,7 @@
 - ☐ BUG: Esc key does not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux, but does on Mac.
 - ☐ `key.axis`: add an optional parameter to get raw (unsmoothed) inputs
 - ☑︎ `Image.fromScreen` takes a screen shot, including all layers
-- ☐ `Image.flip` and `Image.rotate` (in 90° increments)
+- ☑︎ `Image.flip` and `Image.rotate` (in 90° increments)
 - ☐ BUG: if you assign to any property of a playing sound, you lose the ability to adjust or stop it or even tell if it's playing (because we wipe out the _handle)
 - ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
 - ☐ BUG: installing a PixelDisplay resets its .color to white
