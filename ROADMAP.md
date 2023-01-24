@@ -72,7 +72,7 @@
 - ☑︎ `"/"` is now a valid path (in cd, dir, etc.)
 - ☐ Make `edit` take an optional filename to `load`.  If you have unsaved changes, then tell the user to save or reset and bail out.  Consider same for `run`
 - ☐ BUG: Esc key does not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux, but does on Mac.
-- ☐ `key.axis`: add an optional parameter to get raw (unsmoothed) inputs
+- ☑︎ `key.axis`: added a `smoothed` parameter (default true), enabling raw (unsmoothed) inputs.
 - ☑︎ `Image.fromScreen` takes a screen shot, including all layers
 - ☑︎ `Image.flip` and `Image.rotate` (in 90° increments)
 - ☐ BUG: if you assign to any property of a playing sound, you lose the ability to adjust or stop it or even tell if it's playing (because we wipe out the _handle)

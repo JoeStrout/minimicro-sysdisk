@@ -1,6 +1,8 @@
 // This program scans all inputs, and displays
 // which ones are currently pressed or wiggled.
 
+import "textUtil"
+
 // First, gather up all possible inputs.
 allInputs = []
 for i in range(0,19)
@@ -9,7 +11,7 @@ for i in range(0,19)
 		allInputs.push "joystick " + joyNum + " button " + i
 	end for
 end for
-for c in "abcdefghijklmnopqrstuvwxyz0123456789-=[]\;',./"
+for c in "abcdefghijklmnopqrstuvwxyz0123456789-=[]\;',./`"
 	allInputs.push c
 end for
 for kpKey in "123456789+-/*"
@@ -50,16 +52,19 @@ update = function
 		if key.pressed(btn) then active.push btn
 	end for
 	for ax in allAxes
-		if key.axis(ax) != 0 then
-			active.push ax + "  (" + round(key.axis(ax),2) + ")"
+		if key.axis(ax,0) != 0 then
+			active.push ax + " (" + 
+			 round(key.axis(ax,0),2) + " raw, " +
+			 round(key.axis(ax),2) + " smooth)"
 		end if
 	end for
-	for i in range(0, 19)
+	for row in range(9, 19)
+		textUtil.clearRow row
+	end for
+	for i in active.indexes
 		if i == 0 or i == 10 then text.row = 19
 		text.column = 5 + 30 * (i > 9)
-		s = ""
-		if i < active.len then s = active[i]
-		print s + " " * (30-s.len)
+		print active[i]
 	end for
 end function
 
@@ -71,7 +76,7 @@ if locals == globals then
 	print
 	print "Press any key, mouse, or controller inputs to"
 	print "see their names below.  (Press Ctrl+C to exit.)"
-
+	
 	// Main loop
 	while true
 		update
