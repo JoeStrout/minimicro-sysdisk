@@ -117,7 +117,7 @@ if locals == globals then
 	printAlign "figureWaitingToeUp", figureWaitingToeUp
 	printAlign "figureAkimbo", figureAkimbo
 	printAlign "mu, pi, tau", mu + " " + pi + " " + tau
-	printAlign "bullet, ellipsis", bullet + " " + ellipsis
+	printAlign "bullet, ellipsis, degrees", [bullet, ellipsis, degrees].join
 	printAlign "tree", tree
 	printAlign "emptyBox", emptyBox
 	printAlign "checkedBox", checkedBox

@@ -82,7 +82,7 @@
 - ☐ replace the file browser with [this library](https://github.com/keiwando/nativefileso)
 - ☐ BUG: if you install a SolidColorDisplay and then remove it (by changing the mode on that display layer to something else), you can't install it again.
 - ☐ Add some way to lock the mouse cursor, e.g. for FPS games	
-- ☐ Add `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  A new `shell` command (defined in /sys/startup) will relaunch the current shell.
+- ☐ Add `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
 - ☐ Add some way to get the current amplitude of a playing sound (or if we want to get fancy: the amplitude within some frequency band), enabling you to make a graphic equalizer display, or do lip-syncing to speech, etc.
 - ☐ Make `view` show tiles and tile numbers if viewing the image assigned as the tileset of a current tile display, like [this](https://github.com/sebnozzi/minimicro-tilesetviewer)
 - ☐ Add a "Reveal in Finder" (or Explorer) option to disk slot menu.
