@@ -26,11 +26,12 @@
   - ☐ document `super` in the Quick Reference
   - ☐ document parsing edge case: `1-2` and `1 - 2` work as expected, but `1 -2` fails, seeing this as a call with an argument
   - ☐ document that mutating a list or map used as a map key produces undefined behavior
+  - ☐ document sound.adjust and all new APIs in Mini Micro Cheat Sheet
 
 ## Contents of /sys disk
 
 - ☐ /sys/demo/demos: presents menu of demos, and includes an auto-run ("screen saver" or "attract mode") feature that auto-runs several of the smaller demos; also shows you how to load and run these manually
-- ☐ New `demo`, `desktop`, and `lcars` commands load and run the respective shells
+- ☐ New `demos`, `desktop`, and `lcars` commands load and run the respective shells
 - ☐ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
 - ☐ /sys/demo/desktop: a GUI shell
   - ☐ scrollbars and close boxes on file windows
@@ -49,6 +50,8 @@
   - preview of images, sounds, and text files
   - launch of program files
 - ☐ /sys/demo/minitracker: a music player for MOD files (based on [this](https://github.com/JoeStrout/minitracker))
+- ☐ /sys/demo/synth: an editor for synthesized sounds
+- ☐ /sys/demo/TD: a tower defense game
 - ☐ /sys/data/music: contains several MOD files for use with minitracker
 - ☐ /sys/data/dailyPractice: loads challenges from [here](https://github.com/JoeStrout/daily-miniscript) and keeps track (in /usr/data) of which ones you've completed
 - ☑︎ /sys/fonts folder of built-in fonts
@@ -76,6 +79,7 @@
 - ☑︎ `Image.fromScreen` takes a screen shot, including all layers
 - ☑︎ `Image.flip` and `Image.rotate` (in 90° increments)
 - ☑︎ fixed: assigning to the `freq`, `duration`, etc. of a synthesized sound while it is playing now stops it, rather than leaving it orphaned and uncontrollable
+- ☐ fix the default value of `mode` for `file.open`; "rw+" is not a valid mode.  It should be "r+" instead.
 - ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
 - ☑︎ fixed: installing a PixelDisplay no longer resets its .color to white
 - ☐ BUG: in command-line MiniScript, f.readLine returns null at end of file, but in Mini Micro it appears to return "" instead

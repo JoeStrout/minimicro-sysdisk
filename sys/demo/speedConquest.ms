@@ -1,5 +1,5 @@
 // SpeedConquest
-//	A turn-based strategy game with AI.
+//  A turn-based strategy game with AI.
 
 import "listUtil"
 
