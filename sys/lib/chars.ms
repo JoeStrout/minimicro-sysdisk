@@ -77,6 +77,7 @@ inverseOff = char(135)
 bell = char(7)
 
 // Other miscellaneous control characters:
+backup = char(8)
 tab = char(9)
 esc = char(27)
 returnKey = char(10)

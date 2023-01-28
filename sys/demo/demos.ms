@@ -1,7 +1,7 @@
 // This is a shell program that presents a menu of selected
 // demos, making it easy to preview/run them.
 
-import "specialChars"
+import "chars"
 import "stringUtil"
 
 simple = []
@@ -14,6 +14,7 @@ demos.push "2dVis"
 demos.push "angles"
 
 games.push "acey-deucey"
+games.push "asteroids"
 games.push "drumMachine"
 games.push "flappyBat"
 games.push "mochiBounce"
@@ -81,15 +82,18 @@ end function
 keySound = new Sound
 keySound.init 0.05, 10, [1,0], Sound.noiseWave
 spaceSound = new Sound
-spaceSound.init 0.05, 5, [1,0], Sound.noiseWave; 0
+spaceSound.init 0.05, 8, [1,0], Sound.noiseWave; 0
+returnSound = new Sound
+returnSound.init 0.05, 5, [1,0], Sound.noiseWave; 0
 
 printSlowly = function(s, eol=null)
 	for c in s
-		print c, ""
+		print c, chars.inverseOn + " " + chars.inverseOff + char(8)
 		if c == " " then spaceSound.play else keySound.play
 		wait 0.1
 	end for
-	print "", eol
+	print " ", eol
+	returnSound.play
 end function
 
 showCommand = function(cmd)
@@ -104,7 +108,7 @@ runProgram = function
 	text.row = 2
 	showCommand "load """ + path + """"
 	showCommand "run"
-	load path; run
+	load path; clear; run
 end function
 
 drawList
