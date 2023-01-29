@@ -425,3 +425,6 @@ print "GAME OVER"
 Sound.stopAll
 text.row = 1
 key.clear
+
+// If we are returning to the shell, wait for a keypress
+if env.hasIndex("shell") and env.shell then key.get

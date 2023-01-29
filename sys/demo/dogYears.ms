@@ -16,3 +16,6 @@ while true
 		break  // (exits the "while" loop)
 	end if
 end while
+
+// If we are returning to the shell, wait for a keypress
+if env.hasIndex("shell") and env.shell then key.get

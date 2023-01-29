@@ -150,6 +150,10 @@ doGameOver = function
 	text.row = 13
 	print "GAME OVER!"
 	print "Your score: " + disp.scrollX
+
+	// If we are returning to the shell, wait for a keypress
+	if env.hasIndex("shell") and env.shell then key.get
+
 	exit
 end function
 

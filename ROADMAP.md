@@ -17,7 +17,8 @@
 - ☑︎ fix: a function ref in a list literal didn't show properly as an implicit result, but worked fine when assigned to something, e.g. `[@color.lerp]`
 - ☑︎ ︎`print` now takes an optional second argument, `delimiter` which defaults to the line break character.  Specify "" for no delimiter at all.
 - ☑︎ comparisons and hashing of lists and maps are now much faster and smarter in cases where they contain reference cycles
-- ☐ add some way to test for reference (rather than value) equality
+- ☑︎ added new `refEquals` intrinsic to test for reference (rather than value) equality
+- ☐ fix freeze that occurs from loops in the `__isa` chain.
 - **Command-line MiniScript v1.6**
   - ☑︎ on launch, adds MS_SCRIPT_DIR and MS_EXE_DIR to the environment variables, as well as MS_IMPORT_PATH if not already defined
   - ☑︎ new `import` intrinsic now searches directories in MS_IMPORT_PATH for the import module and imports them, just like Mini Micro
@@ -32,7 +33,7 @@
 
 - ☐ /sys/demo/demos: presents menu of demos, and includes an auto-run ("screen saver" or "attract mode") feature that auto-runs several of the smaller demos; also shows you how to load and run these manually
 - ☐ New `demos`, `desktop`, and `lcars` commands load and run the respective shells
-- ☐ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
+- ☑︎ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
 - ☐ /sys/demo/desktop: a GUI shell
   - ☐ scrollbars and close boxes on file windows
   - ☐ working menubar: new Folder, etc.
@@ -79,7 +80,7 @@
 - ☑︎ `Image.fromScreen` takes a screen shot, including all layers
 - ☑︎ `Image.flip` and `Image.rotate` (in 90° increments)
 - ☑︎ fixed: assigning to the `freq`, `duration`, etc. of a synthesized sound while it is playing now stops it, rather than leaving it orphaned and uncontrollable
-- ☐ fix the default value of `mode` for `file.open`; "rw+" is not a valid mode.  It should be "r+" instead.
+- ☑︎ fixed the default value of `mode` for `file.open` (now "r+")
 - ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
 - ☑︎ fixed: installing a PixelDisplay no longer resets its .color to white
 - ☐ BUG: in command-line MiniScript, f.readLine returns null at end of file, but in Mini Micro it appears to return "" instead

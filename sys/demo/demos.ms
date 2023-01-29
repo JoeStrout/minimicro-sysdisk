@@ -1,6 +1,10 @@
 // This is a shell program that presents a menu of selected
 // demos, making it easy to preview/run them.
 
+// Make this program the shell (return here after running demo)
+env.shell = "/sys/demo/demos.ms"
+if file.exists("/usr/demo/demos.ms") then env.shell = "/usr/demo/demos.ms"
+
 import "chars"
 import "stringUtil"
 
@@ -40,6 +44,8 @@ visual.push "turtleDemo"
 allPrograms = simple + visual + demos + games
 selected = allPrograms[0]
 
+text.delimiter = char(13)
+print
 clear
 
 drawList = function
@@ -88,7 +94,7 @@ returnSound.init 0.05, 5, [1,0], Sound.noiseWave; 0
 
 printSlowly = function(s, eol=null)
 	for c in s
-		print c, chars.inverseOn + " " + chars.inverseOff + char(8)
+		print c, chars.inverseOn + " " + chars.inverseOff + chars.backup
 		if c == " " then spaceSound.play else keySound.play
 		wait 0.1
 	end for

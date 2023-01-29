@@ -33,3 +33,6 @@ for x in range(0,300)
 end for
 
 text.row = 0
+
+// If we are returning to the shell, wait for a keypress
+if env.hasIndex("shell") and env.shell then key.get

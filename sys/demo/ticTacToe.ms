@@ -149,3 +149,6 @@ end while
 if winner(board) then print winner(board) + " wins!"
 key.clear
 
+// If we are returning to the shell, wait for a keypress
+if env.hasIndex("shell") and env.shell then key.get
+
