@@ -83,7 +83,7 @@
 - ☑︎ fixed the default value of `mode` for `file.open` (now "r+")
 - ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
 - ☑︎ fixed: installing a PixelDisplay no longer resets its .color to white
-- ☐ BUG: in command-line MiniScript, f.readLine returns null at end of file, but in Mini Micro it appears to return "" instead
+- ☑︎ fixed: f.readLine now returns `null` (instead of "") at end of file
 - ☐ replace the file browser with [this library](https://github.com/keiwando/nativefileso)
 - ☐ BUG: if you install a SolidColorDisplay and then remove it (by changing the mode on that display layer to something else), you can't install it again.
 - ☐ Add some way to lock the mouse cursor, e.g. for FPS games	
