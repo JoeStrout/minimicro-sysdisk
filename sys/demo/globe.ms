@@ -55,10 +55,15 @@ end function
 
 // Main program: animate the globe!
 rot = 0
+startTime = time
 while not key.pressed("escape") and not key.pressed("q")
 	yield
 	positionSprites rot
 	rot = rot + 1
+	if env.hasIndex("shell") and env.shell and env.autorun then
+		// in auto-run mode, exit after 20 seconds
+		if time - startTime > 20 then exit
+	end if
 end while
 key.clear
 

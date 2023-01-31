@@ -393,14 +393,31 @@ startLevel = function
 	Ufo.nextSpawnTime = time + mathUtil.randRange(5,15)
 end function
 
+autoplay = env.hasIndex("shell") and env.shell and env.autorun
+if autoplay then
+	// make some dummy inputs for auto-play mode!
+	key = {}
+	key.axis = function(which)
+		if which == "Vertical" then
+			return cos(time) + cos(time/2) > 0.8
+		end if
+		c = cos(time) + cos(time/2) + cos(time * 10)
+		if abs(c) < 0.5 then return 0
+		return sign(c)
+	end function
+	key.pressed = function(k)
+		if k != "space" then return false
+		return rnd < 0.1
+	end function
+end if
+
 level = 0
 score = 0
 ship.destroyed = true
-lives = 3
+lives = 2 + (not autoplay)
 startLevel
 Ufo.init
 Ufo.despawn
-
 
 // Main loop
 lastTime = time
@@ -424,7 +441,11 @@ text.row = 14; text.column = 30
 print "GAME OVER"
 Sound.stopAll
 text.row = 1
+if autoplay then globals.remove "key"
 key.clear
 
-// If we are returning to the shell, wait for a keypress
-if env.hasIndex("shell") and env.shell then key.get
+// If we are returning to the shell, wait for a keypress;
+// or if we're in auto-run mode, just wait a short time
+if env.hasIndex("shell") and env.shell then
+	if env.autorun then wait 2 else key.get
+end if

@@ -36,7 +36,10 @@ while y > 0
 	y = y - h
 end while
 
-// If we are returning to the shell, wait for a keypress
-if env.hasIndex("shell") and env.shell then key.get
+// If we are returning to the shell, wait for a keypress;
+// or if we're in auto-run mode, just wait a short time
+if env.hasIndex("shell") and env.shell then
+	if env.autorun then wait 3 else key.get
+end if
 
 // Remember, to clear the screen, just do: gfx.clear

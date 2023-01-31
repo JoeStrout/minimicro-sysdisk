@@ -64,6 +64,7 @@ drops = []
 
 // Main loop
 text.clear
+startTime = time
 while not key.pressed("escape")
 	// every now and then, add a new drop
 	if rnd < 0.25 then
@@ -89,6 +90,11 @@ while not key.pressed("escape")
 		for i in range(drops.len-1)
 			if drops[i].top < 0 then drops.remove i
 		end for
+	end if
+
+	if env.hasIndex("shell") and env.shell and env.autorun then
+		// in auto-run mode, exit after 20 seconds
+		if time - startTime > 20 then exit
 	end if
 	
 	yield

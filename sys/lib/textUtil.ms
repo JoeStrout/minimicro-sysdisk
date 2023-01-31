@@ -110,6 +110,19 @@ clearRow = function(row=null, character=" ")
 	end for
 end function
 
+// clearRect: clear a rectangular area of the screen by filling it with spaces
+// (or whatever character you specify).
+// Also applies default foreground and background colors.
+clearRect = function(left=0, bottom=0, width=68, height=25, character=" ")
+	for r in range(bottom, bottom+height-1)
+		for c in range(left, left+width-1)
+			text.setCell c, r, character
+			text.setCellColor c, r, text.color
+			text.setCellBackColor c, r, text.backColor
+		end for
+	end for
+end function
+
 // buttonLeft and buttonRight: combines the inverse toggles with
 // the button cap glyphs.  Print these before or after a button caption.
 buttonLeft = char(134) + char(57856)

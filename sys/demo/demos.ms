@@ -7,6 +7,7 @@ if file.exists("/usr/demo/demos.ms") then env.shell = "/usr/demo/demos.ms"
 
 import "chars"
 import "stringUtil"
+import "textUtil"
 
 simple = []
 games = []
@@ -22,7 +23,6 @@ games.push "asteroids"
 games.push "drumMachine"
 games.push "flappyBat"
 games.push "mochiBounce"
-games.push "pigDice"
 games.push "platformer"
 games.push "speedConquest"
 games.push "textAdventure"
@@ -41,12 +41,10 @@ visual.push "sunset"
 visual.push "theMatrix"
 visual.push "turtleDemo"
 
-allPrograms = simple + visual + demos + games
+allPrograms = simple + visual + demos + games + ["(More...)"]
 selected = allPrograms[0]
 
 text.delimiter = char(13)
-print
-clear
 
 drawList = function
 	text.row = 25
@@ -59,8 +57,39 @@ drawList = function
 	end for
 end function
 
-drawProgram = function
+showMore = function
 	gfx.clear
+	textUtil.clearRect 20, 0, 48, 26, " "
+	x = 23
+	text.row = 23
+	text.column = x; print "There are many more demos to be found"
+	text.column = x; print "in the /sys/demo directory!"
+	print
+	text.column = x; print "To explore them:"
+	print
+	x += 2
+	text.column = x; _printMark "1. Press `Esc` to exit to the command prompt"
+	print
+	text.column = x; _printMark "2. Enter `cd ""/sys/demo""`"
+	print
+	text.column = x; _printMark "3. Use `dir` to view the available demos"
+	print
+	text.column = x; _printMark "4. `load` any program, e.g. `load ""pigDice""`"
+	print
+	text.column = x; _printMark "5. `run` to play the demo!"
+	print
+	text.column = x; _printMark "6. `edit` to view the code, or go to step 3"
+	print
+	x -= 2
+	text.column = x; print "Key shortcuts in this launcher:"
+	text.column = x; _printMark "  `Esc`: exit"
+	text.column = x; _printMark "  ` A `: auto-run (""attract mode"")"
+end function
+
+drawProgram = function
+	if selected == "(More...)" then return showMore
+	gfx.clear
+	textUtil.clearRect 20, 0, 48, 26, " "
 	path = "/sys/demo/" + selected + ".ms"
 	src = file.readLines(path)
 	y = 600
@@ -96,29 +125,63 @@ printSlowly = function(s, eol=null)
 	for c in s
 		print c, chars.inverseOn + " " + chars.inverseOff + chars.backup
 		if c == " " then spaceSound.play else keySound.play
+		if key.available and key.get == char(27) then return false
 		wait 0.1
 	end for
 	print " ", eol
 	returnSound.play
+	return true
 end function
 
 showCommand = function(cmd)
 	text.color = color.gray; print "]", ""
 	text.color = color.orange
-	printSlowly cmd
-	wait
+	if not printSlowly(cmd) then return false
+	for i in range(9)
+		wait 0.1
+		if key.available and key.get == char(27) then return false
+	end for
+	return true
 end function
 
-runProgram = function
-	path = "/sys/demo/" + selected
+runProgram = function(program)
+	path = "/sys/demo/" + program
 	text.row = 2
-	showCommand "load """ + path + """"
-	showCommand "run"
+	if not showCommand("load """ + path + """") or
+	   not showCommand("run") then return false
 	load path; clear; run
+	return true
 end function
 
+autorunNext = function
+	pgms = ["globe", "sunset", "theMatrix", "turtleDemo", "asteroids"]
+	idx = pgms.indexOf(env.autorun)
+	if idx == null then idx = 0 else idx = (idx + 1) % pgms.len
+	env.autorun = pgms[idx]
+	if not runProgram(pgms[idx]) then
+		env.autorun = false
+		clear
+		drawList; drawProgram
+		return false
+	end if
+	return true
+end function
+
+if env.hasIndex("autorun") and env.autorun then
+	text.row = 3
+	for row in range(0, text.row); textUtil.clearRow row; end for
+	text.color = color.blue
+	print "(Press Esc now to exit auto-run demos.)"
+	if not autorunNext then
+		env.autorun = false
+	end if
+end if
+
+print
+clear
 drawList
 drawProgram
+env.autorun = false
 while true
 	k = key.get
 	idx = allPrograms.indexOf(selected)
@@ -127,7 +190,14 @@ while true
 	else if k.code == 20 then
 		idx = (idx + allPrograms.len + 1) % allPrograms.len
 	else if k.code == 10 or k.code == 13 then
-		runProgram
+		runProgram selected
+	else if k == "a" then
+		env.autorun = ""
+		autorunNext
+	else if k.code == 27 then
+		text.row = 1
+		env.autorun = false
+		exit
 	end if
 	selected = allPrograms[idx]
 	drawList
