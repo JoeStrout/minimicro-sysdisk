@@ -18,7 +18,9 @@
 - ☑︎ ︎`print` now takes an optional second argument, `delimiter` which defaults to the line break character.  Specify "" for no delimiter at all.
 - ☑︎ comparisons and hashing of lists and maps are now much faster and smarter in cases where they contain reference cycles
 - ☑︎ added new `refEquals` intrinsic to test for reference (rather than value) equality
-- ☐ fix freeze that occurs from loops in the `__isa` chain.
+- ☑︎ fix: loops in the `__isa` chain now throw a proper error instead of freezing the app.
+- ☑ fix: `a[3]` where `a` is `null` now reliably throws a runtime error.
+
 - **Command-line MiniScript v1.6**
   - ☑︎ on launch, adds MS_SCRIPT_DIR and MS_EXE_DIR to the environment variables, as well as MS_IMPORT_PATH if not already defined
   - ☑︎ new `import` intrinsic now searches directories in MS_IMPORT_PATH for the import module and imports them, just like Mini Micro
