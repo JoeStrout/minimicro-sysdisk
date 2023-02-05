@@ -9,6 +9,27 @@ list.contains = function(item)
 	return self.indexOf(item) != null
 end function
 
+// split: similar to string.split, this splits a list into sub-lists
+// by where the given delimiter element is found.
+list.split = function(delimiter, maxCount=null)
+	if maxCount == 1 then return [self]
+	result = []
+	p0 = 0
+	while p0 < self.len
+		p1 = self.indexOf(delimiter, p0-1)
+		if p1 == null then
+			result.push self[p0:]
+			return result
+		end if
+		result.push self[p0:p1]
+		p0 = p1 + 1
+		if maxCount != null and result.len+1 == maxCount then
+			result.push self[p0:]
+			return result
+		end if
+	end while
+end function
+
 // deepcopy: clones this list, and if it contains sub-lists,
 // clones those as well.
 list.deepCopy = function
@@ -352,6 +373,10 @@ runUnitTests = function
 			outer.errorCount = errorCount + 1
 		end if
 	end function
+
+	a = [-1, 42, -1, 53, 87, 345, -1, 100]
+	assertEqual a.split(-1), [ [], [42], [53, 87, 345], [100] ]
+	assertEqual a.split(-1, 3), [ [], [42], [53, 87, 345, -1, 100] ]
 
 	a = [1,2,3]
 	a.multiplyBy 3
