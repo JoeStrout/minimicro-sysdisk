@@ -341,39 +341,87 @@ end function
 
 _sourceFile = null
 _source = []
-load = function(path)
+_sourceSaved = true
+
+// Check whether it's safe to load a file (i.e., we won't
+// lose any unsaved changes to the current program).
+// Returns true if safe, false if not safe (so don't do it!).
+_checkSafeToLoad = function
+	if _sourceSaved then return true
+	if len(_source) == 0 or _source == [""] then return true
+
+	// OK, looks worrisome, but one last check: 
+	// let's see if the file on disk matches what's in memory.
+	if _sourceFile then
+		path = _sourceFile
+		if len(path) < 3 or path[-3:] != ".ms" then path += ".ms"
+		if path[0] != "/" then path = file.child(file.curdir, path)
+		lines = file.readLines(_sourceFile)
+		if lines == _source then return true	// exact same!
+	end if
+
+	print "You have unsaved changes to ", ""
+	if _sourceFile then
+		print _sourceFile
+	else
+		print "the program in memory."
+	end if
+	_printMark "Please `save` or `reset` before loading a file."
+	return false
+end function
+
+load = function(path, checkIfSafe=true)
 	if not path then
 		print "file name or path required"
-		return
+		return null
 	end if
-	if path[-3:] != ".ms" then path = path + ".ms"
+	if checkIfSafe and not _checkSafeToLoad then return
+	if len(path) < 3 or path[-3:] != ".ms" then path += ".ms"
 	if path[0] != "/" then path = file.child(file.curdir, path)
 	lines = file.readLines(path)
 	if lines == null then
 		print "Unable to read " + path
+		return null
 	else
 		globals._source = lines
 		globals._sourceFile = path
-		print lines.len + " line" + ("s" * (lines.len != 1)) + " loaded from " + path
+		globals._sourceSaved = true
+		return lines.len + " line" + ("s" * (lines.len != 1)) + " loaded from " + path
 	end if
 	return null
+end function
+
+edit = function(path)
+	if path then
+		if not _checkSafeToLoad then return
+		if load(path, false) == null then return
+	end if
+	_edit
 end function
 
 save = function(path)
 	if path == null then path = _sourceFile
 	if not path then
-		print "Filename not specified; unable to save"
-		return
+		return "Filename not specified; unable to save"
 	end if
 	if path[-3:] != ".ms" then path = path + ".ms"
 	if path[0] != "/" then path = file.child(file.curdir, path)
 	err = file.writeLines(path, _source)
 	if err == null then
 		globals._sourceFile = path
+		globals._sourceSaved = true
 		print _source.len + " line" + ("s" * (_source.len != 1)) + " saved to " + path
 	else
 		return err
 	end if
+end function
+
+run = function(path)
+	if path then
+		if not _checkSafeToLoad then return
+		if load(path, false) == null then return
+	end if
+	_run
 end function
 
 source = function(fromLine=0, toLine=-1)

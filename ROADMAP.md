@@ -19,7 +19,7 @@
 - ☑︎ comparisons and hashing of lists and maps are now much faster and smarter in cases where they contain reference cycles
 - ☑︎ added new `refEquals` intrinsic to test for reference (rather than value) equality
 - ☑︎ fix: loops in the `__isa` chain now throw a proper error instead of freezing the app.
-- ☑ fix: `a[3]` where `a` is `null` now reliably throws a runtime error.
+- ☑︎ fix: `a[3]` where `a` is `null` now reliably throws a runtime error.
 
 - **Command-line MiniScript v1.6**
   - ☑︎ on launch, adds MS_SCRIPT_DIR and MS_EXE_DIR to the environment variables, as well as MS_IMPORT_PATH if not already defined
@@ -78,7 +78,7 @@
 - ☑︎ Revised how PixelDisplay.drawImage does alpha blending to match industry standards.
 - ☑︎ `cd` now validates the given path, and refuses to change to an invalid path.
 - ☑︎ `"/"` is now a valid path (in cd, dir, etc.)
-- ☐ Make `edit` take an optional filename to `load`.  If you have unsaved changes, then tell the user to save or reset and bail out.  Consider same for `run`
+- ☑︎ The `edit` and `run` commands now take an optional filename to `load`.  If you have unsaved changes, the user is advised to `save` or `reset` and the operation is aborted.
 - ☐ BUG: Esc key does not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux, but does on Mac.
 - ☑︎ `key.axis`: added a `smoothed` parameter (default true), enabling raw (unsmoothed) inputs.
 - ☑︎ `Image.fromScreen` takes a screen shot, including all layers
@@ -92,7 +92,6 @@
 - ☑︎ Added `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
 - ☑︎ Added `sound.amp` to get the current amplitude of a playing sound (in the range 0-1, but typically closer to 0), enabling you to make a sort of graphic equalizer display, or do lip-syncing to speech, etc.
 - ☐ Make `view` show tiles and tile numbers if viewing the image assigned as the tileset of a current tile display, like [this](https://github.com/sebnozzi/minimicro-tilesetviewer)
-- ☐ Add a "Reveal in Finder" (or Explorer) option to disk slot menu.
 - **Code Editor**
   - ☑︎ Code editor uses a new custom font, including all special characters available in the text display.
   - ☐ increase scroll wheel speed in code editor -- should be ~1 line/click
