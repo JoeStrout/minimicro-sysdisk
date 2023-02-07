@@ -84,14 +84,24 @@ runUnitTests = function
 	dstr = "1971-10-29 01:23:45.678"
 	dval = val(dstr)
 	assertEqual dval, -889137374.322
-	assertEqual year(dval), 1971
-	assertEqual month(dstr), 10
-	assertEqual day(dval), 29
-	assertEqual hour(dstr), 1
-	assertEqual minute(dval), 23
-	assertEqual second(dstr), 45
-	assertEqual weekday(dval), 5  // (Friday)
-	
+
+	assertEqual dval, -889137375
+	assertEqual year(dval), 1971, "year (from val)"
+	assertEqual month(dval), 10, "month (from val)"
+	assertEqual day(dval), 29, "day (from val)"
+	assertEqual hour(dval), 1, "hour (from val)"
+	assertEqual minute(dval), 23, "minute (from val)"
+	assertEqual second(dval), 45, "second (from val)"
+	assertEqual weekday(dval), 5, "weekday (from val)"  // (Friday)
+
+	assertEqual year(dstr), 1971, "year (from str)"
+	assertEqual month(dstr), 10, "month (from str)"
+	assertEqual day(dstr), 29, "day (from str)"
+	assertEqual hour(dstr), 1, "hour (from str)"
+	assertEqual minute(dstr), 23, "minute (from str)"
+	assertEqual second(dstr), 45, "second (from str)"
+	assertEqual weekday(dstr), 5, "weekday (from str)"  // (Friday)
+		
 	nextDay = str(dval + 24*60*60)
 	assertEqual nextDay, "1971-10-30 01:23:46"
 	

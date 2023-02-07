@@ -24,11 +24,13 @@
 - **Command-line MiniScript v1.6**
   - ☑︎ on launch, adds MS_SCRIPT_DIR and MS_EXE_DIR to the environment variables, as well as MS_IMPORT_PATH if not already defined
   - ☑︎ new `import` intrinsic now searches directories in MS_IMPORT_PATH for the import module and imports them, just like Mini Micro
-  - ☐ binaries ship with a set of core libraries similar to /sys/lib in Mini Micro, including dateTime 
+  - ☑︎ binaries ship with a set of core libraries similar to /sys/lib in Mini Micro, including dateTime 
+  
 - **Documentation**
   - ☐ document `super` in the Quick Reference
   - ☐ document parsing edge case: `1-2` and `1 - 2` work as expected, but `1 -2` fails, seeing this as a call with an argument
   - ☐ document that mutating a list or map used as a map key produces undefined behavior
+  - ☐ document `refEquals` in the wiki and/or manual
   - ☐ document sound.adjust and all new APIs in Mini Micro Cheat Sheet
 
 ## Contents of /sys disk
@@ -86,11 +88,9 @@
 - ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
 - ☑︎ fixed: installing a PixelDisplay no longer resets its .color to white
 - ☑︎ fixed: f.readLine now returns `null` (instead of "") at end of file
-- ☐ replace the file browser with [this library](https://github.com/keiwando/nativefileso)
-- ☐ BUG: if you install a SolidColorDisplay and then remove it (by changing the mode on that display layer to something else), you can't install it again.
-- ☐ Add some way to lock the mouse cursor, e.g. for FPS games	
-- ☐ Add `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
-- ☐ Add some way to get the current amplitude of a playing sound (or if we want to get fancy: the amplitude within some frequency band), enabling you to make a graphic equalizer display, or do lip-syncing to speech, etc.
+- ☑︎ Added `mouse.locked` to lock the mouse cursor, e.g. for FPS games	
+- ☑︎ Added `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
+- ☑︎ Added `sound.amp` to get the current amplitude of a playing sound (in the range 0-1, but typically closer to 0), enabling you to make a sort of graphic equalizer display, or do lip-syncing to speech, etc.
 - ☐ Make `view` show tiles and tile numbers if viewing the image assigned as the tileset of a current tile display, like [this](https://github.com/sebnozzi/minimicro-tilesetviewer)
 - ☐ Add a "Reveal in Finder" (or Explorer) option to disk slot menu.
 - **Code Editor**
