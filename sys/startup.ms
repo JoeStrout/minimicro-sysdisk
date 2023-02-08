@@ -278,6 +278,32 @@ _viewImage = function(pic)
 	g.install 0
 	g.clear "#00000088"
 	g.drawImage pic, 480-pic.width/2, 320-pic.height/2
+	for dispLayer in range(0, 7)
+		d = display(dispLayer)
+		if d.mode != displayMode.tile then continue
+		if d.tileSet != pic then continue
+		// Draw the tile numbers!
+		if d.tileSetTileSize isa number then
+			tx = d.tileSetTileSize; ty = d.tileSetTileSize
+		else if d.tileSetTileSize isa list and len(d.tileSetTileSize == 2) then
+			tx = d.tileSetTileSize[0]; ty = d.tileSetTileSize[1]
+		else
+			continue
+		end if
+		columns = floor(pic.width / tx)
+		for col in range(0, columns - 1)
+			for row in range(0, floor(pic.height / ty) - 1)
+				x = 480-pic.width/2 + tx * col
+				y = 320+pic.height/2 - ty * (row + 1)
+				g.drawRect x, y, tx, ty, "#FF00FF88"
+				n = row * columns + col
+				x += tx*0.2; y += ty*0.2
+				g.print n, x+1, y-1, color.black, "small"
+				g.print n, x, y, color.fuchsia, "small"				
+			end for
+		end for
+		break
+	end for
 	print pic.width + " x " + pic.height + " image"
 	text.delimiter = ""
 	text.inverse = true
