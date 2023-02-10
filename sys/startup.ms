@@ -398,7 +398,7 @@ end function
 
 load = function(path, checkIfSafe=true)
 	if not path then
-		print "file name or path required"
+		print "file name or path is required"
 		return null
 	end if
 	if checkIfSafe and not _checkSafeToLoad then return
@@ -428,7 +428,7 @@ end function
 save = function(path)
 	if path == null then path = _sourceFile
 	if not path then
-		return "Filename not specified; unable to save"
+		return "filename not specified; unable to save"
 	end if
 	if path[-3:] != ".ms" then path = path + ".ms"
 	if path[0] != "/" then path = file.child(file.curdir, path)
@@ -519,11 +519,21 @@ welcome = function
 	text.color = color.gray
 	text.delimiter = _EOL
 	print "!"
-	text.color = "#444444"
-	print "(version " + version.host + ", " + version.buildDate + ")"
+	isPreview = version.host.indexOf("PREVIEW") != null
+	text.color = "#444444" * (not isPreview) + "#FFFF44" * isPreview
+	hostVers = "(version " + version.host + ", " + version.buildDate + ")"
+	print hostVers
 	text.color = color.gray
 	_printMark tip
 	print
+	if isPreview then
+		text.color = "#FFFF44"
+		print "This is a PREVIEW RELEASE of Mini Micro."
+		print "Some things may be broken; some demos are incomplete."
+		print "Use at your own risk.  And share what you find.  :)"
+		text.color = color.gray
+		print
+	end if
 	_printMark "Enter `help` for help."
 	text.color = color.orange
 	print
