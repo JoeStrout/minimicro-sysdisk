@@ -31,6 +31,7 @@ scrollWheelSpeed = 50
 //----------------------------------------------------------------------
 
 Image9Slice = {}
+Image9Slice._name = "Image9Slice"
 Image9Slice.image = null		// (an Image instance)
 Image9Slice.leftMargin = 0
 Image9Slice.bottomMargin = 0
@@ -132,8 +133,11 @@ images.sbNubsV = gfxSource.getImage(16, 160, 16, 16)
 
 
 //----------------------------------------------------------------------
-// General drawing functions
+// General drawing and utility functions
 //----------------------------------------------------------------------
+
+max = function(a,b); if a >= b then return a else return b; end function
+min = function(a,b); if a <= b then return a else return b; end function
 
 // Clear our off-screen "scratch" display, used for drawing or 
 // compositing things to create an image or sprite).
@@ -163,6 +167,7 @@ end function
 SB_THICKNESS = 16 //default thickness for any scrollbar
 
 Scrollbar = {}
+Scrollbar._name = "Scrollbar"
 Scrollbar.left = 0
 Scrollbar.bottom = 0
 Scrollbar.width = SB_THICKNESS
@@ -266,13 +271,21 @@ ScrollbarH.updateThumb = function
 	// Here are the somewhat tricky calculations for thumb size and position.
 	// First, the thumb size.  This reflects how much the pageSize is out
 	// of the total value range PLUS the pageSize.
+	if self.value < self.minValue then self.value = self.minValue
+	if self.value > self.maxValue then self.value = self.maxValue
 	valueRange = self.maxValue - self.minValue
-	size = round(self.width * (self.pageSize / (valueRange + self.pageSize)))
-	// Then, the position.  The leftmost end of the thumb reflects the 
-	// position of the current value within the range, as a fraction
-	// of our total width MINUS the thumb size.
-	frac = (self.value - self.minValue) / valueRange
-	thumbLeft = self.left + (self.width - size) * frac
+	if valueRange <= 0 then
+		// special case: scrollbar can't move at all; peg thumb at full size
+		size = self.width
+		thumbLeft = self.left
+	else
+		size = round(self.width * (self.pageSize / (valueRange + self.pageSize)))
+		// Then, the position.  The leftmost end of the thumb reflects the 
+		// position of the current value within the range, as a fraction
+		// of our total width MINUS the thumb size.
+		frac = (self.value - self.minValue) / valueRange
+		thumbLeft = self.left + (self.width - size) * frac
+	end if
 	// Now we can prepare the actual sprite
 	if self.thumbSprite.image == null or self.thumbSprite.image.width != size then
 		clearScratch size, SB_THICKNESS, color.clear
@@ -315,7 +328,7 @@ ScrollbarV.onClick = function
 		self.updateThumb
 	else if mouse.y > self.thumbSprite.y + thumbSize/2 then
 		// thumb up
-		self.value = mathUtil.clamp(self.value - downSign*pageSize, self.minValue, self.maxValue)
+		self.value = mathUtil.clamp(self.value - downSign*self.pageSize, self.minValue, self.maxValue)
 		self.updateThumb
 	else
 		// click on thumb -- start a drag
@@ -344,16 +357,24 @@ ScrollbarV.updateThumb = function
 	// Here are the somewhat tricky calculations for thumb size and position.
 	// First, the thumb size.  This reflects how much the pageSize is out
 	// of the total value range PLUS the pageSize.
+	if self.value < self.minValue then self.value = self.minValue
+	if self.value > self.maxValue then self.value = self.maxValue
 	valueRange = self.maxValue - self.minValue
-	size = round(self.height * (self.pageSize / (valueRange + self.pageSize)))
-	// Then, the position.  The bottom end of the thumb reflects the 
-	// position of the current value within the range, as a fraction
-	// of our total height MINUS the thumb size.
-	frac = (self.value - self.minValue) / valueRange
-	if self.topDown then
-		newx = self.top - (self.height - size) * frac - size/2	
+	if valueRange <= 0 then
+		// special case: scrollbar can't move at all; peg thumb at full size
+		size = self.height
+		newx = self.bottom + self.height/2
 	else
-		newx = self.bottom + (self.height - size) * frac + size/2
+		size = round(self.height * (self.pageSize / (valueRange + self.pageSize)))
+		// Then, the position.  The bottom end of the thumb reflects the 
+		// position of the current value within the range, as a fraction
+		// of our total height MINUS the thumb size.
+		frac = (self.value - self.minValue) / valueRange
+		if self.topDown then
+			newx = self.top - (self.height - size) * frac - size/2	
+		else
+			newx = self.bottom + (self.height - size) * frac + size/2
+		end if
 	end if
 	// Now we can prepare the actual sprite
 	if self.thumbSprite.image == null or self.thumbSprite.image.height != size then
@@ -372,10 +393,12 @@ end function
 // Window class and related methods
 //----------------------------------------------------------------------
 Window = new events.EventSprite
+Window._name = "Window"
 Window.dragMode = null
 Window.dragOffset = [0,0]  // (position of window relative to mouse)
 Window.contentImage = null
-Window.scrollX = 0; Window.scrollY = 0
+Window.scrollX = 0	// amount content is shifted left
+Window.scrollY = 0	// amount content is shifted DOWN from TOP
 Window.controls = null		// list of Sprites which are "children" of this window
 Window.contentSprite = null	// sprite representing window content
 Window.scrollbarH = null
@@ -396,16 +419,14 @@ Window.makeImage = function
 //	end if
 
 	if self.scrollbarH then
-		Scrollbar.drawTrack scratchDisp, 0, 0, self.scrollbarH.width, SB_THICKNESS
+		Scrollbar.drawTrack scratchDisp, 8, 8, self.scrollbarH.width, SB_THICKNESS
 	end if
-
+	if self.scrollbarV then
+		Scrollbar.drawTrack scratchDisp, 8 + self.width - SB_THICKNESS, 8 + SB_THICKNESS, 
+				SB_THICKNESS, self.scrollbarV.height
+	end if
+	
 	self.image = scratchDisp.getImage(0, 0, self.width+16, self.height+48)
-end function
-
-dump = function
-	for i in spriteDisp.sprites.indexes
-		print i + ". " + mapName(spriteDisp.sprites[i].__isa)
-	end for
 end function
 
 // Make a shadow image to go under the window sprite.
@@ -420,12 +441,15 @@ Window.updateContent = function
 	if self.contentSprite == null then
 		self.contentSprite = new Sprite
 		spriteDisp.sprites.push self.contentSprite
-	end if
-	self.contentSprite.x = self.x
-	self.contentSprite.y = self.y - 16
+	end if	
 	if self.contentImage then
-		self.contentSprite.image = self.contentImage.getImage(self.scrollX, self.scrollY,
-			self.width, self.height)
+		w = self.width  - SB_THICKNESS * (self.scrollbarV != null)
+		h = self.height - SB_THICKNESS * (self.scrollbarH != null)
+		self.contentSprite.image = self.contentImage.getImage(
+				self.scrollX, 
+				self.contentImage.height - h - self.scrollY, 
+				w, h)
+		self._positionContent
 	end if
 end function
 
@@ -435,6 +459,7 @@ Window.init = function(width, height, titleLeft, titleWidth, title)
 	self.title = title
 	self.titleWidth = titleWidth
 	self.titleLeft = titleLeft
+	self.controls = []
 	self.makeImage
 	
 	self.localBounds = new Bounds
@@ -465,19 +490,53 @@ end function
 
 Window.addScrollbars = function
 	self.scrollbarH = new ScrollbarH
-	self.scrollbarH.left = 0
-	self.scrollbarH.bottom = 0
+	window = self	// (just so it can be bound/accessible in the functions below)
+	self.scrollbarH.onValueChanged = function
+		window.scrollX = self.value
+		window.updateContent
+	end function
+	self.scrollbarV = new ScrollbarV
+	self.scrollbarV.onValueChanged = function
+		window.scrollY = self.value
+		window.updateContent
+	end function
+	self.updateScrollbars
+	self.scrollbarV.value = self.scrollbarV.maxValue
+	self.controls.push self.scrollbarH.thumbSprite
+	self.controls.push self.scrollbarV.thumbSprite
+	self.makeImage
+	self.updateContent
+end function
+
+Window.updateScrollbars = function
+	if not self.scrollbarH then return
+
+	contentWidth = self.contentImage.width
+	contentHeight = self.contentImage.height
+	visibleWidth = self.width - SB_THICKNESS
+	visibleHeight = self.height - SB_THICKNESS
+
+	self.scrollbarH.left = self.left
+	self.scrollbarH.bottom = self.bottom
 	self.scrollbarH.width = self.width - SB_THICKNESS
 	self.scrollbarH.height = SB_THICKNESS
-	self.scrollbarH.pageSize = 50
+	self.scrollbarH.maxValue = max(0, contentWidth - visibleWidth)
+	self.scrollbarH.pageSize = visibleWidth
+	self.scrollbarH.updateThumb
 	
-	self.makeImage
+	self.scrollbarV.left = self.right - SB_THICKNESS
+	self.scrollbarV.bottom = self.bottom + SB_THICKNESS
+	self.scrollbarV.width = SB_THICKNESS
+	self.scrollbarV.height = self.height - SB_THICKNESS
+	self.scrollbarV.maxValue = max(0, contentHeight - visibleHeight)
+	self.scrollbarV.pageSize = visibleHeight
+	self.scrollbarV.updateThumb
 end function
 
 Window.setContent = function(image, scrollIfNeeded=true)
 	self.contentImage = image
 	self.updateContent
-//	if scrollIfNeeded and not self.scrollbarH then self.addScrollbars
+	if scrollIfNeeded and not self.scrollbarH then self.addScrollbars
 end function
 
 Window.close = function
@@ -509,18 +568,22 @@ Window.partHit = function(xy)
 	return kPartFrame
 end function
 
+Window._positionContent = function
+	if not self.contentSprite then return
+	self.contentSprite.x = self.x - 16 + SB_THICKNESS/2 * (self.scrollbarV != null)
+	self.contentSprite.y = self.y - 16 + SB_THICKNESS/2 * (self.scrollbarH != null)
+end function
+
 Window.goTo = function(x, y)
 	self.x = x
 	self.y = y
 	extra = 6 * (self.dragMode == kDragMove)
 	self.shadow.x = x + 4 + extra
 	self.shadow.y = y - 4 - extra
-	if self.contentSprite then
-		self.contentSprite.x = self.x
-		self.contentSprite.y = self.y - 16
-	end if
+	self._positionContent
 	self.titleBounds.x = self.x - self.width/2 + self.titleLeft + self.titleWidth/2 - 8
 	self.titleBounds.y = self.y + self.height/2 + 8
+	self.updateScrollbars
 end function
 
 Window.resize = function(newWidth, newHeight)
@@ -529,15 +592,18 @@ Window.resize = function(newWidth, newHeight)
 	self.x = left + newWidth/2; self.y = top - newHeight/2
 	self.width = newWidth
 	self.height = newHeight
+	self.updateScrollbars
 	self.makeImage
 	self.shadow.image = self.makeShadow
 	self.shadow.x = self.x + 4
 	self.shadow.y = self.y - 4
 	self.localBounds.width = newWidth + 16
 	self.localBounds.height = newHeight + 16
+	self.updateContent
 end function
 
 Window.scroll = function(dx, dy)
+	// ToDo: this via scrollbars, if present.
 	self.scrollX = mathUtil.clamp(self.scrollX + dx, 0, self.contentImage.width - self.width)
 	self.scrollY = mathUtil.clamp(self.scrollY + dy, 0, self.contentImage.height - self.height)
 	self.updateContent
@@ -557,12 +623,20 @@ Window.moveToFront = function
 		spriteDisp.sprites.removeVal self.contentSprite
 		spriteDisp.sprites.push self.contentSprite
 	end if
-	// dim out all windows...
+	for ctl in self.controls
+		spriteDisp.sprites.removeVal ctl
+		spriteDisp.sprites.push ctl
+	end for
+	
+	// dim out all windows and controls...
 	for i in spriteDisp.sprites.indexes
 		spriteDisp.sprites[i].tint="#DDDDEE"
 	end for
 	//... and undim the frontmost one
-	spriteDisp.sprites[-1].tint="#FFFFFF"
+	self.tint="#FFFFFF"
+	for ctl in self.controls
+		ctl.tint = "#FFFFFF"
+	end for
 end function
 
 Window.isFrontmost = function
@@ -640,10 +714,16 @@ setupDisplays = function
 	spriteDisp.clear
 	events.spriteDisplay = spriteDisp
 	
+	display(3).mode = displayMode.text
+	text = display(3)
+	text.color = color.blue
+
 	display(2).mode = displayMode.pixel
 	outer.menuDisp = display(2)
 	menuDisp.clear color.clear, 960+16, 640+16
 	menuDisp.scrollX = 8; menuDisp.scrollY = 7
+	
+	
 end function
 
 
@@ -667,6 +747,8 @@ testWindows = function
 	globals.window3 = Window.make(200,200, 25, 150, "window3")
 	window3.goTo 150, 200
 	
+	window1.moveToFront
+	
 	events.eventLoop.onUpdate = function
 		wind = windowUnderMouse
 		s = "Window under mouse: "
@@ -682,7 +764,7 @@ testWindows = function
 end function
 
 testScrollbars = function
-// common to H or V
+	// common to H or V
 	setupDisplays
 	display(5).mode = displayMode.pixel
 	gfx = display(5)
@@ -702,7 +784,8 @@ testScrollbars = function
 	sbH.updateThumb
 
 	// instantiate a VSB
-	globals.sbV = new ScrollbarV //
+	globals.sbV = new ScrollbarV
+	sbV.topDown = false
 	sbV.left = 700 // x coordinate where the VSB starts
 	sbV.bottom = 116 // y coordinate
 	sbV.height = 500 // height of the VSB in pixels
@@ -717,6 +800,14 @@ testScrollbars = function
 	events.eventLoop.run
 end function
 
+// Temp method, for debugging
+listSprites = function
+	for i in spriteDisp.sprites.indexes
+		sp = spriteDisp.sprites[i]
+		print i + ". " + mapName(sp.__isa), ""
+		if sp isa Window then print " (" + sp.title + ")" else print
+	end for
+end function
 
 if locals == globals then
 	testWindows

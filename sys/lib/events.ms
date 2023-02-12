@@ -54,7 +54,7 @@ KeyHandler._check = function(owner)
 end function
 
 EventSprite = new Sprite
-
+EventSprite._name = "EventSprite"
 EventSprite.onKey = new KeyHandler
 EventSprite.onKeyDown = new KeyHandler
 EventSprite.onKeyDown.mode = 0
@@ -134,7 +134,7 @@ spriteHitBy = function(pos)
 	if spriteDisplay == null or not spriteDisplay.sprites then return null
 	for i in range(spriteDisplay.sprites.len-1)
 		sp = spriteDisplay.sprites[i]
-		if not sp isa map then continue
+		if not sp isa Sprite then continue
 		if sp.get("ignoreClicks", false) then continue
 		if sp.contains(pos) then return sp
 	end for

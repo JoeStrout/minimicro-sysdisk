@@ -219,16 +219,26 @@ _apiClassNames = {
 	TileDisplay:"TileDisplay",
 	Sound:"Sound" }
 
-mapName = function(map)
-	if map.hasIndex("_name") then return map._name
-	if _apiClassNames.hasIndex(map) then return _apiClassNames[map]
+mapName = function(m)
+	if not m isa map then return null
+	if m.hasIndex("_name") then return m._name
+	if _apiClassNames.hasIndex(m) then return _apiClassNames[m]
 	for kv in globals
-		if @kv.value == map then return @kv.key
+		if refEquals(@kv.value, m) then return @kv.key
 	end for
 	return null
 end function
 
-pprintToList = function(outList, obj, prefix="", indent=0, suffix="")
+list._refIndexOf = function(item)
+	i = 0; selfLen = self.len
+	while i < selfLen
+		if refEquals(self[i], @item) then return i
+		i += 1
+	end while
+	return null
+end function
+
+pprintToList = function(outList, obj, prefix="", indent=0, suffix="", alreadySeen=null)
 	s = str(@obj)
 	if @obj == null then s = "null"
 	if @obj isa funcRef then s = "function" + s[8:]
@@ -240,23 +250,34 @@ pprintToList = function(outList, obj, prefix="", indent=0, suffix="")
 		outList.push " "*indent + prefix + "..." + suffix
 		return
 	end if
+	if alreadySeen == null then alreadySeen = []
 	if @obj isa list then
 		outList.push " "*indent + prefix + "["
-		for i in obj.indexes
-			pprintToList outList, obj[i], "", indent + 4, "," * (i < obj.len-1)
-		end for
-		outList.push " "*indent + "]" + suffix
+		if alreadySeen._refIndexOf(@obj) != null then
+			outList[-1] += "...]"
+		else
+			alreadySeen.push @obj
+			for i in obj.indexes
+				pprintToList outList, obj[i], "", indent + 4, "," * (i < obj.len-1), alreadySeen
+			end for
+			outList.push " "*indent + "]" + suffix
+		end if
 	else if @obj isa map then
 		outList.push " "*indent + prefix + "{"
-		entries = []; for kv in obj; entries.push kv; end for
-		for i in entries.indexes
-			kv = entries[i]
-			value = null
-			if @kv.value isa map then value = mapName(@kv.value)
-			if value == null then value = @kv.value
-			pprintToList outList, @value, @kv.key + ": ", indent+4, "," * (i < entries.len-1)
-		end for
-		outList.push " "*indent + "}" + suffix
+		if alreadySeen._refIndexOf(@obj) != null then
+			outList[-1] += "...}"
+		else
+			alreadySeen.push @obj
+			entries = []; for kv in obj; entries.push kv; end for
+			for i in entries.indexes
+				kv = entries[i]
+				value = null
+				if @kv.value isa map then value = mapName(@kv.value)
+				if value == null then value = @kv.value
+				pprintToList outList, @value, @kv.key + ": ", indent+4, "," * (i < entries.len-1), alreadySeen
+			end for
+			outList.push " "*indent + "}" + suffix
+		end if
 	else
 		outList.push " "*indent + prefix + s + suffix
 	end if
@@ -320,11 +341,15 @@ end function
 
 view = function(path)
 	if not path then
-		print "file name or path is required"
+		print "Image or file name/path is required"
 		return
 	end if
 	if path isa Image then
 		_viewImage path
+		return
+	end if
+	if not path isa string then
+		print "Image or file name/path is required"
 		return
 	end if
 	info = file.info(path)
