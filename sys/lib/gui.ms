@@ -478,6 +478,14 @@ Window.init = function(width, height, titleLeft, titleWidth, title)
 	spriteDisp.sprites.push self.shadow
 	spriteDisp.sprites.push self
 	
+	if self.contentImage then
+		if self.contentImage.width > width or self.contentImage.height > height then
+			self.addScrollbars
+		else
+		self.updateContent
+		end if
+	end if
+	
 	self.moveToFront // a new window should always be frontmost
 end function
 
@@ -540,6 +548,10 @@ Window.setContent = function(image, scrollIfNeeded=true)
 end function
 
 Window.close = function
+	for ctl in self.controls
+		spriteDisp.sprites.removeVal ctl
+	end for
+	if self.contentSprite then spriteDisp.sprites.removeVal self.contentSprite
 	spriteDisp.sprites.removeVal self.shadow
 	spriteDisp.sprites.removeVal self
 end function
@@ -570,8 +582,16 @@ end function
 
 Window._positionContent = function
 	if not self.contentSprite then return
-	self.contentSprite.x = self.x - 16 + SB_THICKNESS/2 * (self.scrollbarV != null)
-	self.contentSprite.y = self.y - 16 + SB_THICKNESS/2 * (self.scrollbarH != null)
+	if self.scrollbarH then
+		self.contentSprite.x = self.x - 16 + SB_THICKNESS/2
+	else
+		self.contentSprite.x = self.x
+	end if
+	if self.scrollbarV then
+		self.contentSprite.y = self.y - 16 + SB_THICKNESS/2
+	else
+		self.contentSprite.y = self.y - 16
+	end if
 end function
 
 Window.goTo = function(x, y)
@@ -634,6 +654,7 @@ Window.moveToFront = function
 	end for
 	//... and undim the frontmost one
 	self.tint="#FFFFFF"
+	if self.contentSprite then self.contentSprite.tint="#FFFFFF"
 	for ctl in self.controls
 		ctl.tint = "#FFFFFF"
 	end for

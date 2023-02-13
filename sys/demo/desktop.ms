@@ -144,11 +144,6 @@ FileWindow.update = function
 	if not self.isFrontmost then return
 end function
 
-FileWindow.updateContent = function
-	self.contentImage = self.makeContentImage
-	self.makeImage
-end function
-
 FileWindow.onClick = function
 	self.moveToFront
 	if self.partHit(mouse) != gui.kPartContent then return super.onClick
@@ -316,8 +311,10 @@ end function
 gui.drawMenuBar
 rootWindow = FileWindow.make("/", 384, 128, 0, 80)
 rootWindow.goTo 200, 450
-//window2 = FileWindow.make("/sys/pics", 512, 350, 125, 150)
-//window2.goTo 600, 400
+
+window2 = FileWindow.make("/sys/pics", 512, 350, 125, 150)
+window2.goTo 600, 400
+
 //window3 = Window.make(200,200, 25, 150, "Accessory")
 //window3.goTo 750, 500
 

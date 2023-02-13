@@ -119,6 +119,7 @@ if locals == globals then
 	printAlign "figureAkimbo", figureAkimbo
 	printAlign "mu, pi, tau", mu + " " + pi + " " + tau
 	printAlign "bullet, ellipsis, degrees", [bullet, ellipsis, degrees].join
+	printAlign "copyright, registered", [copyright, registered].join
 	printAlign "tree", tree
 	printAlign "emptyBox", emptyBox
 	printAlign "checkedBox", checkedBox
