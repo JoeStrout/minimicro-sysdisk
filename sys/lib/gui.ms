@@ -19,6 +19,10 @@ kPartTitle = "kPartTitle"		// the window title bar
 kPartFrame = "kPartFrame"		// the window frame
 kPartResize = "kPartResize"		// the window resize box
 kPartContent = "kPartContent"	// the window content area
+// Drawing constants
+kScrollbarSize = 16				// default thickness for any scrollbar
+kMenuBarHeight = 24				// height of the menu bar at top of screen
+kMenuItemHeight = 20			// height of one item in a menu
 // Things that may become options some day
 selectionColor = "#CCCCFF"
 scrollWheelSpeed = 50
@@ -123,6 +127,11 @@ images.titleShadow = Image9Slice.make(gfxSource.getImage(80, 64, 96, 48), 32, 0,
 images.iconHighlight = gfxSource.getImage(192, 0, 80, 80)
 images.rounded4 = Image9Slice.make(gfxSource.getImage(280, 0, 32, 32), 8, 8, 8, 8)
 
+images.menuItem = Image9Slice.make(gfxSource.getImage(4, 251, 42, 12), 8, 0, 8, 0)
+images.menuSeparator = Image9Slice.make(gfxSource.getImage(52, 257-10, 42, 20), 8, 0, 8, 0)
+images.menuTop = Image9Slice.make(gfxSource.getImage(4, 263, 42, 4), 8, 0, 8, 0)
+images.menuBottom = Image9Slice.make(gfxSource.getImage(4, 240, 42, 10), 8, 0, 8, 0)
+
 // scrollbar parts (H = Horizontal, V = Vertical)
 images.sbTrackH = Image9Slice.make(gfxSource.getImage(32, 176, 32, 16), 8, 0, 8, 0)
 images.sbThumbH = Image9Slice.make(gfxSource.getImage(0, 176, 32, 16), 8, 0, 8, 0)
@@ -153,7 +162,7 @@ end function
 drawMenuBar = function
 	globals.gfx = menuDisp
 	y = 624
-	menuDisp.drawImage images.menuBar, 0, y, 960+16, 24
+	menuDisp.drawImage images.menuBar, 0, y, 960+16, kMenuBarHeight
 	x = 40
 	for title in ["File", "Edit", "Window", "Help"]
 		medFont.print title, x, y + 5, 1, color.black
@@ -161,17 +170,44 @@ drawMenuBar = function
 	end for
 end function
 
+// Draw a single menu item.
+// Usually this is a helper method for some bigger menu-handling routine.
+// Note that this does NOT draw a top or bottom; those have to be drawn
+// separately.  That's so you can have a whole series of these, and they
+// will join smoothly together.
+drawMenuItem = function(g, menuText, left, bottom, width=100, highlighted=false, disabled=false)
+	globals.gfx = g
+	// Shift X by 4 pixels, and increase width by 10, to account for shadow.
+	if menuText == "-" then img = images.menuSeparator else img = images.menuItem
+	img.draw g, left-4, bottom, width+10, kMenuItemHeight
+	if menuText == "-" then return
+	if disabled then
+		textColor = "#AAAAAA"
+	else if highlighted then
+		g.fillRect left+1, bottom, width-2, kMenuItemHeight, "#2222AA"
+		textColor = color.white
+	else
+		textColor = color.black
+	end if
+	if menuText != "-" then medFont.print menuText, left+6, bottom+4, 1, textColor
+end function
+
+// Draw the bottom of the menu.  Note that the third parameter is the bottom
+// of the bottommost menu item; we actually draw below that (border and shadow).
+drawMenuBottom = function(g, left, menuBottom, width=100)
+	h = images.menuBottom.image.height
+	images.menuBottom.draw g, left-4, menuBottom-h, width+10, h
+end function
+
 //----------------------------------------------------------------------
 // Scrollbar class and related methods and CONSTANTS
 //----------------------------------------------------------------------
-SB_THICKNESS = 16 //default thickness for any scrollbar
-
 Scrollbar = {}
 Scrollbar._name = "Scrollbar"
 Scrollbar.left = 0
 Scrollbar.bottom = 0
-Scrollbar.width = SB_THICKNESS
-Scrollbar.height = SB_THICKNESS
+Scrollbar.width = kScrollbarSize
+Scrollbar.height = kScrollbarSize
 Scrollbar.minValue = 0
 Scrollbar.maxValue = 100
 Scrollbar.value = 0
@@ -224,7 +260,7 @@ ScrollbarH.width = 100
 // Draw a horizontal scrollbar thumb to the given pixel display.
 ScrollbarH.drawThumb = function(g, x, y, width, tint="#FFFFFF")
 	if width < 16 then width = 16
-	images.sbThumbH.draw g, x, y, width, SB_THICKNESS, tint
+	images.sbThumbH.draw g, x, y, width, kScrollbarSize, tint
 	if width > 19 then
 		g.drawImage images.sbNubsH, x + ceil(width/2-8), y, -1, -1,
 		  0, 0, -1, -1, tint
@@ -288,12 +324,12 @@ ScrollbarH.updateThumb = function
 	end if
 	// Now we can prepare the actual sprite
 	if self.thumbSprite.image == null or self.thumbSprite.image.width != size then
-		clearScratch size, SB_THICKNESS, color.clear
+		clearScratch size, kScrollbarSize, color.clear
 		self.drawThumb scratchDisp, 0, 0, size
-		self.thumbSprite.image = scratchDisp.getImage(0, 0, size, SB_THICKNESS)
+		self.thumbSprite.image = scratchDisp.getImage(0, 0, size, kScrollbarSize)
 	end if
 	self.thumbSprite.x = thumbLeft + size/2
-	self.thumbSprite.y = self.bottom + SB_THICKNESS/2
+	self.thumbSprite.y = self.bottom + kScrollbarSize/2
 	self.thumbSprite.localBounds.x = self.left + self.width/2 - self.thumbSprite.x
 	self.onValueChanged
 end function
@@ -306,7 +342,7 @@ ScrollbarV.topDown = true
 // Draw a vertical scrollbar thumb to the given pixel display.
 ScrollbarV.drawThumb = function(g, x, y, height, tint="#FFFFFF")
 	if height < 16 then height = 16
-	images.sbThumbV.draw g, x, y, SB_THICKNESS, height, tint
+	images.sbThumbV.draw g, x, y, kScrollbarSize, height, tint
 	if height > 19 then
 		g.drawImage images.sbNubsV, x, y + ceil(height/2-8), -1, -1,
 		  0, 0, -1, -1, tint
@@ -378,11 +414,11 @@ ScrollbarV.updateThumb = function
 	end if
 	// Now we can prepare the actual sprite
 	if self.thumbSprite.image == null or self.thumbSprite.image.height != size then
-		clearScratch size, SB_THICKNESS, color.clear
+		clearScratch size, kScrollbarSize, color.clear
 		self.drawThumb scratchDisp, 0, 0, size
-		self.thumbSprite.image = scratchDisp.getImage(0, 0, SB_THICKNESS, size)
+		self.thumbSprite.image = scratchDisp.getImage(0, 0, kScrollbarSize, size)
 	end if
-	self.thumbSprite.x = self.left + SB_THICKNESS/2
+	self.thumbSprite.x = self.left + kScrollbarSize/2
 	self.thumbSprite.y = newx
 	self.thumbSprite.localBounds.y = self.bottom + self.height/2 - self.thumbSprite.y
 	self.onValueChanged
@@ -419,11 +455,11 @@ Window.makeImage = function
 //	end if
 
 	if self.scrollbarH then
-		Scrollbar.drawTrack scratchDisp, 8, 8, self.scrollbarH.width, SB_THICKNESS
+		Scrollbar.drawTrack scratchDisp, 8, 8, self.scrollbarH.width, kScrollbarSize
 	end if
 	if self.scrollbarV then
-		Scrollbar.drawTrack scratchDisp, 8 + self.width - SB_THICKNESS, 8 + SB_THICKNESS, 
-				SB_THICKNESS, self.scrollbarV.height
+		Scrollbar.drawTrack scratchDisp, 8 + self.width - kScrollbarSize, 8 + kScrollbarSize, 
+				kScrollbarSize, self.scrollbarV.height
 	end if
 	
 	self.image = scratchDisp.getImage(0, 0, self.width+16, self.height+48)
@@ -443,8 +479,8 @@ Window.updateContent = function
 		spriteDisp.sprites.push self.contentSprite
 	end if	
 	if self.contentImage then
-		w = self.width  - SB_THICKNESS * (self.scrollbarV != null)
-		h = self.height - SB_THICKNESS * (self.scrollbarH != null)
+		w = self.width  - kScrollbarSize * (self.scrollbarV != null)
+		h = self.height - kScrollbarSize * (self.scrollbarH != null)
 		self.contentSprite.image = self.contentImage.getImage(
 				self.scrollX, 
 				self.contentImage.height - h - self.scrollY, 
@@ -521,21 +557,21 @@ Window.updateScrollbars = function
 
 	contentWidth = self.contentImage.width
 	contentHeight = self.contentImage.height
-	visibleWidth = self.width - SB_THICKNESS
-	visibleHeight = self.height - SB_THICKNESS
+	visibleWidth = self.width - kScrollbarSize
+	visibleHeight = self.height - kScrollbarSize
 
 	self.scrollbarH.left = self.left
 	self.scrollbarH.bottom = self.bottom
-	self.scrollbarH.width = self.width - SB_THICKNESS
-	self.scrollbarH.height = SB_THICKNESS
+	self.scrollbarH.width = self.width - kScrollbarSize
+	self.scrollbarH.height = kScrollbarSize
 	self.scrollbarH.maxValue = max(0, contentWidth - visibleWidth)
 	self.scrollbarH.pageSize = visibleWidth
 	self.scrollbarH.updateThumb
 	
-	self.scrollbarV.left = self.right - SB_THICKNESS
-	self.scrollbarV.bottom = self.bottom + SB_THICKNESS
-	self.scrollbarV.width = SB_THICKNESS
-	self.scrollbarV.height = self.height - SB_THICKNESS
+	self.scrollbarV.left = self.right - kScrollbarSize
+	self.scrollbarV.bottom = self.bottom + kScrollbarSize
+	self.scrollbarV.width = kScrollbarSize
+	self.scrollbarV.height = self.height - kScrollbarSize
 	self.scrollbarV.maxValue = max(0, contentHeight - visibleHeight)
 	self.scrollbarV.pageSize = visibleHeight
 	self.scrollbarV.updateThumb
@@ -583,12 +619,12 @@ end function
 Window._positionContent = function
 	if not self.contentSprite then return
 	if self.scrollbarH then
-		self.contentSprite.x = self.x - 16 + SB_THICKNESS/2
+		self.contentSprite.x = self.x - 16 + kScrollbarSize/2
 	else
 		self.contentSprite.x = self.x
 	end if
 	if self.scrollbarV then
-		self.contentSprite.y = self.y - 16 + SB_THICKNESS/2
+		self.contentSprite.y = self.y - 16 + kScrollbarSize/2
 	else
 		self.contentSprite.y = self.y - 16
 	end if
@@ -710,6 +746,68 @@ end function
 
 
 //----------------------------------------------------------------------
+// Menu and MenuItem classes, and related methods
+//----------------------------------------------------------------------
+
+MenuItem = {}
+MenuItem.text = ""
+MenuItem.selected = false
+MenuItem.disabled = false
+
+MenuItem.make = function(text)
+	item = new MenuItem
+	item.text = text
+	return item
+end function
+
+MenuItem.draw = function(left, top, width)
+	drawMenuItem menuDisp, self.text, left, top - kMenuItemHeight, width, self.selected, self.disabled
+end function
+
+Menu = {}
+Menu.items = null		// list of MenuItem
+Menu.top = 0
+Menu.left = 0
+Menu.width = 200
+
+Menu.make = function(items, width=200)
+	menu = new Menu
+	menu.width = width
+	menu.items = items
+	for i in menu.items.indexes
+		if menu.items[i] isa string then
+			menu.items[i] = MenuItem.make(menu.items[i])
+		end if
+	end for
+	menu.top = 641 + menuDisp.scrollY - kMenuBarHeight
+	return menu
+end function
+
+Menu.draw = function
+	y = self.top
+	for item in self.items
+		item.draw self.left, y, self.width
+		y -= kMenuItemHeight
+	end for
+	drawMenuBottom menuDisp, self.left, y, self.width
+end function
+
+Menu.redrawItem = function(itemIndex)
+	yield
+	y = self.top - kMenuItemHeight * (itemIndex + 1)
+	menuDisp.fillRect self.left-4, y, self.width+10, kMenuItemHeight, color.clear
+	self.items[itemIndex].draw self.left, y + kMenuItemHeight, self.width
+end function
+
+Menu.flashItem = function(itemIndex, flashes=3)
+	for i in range(1, flashes*2)
+		self.items[itemIndex].selected = not self.items[itemIndex].selected
+		self.redrawItem itemIndex
+		wait 0.1
+	end for
+end function
+
+//----------------------------------------------------------------------
 // Setup functions
 //----------------------------------------------------------------------
 
@@ -821,6 +919,23 @@ testScrollbars = function
 	events.eventLoop.run
 end function
 
+testMenus = function
+	setupDisplays
+	drawMenuBar
+	
+	globals.menu = Menu.make(["Item One", "Second Item jg", "Item the Third", "-", "Disabled Item", "Last Item"])
+	menu.items[2].selected = true
+	menu.items[-2].disabled = true
+	menu.left = 100
+	menu.draw
+	
+	wait
+	menu.flashItem 2
+	
+	text.row = 4
+end function
+
+
 // Temp method, for debugging
 listSprites = function
 	for i in spriteDisp.sprites.indexes
@@ -831,6 +946,7 @@ listSprites = function
 end function
 
 if locals == globals then
-	testWindows
+//	testWindows
 //	testScrollbars
+	testMenus
 end if
