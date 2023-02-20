@@ -12,7 +12,8 @@ type does not have a `.reverse` method, but it does once you import
 "listUtil":
 
 `import "listUtil"`
-`print [1,2,3].reverse`  // prints [3, 2, 1]
+`x = [1,2,3]`
+`x.reverse`   // x is now [3, 2, 1]
 
 Be sure to `view` (or `load` and `edit`) the modules in `/sys/lib`
 to see what they do, and how they work!

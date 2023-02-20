@@ -1,7 +1,7 @@
 Attribution for Mini Micro /sys/pics images:
 
 
-Heart.png, Key.png, Gem.png: from Planet Cute art pack by Daniel Cook (Lostgarden.com).
+Heart.png, Key.png, Gem.png, Rock.png: from Planet Cute art pack by Daniel Cook (Lostgarden.com).
 
 cards, gamePieces: from Kenney's Board Game pack (www.kenney.nl) and OpenClipArt (openclipart.org).
 
