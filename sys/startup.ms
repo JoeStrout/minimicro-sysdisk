@@ -1,7 +1,7 @@
 _EOL = char(13)
 _TAB = char(9)
 
-_printMark = function(s, altColor="#008000")
+_printMark = function(s, altColor="#8888FF")
 	colors = [text.color, altColor]
 	which = 0
 	oldDelim = text.delimiter

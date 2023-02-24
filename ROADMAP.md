@@ -32,6 +32,7 @@
   - ☐ document that mutating a list or map used as a map key produces undefined behavior
   - ☐ document `refEquals` in the wiki and/or manual
   - ☐ document sound.adjust and all new APIs in Mini Micro Cheat Sheet
+  - ☐ document `funcRef` and other types in the manual
 
 ## Contents of /sys disk
 
@@ -64,6 +65,7 @@
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display
+- ☐ qa module: incorrectly returns "number" for `qa.typeOf {}`
 
 ## Mini Micro itself
 
@@ -92,7 +94,8 @@
 - ☑︎ Added `mouse.locked` to lock the mouse cursor, e.g. for FPS games	
 - ☑︎ Added `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
 - ☑︎ Added `sound.amp` to get the current amplitude of a playing sound (in the range 0-1, but typically closer to 0), enabling you to make a sort of graphic equalizer display, or do lip-syncing to speech, etc.
-- ☐ remove test characters currently at char(29) and char(30)
+- ☑︎ remove test characters currently at char(29) and char(30)
+- ☑︎ fix crash that occurs when setting gfx.scrollX to NaN
 - **Code Editor**
   - ☑︎ Code editor uses a new custom font, including all special characters available in the text display.
   - ☐ increase scroll wheel speed in code editor -- should be ~1 line/click
@@ -102,6 +105,7 @@
   - ☐ Home keypress or cmd-left: scroll all the way to the left (showing line numbers).
   - ☐ When opening different file, editor should reset to top left most position (including line-numbers) not previous position.
   - ☐ Add keyboard shortcut/navigation for the Navigate menu.
+  - ☐ Ensure we have the correct icon -- iOS icon is black and shiny; desktop icon is more plasticy looking
 - **Building & Packaging**
   - ☐ use IL2CPP on all platforms for faster executable
   - ☐ produce both Apple Silicon (M1/M2) and Intel builds for Mac
