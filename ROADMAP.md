@@ -105,12 +105,13 @@
   - ☐ Home keypress or cmd-left: scroll all the way to the left (showing line numbers).
   - ☐ When opening different file, editor should reset to top left most position (including line-numbers) not previous position.
   - ☐ Add keyboard shortcut/navigation for the Navigate menu.
-  - ☐ Ensure we have the correct icon -- iOS icon is black and shiny; desktop icon is more plasticy looking
+  - ☐ Consider adding a Dark mode.  (Or more generally: let users customize the colors via a map in env.)
 - **Building & Packaging**
   - ☐ use IL2CPP on all platforms for faster executable
   - ☐ produce both Apple Silicon (M1/M2) and Intel builds for Mac
   - ☐ code-sign the build for both Mac and Windows
   - ☐ release on Steam
+  - ☐ Ensure we have the correct icon -- iOS icon is black and shiny; desktop icon is more plasticy looking
 
 # Other Projects
 
