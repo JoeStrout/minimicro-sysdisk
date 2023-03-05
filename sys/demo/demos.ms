@@ -41,13 +41,20 @@ visual.push "sunset"
 visual.push "theMatrix"
 visual.push "turtleDemo"
 
-allPrograms = simple + visual + demos + games + ["(More...)"]
+more = "(More...)"
+
+allPrograms = simple + visual + demos + games + [more]
 selected = allPrograms[0]
 
 text.delimiter = char(13)
 
+button = function(caption)
+	return chars.inverseOn + chars.buttonCapLeft + caption + 
+		chars.buttonCapRight + chars.inverseOff
+end function
+
 drawList = function
-	text.row = 25
+	text.row = 25; text.column = 0
 	for pgm in allPrograms
 		print "  ", ""
 		s = "  " + pgm.pad(15)
@@ -87,9 +94,9 @@ showMore = function
 end function
 
 drawProgram = function
-	if selected == "(More...)" then return showMore
+	if selected == more then return showMore
 	gfx.clear
-	textUtil.clearRect 20, 0, 48, 26, " "
+	textUtil.clearRect 20, 2, 48, 24, " "
 	path = "/sys/demo/" + selected + ".ms"
 	src = file.readLines(path)
 	y = 600
@@ -112,6 +119,23 @@ drawProgram = function
 		end if
 	end for
 	gfx.print "(" + src.len + " lines)", x, y, color.blue, "small"
+end function
+
+drawHelp = function
+	oldColor = text.color
+	text.color = "#444444"
+	text.row = 1; text.column = 0
+	print "Press " + button(chars.up) + "/" + button(chars.down) + " to select,"
+	if selected != more then
+		if env.device.platform.upper == "MACOS" then
+			print button("Return"), ""
+		else
+			print button("Enter"), ""
+		end if
+		print " to run, ", ""
+	end if
+	print button("Esc") + " to exit" + " "*20, ""
+	text.color = oldColor
 end function
 
 keySound = new Sound
@@ -145,8 +169,10 @@ showCommand = function(cmd)
 end function
 
 runProgram = function(program)
+	if selected == more then return
 	path = "/sys/demo/" + program
-	text.row = 2
+	textUtil.clearRect 0, 0, 60, 2, " "
+	text.row = 2; text.column = 0
 	if not showCommand("load """ + path + """") or
 	   not showCommand("run") then return false
 	load path; clear; run
@@ -181,6 +207,7 @@ print
 clear
 drawList
 drawProgram
+drawHelp
 env.autorun = false
 while true
 	k = key.get
@@ -191,15 +218,17 @@ while true
 		idx = (idx + allPrograms.len + 1) % allPrograms.len
 	else if k.code == 10 or k.code == 13 then
 		runProgram selected
-	else if k == "a" then
+	else if k == "a" or k == "A" then
 		env.autorun = ""
 		autorunNext
 	else if k.code == 27 then
 		text.row = 1
 		env.autorun = false
+		env.shell = ""
 		exit
 	end if
 	selected = allPrograms[idx]
 	drawList
 	drawProgram
+	drawHelp
 end while

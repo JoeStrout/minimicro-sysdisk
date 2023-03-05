@@ -56,16 +56,16 @@
   - preview of images, sounds, and text files
   - launch of program files
 - ☐ /sys/demo/minitracker: a music player for MOD files (based on [this](https://github.com/JoeStrout/minitracker))
+- ☐ /sys/data/music: contains several MOD files for use with minitracker
 - ☐ /sys/demo/synth: an editor for synthesized sounds
 - ☐ /sys/demo/TD: a tower defense game
-- ☐ /sys/data/music: contains several MOD files for use with minitracker
-- ☐ /sys/data/dailyPractice: loads challenges from [here](https://github.com/JoeStrout/daily-miniscript) and keeps track (in /usr/data) of which ones you've completed
+- ☐ /sys/demo/dailyPractice: loads challenges from [here](https://github.com/JoeStrout/daily-miniscript) and keeps track (in /usr/data) of which ones you've completed
 - ☑︎ /sys/fonts folder of built-in fonts
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display
-- ☐ qa module: incorrectly returns "number" for `qa.typeOf {}`
+- ☑ qa module: now correctly returns "map" for `qa.typeOf {}`
 
 ## Mini Micro itself
 
@@ -82,11 +82,11 @@
 - ☑︎ `cd` now validates the given path, and refuses to change to an invalid path.
 - ☑︎ `"/"` is now a valid path (in cd, dir, etc.)
 - ☑︎ The `edit` and `run` commands now take an optional filename to `load`.  If you have unsaved changes, the user is advised to `save` or `reset` and the operation is aborted.
-- ☐ BUG: Esc key does not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux, but does on Mac.
+- ☑︎ Fixed: Esc key did not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux.
 - ☑︎ `key.axis`: added a `smoothed` parameter (default true), enabling raw (unsmoothed) inputs.
 - ☑︎ `Image.fromScreen` takes a screen shot, including all layers
 - ☑︎ `Image.flip` and `Image.rotate` (in 90° increments)
-- ☑︎ `key.put` allows you to enqueue a string or single character by code point into the keyboard buffer
+- ☑︎ `key.put` allows you to enqueue a string, or single character by code point, into the keyboard buffer
 - ☑︎ fixed: assigning to the `freq`, `duration`, etc. of a synthesized sound while it is playing now stops it, rather than leaving it orphaned and uncontrollable
 - ☑︎ fixed the default value of `mode` for `file.open` (now "r+")
 - ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
@@ -99,6 +99,7 @@
 - ☑︎ fix crash that occurs when setting gfx.scrollX to NaN
 - **Code Editor**
   - ☑︎ Code editor uses a new custom font, including all special characters available in the text display.
+  - ☑︎ Added customizable editor colors, via the `env.editorColors` map.
   - ☐ increase scroll wheel speed in code editor -- should be ~1 line/click
   - ☐ code editor autocomplete should include any identifiers (found as parameters, and assignments in local and global scope)
   - ☐ make sure the code editor shows the unknown-character glyph for unknown chars, rather than just blank, on all platforms
@@ -106,13 +107,11 @@
   - ☐ Home keypress or cmd-left: scroll all the way to the left (showing line numbers).
   - ☐ When opening different file, editor should reset to top left most position (including line-numbers) not previous position.
   - ☐ Add keyboard shortcut/navigation for the Navigate menu.
-  - ☐ Consider adding a Dark mode.  (Or more generally: let users customize the colors via a map in env.)
 - **Building & Packaging**
   - ☐ use IL2CPP on all platforms for faster executable
   - ☐ produce both Apple Silicon (M1/M2) and Intel builds for Mac
   - ☐ code-sign the build for both Mac and Windows
   - ☐ release on Steam
-  - ☐ Ensure we have the correct icon -- iOS icon is black and shiny; desktop icon is more plasticy looking
 
 # Other Projects
 

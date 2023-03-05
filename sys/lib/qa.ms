@@ -86,7 +86,9 @@ typeOf = function(value)
 	if value isa map then
 		mapType = value
 		if value.hasIndex("__isa") then mapType = value.__isa
-		if namedMaps.hasIndex(mapType) then return namedMaps[mapType]
+		for kv in namedMaps
+			if refEquals(kv.key, mapType) then return kv.value
+		end for
 		return "map"
 	end if
 	return "unknown"
