@@ -36,7 +36,7 @@
 
 ## Contents of /sys disk
 
-- ☐ /sys/demo/demos: presents menu of demos, and includes an auto-run ("screen saver" or "attract mode") feature that auto-runs several of the smaller demos; also shows you how to load and run these manually
+- ☑︎ /sys/demo/demos: presents menu of demos, and includes an auto-run ("screen saver" or "attract mode") feature that auto-runs several of the smaller demos; also shows you how to load and run these manually
 - ☐ New `demos`, `desktop`, and `lcars` commands load and run the respective shells
 - ☑︎ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
 - ☐ /sys/demo/desktop: a GUI shell
@@ -55,11 +55,6 @@
   - copy, move, rename, delete files
   - preview of images, sounds, and text files
   - launch of program files
-- ☐ /sys/demo/minitracker: a music player for MOD files (based on [this](https://github.com/JoeStrout/minitracker))
-- ☐ /sys/data/music: contains several MOD files for use with minitracker
-- ☐ /sys/demo/synth: an editor for synthesized sounds
-- ☐ /sys/demo/TD: a tower defense game
-- ☐ /sys/demo/dailyPractice: loads challenges from [here](https://github.com/JoeStrout/daily-miniscript) and keeps track (in /usr/data) of which ones you've completed
 - ☑︎ /sys/fonts folder of built-in fonts
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support

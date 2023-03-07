@@ -158,38 +158,31 @@ clearScratch = function(width=256, height=256, color="#FFFFFF")
 	end if
 end function
 
-// Draw a menu bar.
-drawMenuBar = function
-	globals.gfx = menuDisp
-	y = 624
-	menuDisp.drawImage images.menuBar, 0, y, 960+16, kMenuBarHeight
-	x = 40
-	for title in ["File", "Edit", "Window", "Help"]
-		medFont.print title, x, y + 5, 1, color.black
-		x = x + medFont.width(title) + 20
-	end for
-end function
-
 // Draw a single menu item.
 // Usually this is a helper method for some bigger menu-handling routine.
 // Note that this does NOT draw a top or bottom; those have to be drawn
 // separately.  That's so you can have a whole series of these, and they
 // will join smoothly together.
 drawMenuItem = function(g, menuText, left, bottom, width=100, highlighted=false, disabled=false)
-	globals.gfx = g
 	// Shift X by 4 pixels, and increase width by 10, to account for shadow.
 	if menuText == "-" then img = images.menuSeparator else img = images.menuItem
 	img.draw g, left-4, bottom, width+10, kMenuItemHeight
+	drawMenuItemText g, menuText, left, bottom, width, kMenuItemHeight, highlighted, disabled
+end function
+
+drawMenuItemText = function(g, menuText, left, bottom, width, height, highlighted=false, disabled=false)
 	if menuText == "-" then return
+	globals.gfx = g
 	if disabled then
 		textColor = "#AAAAAA"
 	else if highlighted then
-		g.fillRect left+1, bottom, width-2, kMenuItemHeight, "#2222AA"
+		g.fillRect left+1, bottom, width-2, height, "#2222AA"
 		textColor = color.white
 	else
 		textColor = color.black
 	end if
-	if menuText != "-" then medFont.print menuText, left+6, bottom+4, 1, textColor
+	y = bottom + 2 + round((height-16)/2)
+	if menuText != "-" then medFont.print menuText, left+6, y, 1, textColor
 end function
 
 // Draw the bottom of the menu.  Note that the third parameter is the bottom
@@ -753,6 +746,7 @@ MenuItem = {}
 MenuItem.text = ""
 MenuItem.selected = false
 MenuItem.disabled = false
+MenuItem.submenu = null
 
 MenuItem.make = function(text)
 	item = new MenuItem
@@ -762,6 +756,16 @@ end function
 
 MenuItem.draw = function(left, top, width)
 	drawMenuItem menuDisp, self.text, left, top - kMenuItemHeight, width, self.selected, self.disabled
+end function
+
+MenuItem.openSubmenu = function(asTopLevelMenu = false)
+	if self.submenu == null then return false
+	if asTopLevelMenu then
+		self.submenu.left = self.left
+	else
+		self.submenu.left = self.left + self.width
+	end if
+	self.submenu.draw
 end function
 
 Menu = {}
@@ -806,6 +810,67 @@ Menu.flashItem = function(itemIndex, flashes=3)
 		wait 0.1
 	end for
 end function
+
+Menubar = new Menu
+Menubar.draw = function
+	x = 40; y = 624
+	menuDisp.drawImage images.menuBar, 0, y, 960+16, kMenuBarHeight
+	for item in self.items
+		itemWidth = medFont.width(item.text) + 20
+		drawMenuItemText menuDisp, item.text, x, y, itemWidth, kMenuBarHeight, item.selected, item.disabled
+		item.left = x
+		item.width = itemWidth
+		x = x + itemWidth
+	end for
+end function
+
+Menubar.make = function(items)
+	bar = new Menubar
+	bar.width = 960
+	bar.top = 640
+	bar.items = items
+	for i in bar.items.indexes
+		if bar.items[i] isa string then
+			bar.items[i] = MenuItem.make(bar.items[i])
+		end if
+	end for
+	return bar
+end function
+
+Menubar.itemAtPoint = function(point)
+	if point.y < 640 - kMenuBarHeight then return
+	for item in self.items
+		if point.x >= item.left and point.x < item.left + item.width then return item
+	end for
+end function
+
+Menubar.handleClick = function
+	selectedMenu = self.itemAtPoint(mouse)
+	if selectedMenu == null then return
+	selectedMenu.selected = true
+	selectedMenu.openSubmenu true
+	self.draw
+	mouseDownTime = time
+	while true
+		yield
+		newMenu = self.itemAtPoint(mouse)
+		if newMenu == selectedMenu or (newMenu == null and not mouse.button) then continue
+		menuDisp.fillRect 0, 0, 640-kMenuBarHeight, 960, color.clear
+		if selectedMenu then selectedMenu.selected = false
+		selectedMenu = newMenu
+		if selectedMenu then
+			selectedMenu.selected = true
+			selectedMenu.openSubmenu true
+		end if
+		self.draw
+	end while
+end function
+
+Menubar.installHandlers = function
+	mb = self
+	events.eventLoop.onClick = function; mb.handleClick; end function
+end function
+
 
 //----------------------------------------------------------------------
 // Setup functions
@@ -921,16 +986,22 @@ end function
 
 testMenus = function
 	setupDisplays
-	drawMenuBar
+	globals.menubar = Menubar.make(["File", "Edit", "Window", "Help"])
+	menubar.draw
+
+	menu = Menu.make(["New Window", "Close Window", "-", "Exit to Shell"])
+	menu.items[1].disabled = true
+	menubar.items[0].submenu = menu
 	
-	globals.menu = Menu.make(["Item One", "Second Item jg", "Item the Third", "-", "Disabled Item", "Last Item"])
-	menu.items[2].selected = true
+	menu = Menu.make(["Item One", "Second Item jg", "Item the Third", "-", "Disabled Item", "Last Item"])
 	menu.items[-2].disabled = true
-	menu.left = 100
-	menu.draw
+	menubar.items[1].submenu = menu
 	
-	wait
-	menu.flashItem 2
+	menu = Menu.make(["Help You", "Help Me", "Self Help"])
+	menubar.items[-1].submenu = menu
+		
+	menubar.installHandlers
+	events.eventLoop.run
 	
 	text.row = 4
 end function

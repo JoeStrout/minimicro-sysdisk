@@ -308,7 +308,9 @@ end function
 // Main program
 //----------------------------------------------------------------------
 
-gui.drawMenuBar
+menubar = gui.Menubar.make(["File", "Edit", "Window", "Help"])
+menubar.draw
+
 rootWindow = FileWindow.make("/", 384, 128, 0, 80)
 rootWindow.goTo 200, 450
 
