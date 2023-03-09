@@ -747,6 +747,7 @@ MenuItem.text = ""
 MenuItem.selected = false
 MenuItem.disabled = false
 MenuItem.submenu = null
+MenuItem.action = null	// function invoked for this menu item
 
 MenuItem.make = function(text)
 	item = new MenuItem
@@ -765,6 +766,7 @@ MenuItem.openSubmenu = function(asTopLevelMenu = false)
 	else
 		self.submenu.left = self.left + self.width
 	end if
+	for item in self.submenu.items; item.selected = false; end for
 	self.submenu.draw
 end function
 
@@ -773,6 +775,11 @@ Menu.items = null		// list of MenuItem
 Menu.top = 0
 Menu.left = 0
 Menu.width = 200
+Menu.selectedItem = null	// (currently open submenu, if any)
+Menu.selectedMenu = function
+	if self.selectedItem == null then return null
+	return self.selectedItem.submenu
+end function
 
 Menu.make = function(items, width=200)
 	menu = new Menu
@@ -796,6 +803,19 @@ Menu.draw = function
 	drawMenuBottom menuDisp, self.left, y, self.width
 end function
 
+Menu.selectItem = function(item)
+	if item == self.selectedItem then return
+	if self.selectedItem then
+		self.selectedItem.selected = false
+		self.redrawItem self.items.indexOf(self.selectedItem)
+	end if
+	if item then
+		item.selected = true
+		self.redrawItem self.items.indexOf(item)
+	end if
+	self.selectedItem = item
+end function
+
 Menu.redrawItem = function(itemIndex)
 	yield
 	y = self.top - kMenuItemHeight * (itemIndex + 1)
@@ -807,8 +827,31 @@ Menu.flashItem = function(itemIndex, flashes=3)
 	for i in range(1, flashes*2)
 		self.items[itemIndex].selected = not self.items[itemIndex].selected
 		self.redrawItem itemIndex
-		wait 0.1
+		wait 0.05
 	end for
+end function
+
+Menu.invokeSelectedItem = function
+	if not self.selectedItem then return
+	self.flashItem self.items.indexOf(self.selectedItem)
+	if @self.selectedItem.action == null then
+		print
+		print "No action defined for: " + self.selectedItem.text
+	else
+		self.selectedItem.action
+	end if
+end function
+
+
+Menu.itemAtPoint = function(point)
+	if point.x < self.left or point.x > self.left + self.width then return null
+	y = self.top
+	if point.y > y then return null
+	for item in self.items
+		y -= kMenuItemHeight
+		if point.y > y then return item
+	end for
+	return null
 end function
 
 Menubar = new Menu
@@ -844,25 +887,66 @@ Menubar.itemAtPoint = function(point)
 	end for
 end function
 
-Menubar.handleClick = function
-	selectedMenu = self.itemAtPoint(mouse)
-	if selectedMenu == null then return
-	selectedMenu.selected = true
-	selectedMenu.openSubmenu true
+Menubar.trackMouse = function
+	if mouse.y > 640-kMenuBarHeight then
+		// track mouse over the menu bar
+		newMenu = self.itemAtPoint(mouse)
+		if newMenu == self.selectedItem or (newMenu == null and not mouse.button) then return
+		self.openMenu newMenu
+	else if self.selectedItem then
+		// track mouse below the menu bar, maybe in the open menu
+		menu = self.selectedMenu
+		if menu == null then return
+		menu.selectItem menu.itemAtPoint(mouse)
+	end if
+end function
+
+Menubar.openMenu = function(menu)
+	if self.selectedItem then 
+		self.selectedItem.selected = false
+		menuDisp.fillRect 0, 0, 640-kMenuBarHeight, 960, color.clear
+	end if
+	self.selectedItem = menu
+	if menu then
+		menu.selected = true
+		menu.openSubmenu true
+	end if
 	self.draw
+end function
+		
+Menubar.handleMouseUp = function
+	if self.selectedItem then
+		menu = self.selectedMenu
+		if menu and menu.selectedItem then
+			menu.invokeSelectedItem
+		end if
+		self.openMenu null
+	end if
+end function
+
+Menubar.handleClick = function
+	menu = self.itemAtPoint(mouse)
+	if menu == null then return
+	self.openMenu menu
+	// Start tracking the mouse.  Take action on a mouse-up that occurs
+	// after some brief threshold amount of time after the *initial*
+	// mouse-down.
 	mouseDownTime = time
+	mouseWasDown = true
 	while true
 		yield
-		newMenu = self.itemAtPoint(mouse)
-		if newMenu == selectedMenu or (newMenu == null and not mouse.button) then continue
-		menuDisp.fillRect 0, 0, 640-kMenuBarHeight, 960, color.clear
-		if selectedMenu then selectedMenu.selected = false
-		selectedMenu = newMenu
-		if selectedMenu then
-			selectedMenu.selected = true
-			selectedMenu.openSubmenu true
+		self.trackMouse
+		if mouseWasDown and not mouse.button then
+			// ignore a mouse-up if it comes too quickly after initial mouse-down;
+			// otherwise, act on it
+			if time - mouseDownTime > 0.5 then
+				self.handleMouseUp
+				return
+			end if
+			mouseWasDown = false
+		else if mouse.button then
+			mouseWasDown = true
 		end if
-		self.draw
 	end while
 end function
 
@@ -991,6 +1075,7 @@ testMenus = function
 
 	menu = Menu.make(["New Window", "Close Window", "-", "Exit to Shell"])
 	menu.items[1].disabled = true
+	menu.items[-1].action = function; menubar.openMenu; exit; end function
 	menubar.items[0].submenu = menu
 	
 	menu = Menu.make(["Item One", "Second Item jg", "Item the Third", "-", "Disabled Item", "Last Item"])
