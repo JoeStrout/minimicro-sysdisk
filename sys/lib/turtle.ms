@@ -8,6 +8,8 @@ Turtle.displayNum = 4
 Turtle.penDown = true
 Turtle.penSize = 1
 Turtle.color = color.white
+Turtle.fillColor = color.white
+Turtle._fillPoints = null
 
 Turtle.updateSprite = function
 	if not self.hasIndex("sprite") then return
@@ -55,12 +57,14 @@ Turtle.goTo = function(x,y)
 	end if
 	self.x = x
 	self.y = y
+	if self._fillPoints isa list then self._fillPoints.push [x,y]
 	self.updateSprite
 end function
 
 Turtle.jumpTo = function(x,y)
 	self.x = x
 	self.y = y
+	if self._fillPoints isa list then self._fillPoints.push [x,y]
 	self.updateSprite
 end function
 
@@ -82,6 +86,34 @@ Turtle.left = function(degrees)
 	self.right -degrees
 end function
 
+Turtle.circle = function(radius, extent=360, steps=null)
+	circleFrac = abs(extent) / 360
+	pathLen = 2*pi*radius * circleFrac
+	if steps == null then
+		steps = ceil(pathLen / 10)
+		steps2 = ceil(36 * circleFrac)
+		if steps2 > steps then steps = steps2
+	end if
+	radians = (self.heading + 90 * sign(extent)) * pi/180
+	cx = self.x + radius * cos(radians); cy = self.y + radius * sin(radians)
+	baseAng = radians - pi
+	dAng = extent / steps * pi/180
+	for i in range(1, steps)
+		ang = baseAng + i*dAng
+		self.goTo cx + radius * cos(ang), cy + radius * sin(ang)
+	end for
+	self.heading += extent
+end function
+
+Turtle.beginFill = function
+	self._fillPoints = [[self.x,self.y]]
+end function
+
+Turtle.endFill = function
+	if self._fillPoints then gfx.fillPoly self._fillPoints, self.fillColor
+	self._fillPoints = null
+end function
+
 demo = function
 	Turtle.jumpTo gfx.width/2, gfx.height/2
 	Turtle.color = color.yellow
@@ -96,6 +128,24 @@ demo = function
 		Turtle.left 135
 		Turtle.forward 40
 		Turtle.right 105
+	end for
+end function
+
+demo2 = function
+	Turtle.jumpTo gfx.width/2, gfx.height/2 - 50
+	Turtle.penSize = 2
+	for j in range(24)
+		for i in range(14)
+			Turtle.color = color.hsv(255*i/15, 255*j/25, 255)
+			Turtle.right 90
+			Turtle.circle 200-j*4, 90
+			
+			Turtle.left 90
+			Turtle.circle 200-j*4, 90
+			
+			Turtle.right 180
+			Turtle.circle 50, 24
+		end for
 	end for
 end function
 

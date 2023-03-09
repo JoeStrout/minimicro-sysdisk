@@ -108,6 +108,9 @@ end function
 color.rgba = function(r, g, b, a)
 	return "#" + hex2(r) + hex2(g) + hex2(b) + hex2(a)
 end function
+color.hsv = function(h, s, v, a=255)
+	return _HSVAtoColor([h, s, v, a])
+end function
 color.lerp = function(colorA, colorB, t=0.5)
 	return _lerpColor(colorA, colorB, t)
 end function
