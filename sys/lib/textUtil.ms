@@ -275,11 +275,16 @@ Dialog.make = function(title="", message="Your message here.")
 	return dlog
 end function
 
+Dialog.top = function; return 11 + ceil(self.height/2); end function
+Dialog.bottom = function; return 12 - floor(self.height/2); end function
+Dialog.left = function; return 34 - floor(self.width/2); end function
+Dialog.right = function; return 33 + ceil(self.width/2); end function
+
 // Helper function to draw the dialog and return the button instances.
 // Most user code will not call this directly; call Dialog.show instead.
 Dialog.draw = function	
-	rows = range(12 - floor(self.height/2), 11 + ceil(self.height/2))
-	cols = range(34 - floor(self.width/2), 33 + ceil(self.width/2))
+	rows = range(self.bottom, self.top)
+	cols = range(self.left, self.right)
 	
 	text.delimiter = char(13)
 	text.row = 12 + ceil(self.height/2)
@@ -375,67 +380,72 @@ Dialog.show = function(timeout=null)
 end function
 
 // FileDialog: a Dialog subclass specialized for picking a folder or file.
+// It's a three-column layout: the middle column (1) always contains the
+// selection; column 0 is the directory containing the selection (or "root");
+// and column 2 is a preview of the contents of the selected file/directory.
 FileDialog = new Dialog
 FileDialog.width = 50
-FileDialog.columns = 3
 FileDialog.listTextColor = "#AAAAFF"
 FileDialog.listBackColor = "#222222"
 FileDialog.curDirBackColor = "#444466"
 FileDialog.selTextColor = "#000044"
 FileDialog.selBackColor = "#FFFF00"
+FileDialog.directoryIcon = "/"
+FileDialog.playingSound = null
+FileDialog.origDisp0 = null
 
-FileDialog.make = function(title="Select file")
+FileDialog.make = function(title="Select file", width=null)
 	dlog = Dialog.make(title)
 	dlog.__isa = FileDialog
 	dlog.height = 18
 	dlog.cancelBtn.visible = true
-	dlog.directory = file.curdir
-	dlog.selection = file.curdir - "/"
-//	children = file.children(dlog.directory)
-//	if children then dlog.selection = file.child(dlog.selection, children[0])
-	dlog.colInfo = {}	// map of left, top, files, etc.
+	dlog.selection = file.children(file.curdir)[0]
+	dlog.files = []
+	dlog.directory = file.parent(dlog.selection)
+	if width != null then self.width = width
+	dlog.colWidth = []
+	dlog.colWidth.push floor((dlog.width-4)/3)
+	dlog.colWidth.push dlog.colWidth[0]
+	dlog.colWidth.push dlog.width - 6 - dlog.colWidth[0]*2
+	dlog.colLeft = [dlog.left+2]
+	dlog.colLeft.push dlog.colLeft[0] + 1 + dlog.colWidth[0]
+	dlog.colLeft.push dlog.colLeft[1] + 1 + dlog.colWidth[1]
+	dlog.files = FileDialog.getFileInfoForDir(dlog.directory)
+	dlog.selIdx = 0
 	return dlog
 end function
 
-FileDialog.loadColumn = function(colNum, dirPath, width)
-	info = {}
-	self.colInfo[colNum] = info
-	info.left = text.column
-	info.top = text.row
-	info.width = width
-	info.dirPath = dirPath
-	info.selIdx = null
-	if dirPath == null then
-		files = null
-	else
-		// load file info (path, isDirectory, etc.) for all files in this directory
-		files = file.children(dirPath)
-		for i in files.indexes
-			files[i] = file.info(file.child(dirPath, files[i]))
-			files[i].name = file.name(files[i].path)
-			if self.selection.startsWith(files[i].path) then info.selIdx = i
-		end for
+FileDialog.select = function(path)
+	self.selection = path
+	dir = file.parent(path)
+	if dir != self.directory then
+		self.directory = dir
+		self.drawCurDir
+		self.drawParentDir
+		self.files = FileDialog.getFileInfoForDir(self.directory)		
 	end if
-	info.files = files
-	self.drawColumn colNum
+	for i in self.files.indexes
+		if self.files[i].path == path then
+			self.selIdx = i
+			break
+		end if
+	end for
 end function
 
-FileDialog.reloadColumn = function(colNum, dirPath)
-	info = self.colInfo[colNum]
-	text.row = info.top
-	text.column = info.left
-	self.loadColumn colNum, dirPath, info.width
-end function
+FileDialog.getFileInfoForDir = function(dir)
+	files = file.children(dir)
+	for i in files.indexes
+		files[i] = file.info(file.child(dir, files[i]))
+		files[i].name = file.name(files[i].path)
+	end for
+	return files
+end function	
 
-FileDialog.drawColumn = function(colNum)
-	info = self.colInfo[colNum]
-	text.row = info.top
-	text.column = info.left
-	files = info.files
-	width = info.width
-	dirIndicator = char(8594)	// (right-arrow symbol)
+FileDialog.drawFiles = function(colNum=1, files=null, scroll=0)
+	if files == null then files = self.files
+	width = self.colWidth[colNum]
 	dirIndColor = color.lerp(self.listTextColor, self.listBackColor, 0.3)
-	scroll = 0	// ToDo!
+	text.row = self.top - 2
 	for row in range(0, self.height-6)
 		idx = scroll + row
 		hilight = false; selected = false; isDir = false; s = ""
@@ -443,12 +453,12 @@ FileDialog.drawColumn = function(colNum)
 			f = files[idx]
 			s = f.name
 			isDir = f.isDirectory
-			if idx == info.selIdx then
+			if idx == self.selIdx then
 				hilight = true
-				if f.path == self.selection then selected = true
+				if colNum == 1 then selected = true
 			end if
 		end if
-		s = (s + " "*width)[:width]
+		s = s.pad(width)
 		if selected then
 			text.color = self.selTextColor
 			text.backColor = self.selBackColor
@@ -456,10 +466,10 @@ FileDialog.drawColumn = function(colNum)
 			text.color = self.listTextColor
 			text.backColor = self.curDirBackColor * hilight + self.listBackColor * (not hilight)
 		end if
-		text.column = info.left; print s, ""
+		text.column = self.colLeft[colNum]; print s, ""
 		if isDir then
 			text.color = dirIndColor
-			print char(8) + dirIndicator
+			print char(8) + self.directoryIcon
 			text.color = self.listTextColor
 		else
 			print
@@ -467,32 +477,97 @@ FileDialog.drawColumn = function(colNum)
 	end for
 end function
 
-FileDialog.drawContent = function(cols, rows)
-	text.color = self.textColor
-	text.backColor = self.backColor
-	text.row = rows[-2]; text.column = cols[2]
-	print self.directory
-	pathParts = self.directory.split("/")
-	
-	// Start up a level or two (depending on how many columns we have)
-	partIdx = pathParts.len - self.columns
-	if partIdx < 0 then partIdx = 0
-	
-	// draw a column for each subpath
-	x = cols[2]
-	colWidth = floor((self.width - 4) / self.columns) - 1
-	for col in range(0, self.columns - 1)
-		if col == self.columns - 1 then colWidth = cols[-2] - x
-		if partIdx+1+col >= pathParts.len then
-			path = null
-		else
-			path = pathParts[:partIdx+1+col].join("/")
-			if not path then path = "/"
+FileDialog.drawParentDir = function()
+	files = FileDialog.getFileInfoForDir(file.parent(self.directory))
+	self.drawFiles 0, files
+end function
+
+FileDialog.drawPreviewText = function(lines)
+	text.color = self.listTextColor
+	text.backColor = self.listBackColor
+	text.row = self.top - 2
+	TAB = char(9)
+	for row in range(0, self.height-6)
+		text.column = self.colLeft[2]
+		if row < lines.len then s = lines[row].replace(TAB, "  ") else s = ""
+		print s.pad(self.colWidth[2])
+	end for	
+end function
+
+FileDialog.drawPreview = function
+	f = self.files[self.selIdx]
+	if f.isDirectory then
+		self.drawFiles 2, FileDialog.getFileInfoForDir(f.path)
+		return
+	end if
+	n = f.name
+	if n.endsWith(".ms") or n.endsWith(".txt") or n.endsWith(".md") or
+	  n.endsWith(".json") or n.endsWith(".grfon") then
+		inp = file.open(f.path)
+		lines = []
+		for i in range(0, self.height-6)
+			line = inp.readLine; if line == null then break
+			lines.push line
+		end for
+		inp.close
+		self.drawPreviewText lines
+		return
+	end if
+	if n.endsWith(".wav") or n.endsWith(".ogg") then
+		snd = file.loadSound(f.path)
+		if snd != null then
+			snd.play
+			self.playingSound = snd
+			self.drawPreviewText ["Sound", "", "duration:", str(snd.duration)]
+			return
 		end if
-		text.column = x; text.row = rows[-3]
-		self.loadColumn col, path, colWidth
-		x = x + colWidth + 1
-	end for
+	end if
+	if n.endsWith(".jpg") or n.endsWith(".jpeg") or n.endsWith(".png") then
+		self.drawPreviewText []
+		pic = file.loadImage(f.path)
+		if pic != null then
+			self.origDisp0 = display(0)
+			disp = new PixelDisplay
+			disp.clear color.clear
+			disp.install 0
+			x = (self.colLeft[2] + self.colWidth[2]/2)*14.05
+			y = (self.top-2 - (self.height-6)/2) * 25
+			w = self.colWidth[2] * 14
+			h = (self.height-6) * 24
+			scaleH = w/pic.width; scaleV = h/pic.height
+			if scaleH < scaleV then scale = scaleH else scale = scaleV
+			disp.drawImage pic, x-pic.width*scale/2, y-pic.height*scale/2,
+			  pic.width*scale, pic.height*scale
+			disp.drawRect x-w/2, y-h/2, w, h, color.yellow		
+		end if
+			return
+	end if
+	self.drawPreviewText []
+end function
+
+FileDialog.stopPreview = function
+	if self.playingSound then
+		self.playingSound.stop
+		self.playingSound = null
+	end if	
+	if self.origDisp0 then
+		self.origDisp0.install 0
+		if self.origDisp0.mode == 0 then display(0).mode = 0 // (bug work-around)
+		self.origDisp0 = null
+	end if
+end function
+
+FileDialog.drawContent = function(cols, rows)
+	self.drawCurDir
+	self.drawParentDir		// leftmost column
+	self.drawFiles			// center column
+	self.drawPreview
+end function
+
+FileDialog.drawCurDir = function
+	text.color = self.textColor; text.backColor = self.backColor
+	text.row = self.top - 1; text.column = self.left + 2
+	print self.directory.pad(self.width-4)
 end function
 
 FileDialog.selectedColumn = function
@@ -504,21 +579,10 @@ FileDialog.selectedColumn = function
 end function
 
 FileDialog.selectNext = function(delta)
-	dir = file.parent(self.selection)
-	name = file.name(self.selection)
-	allNames = file.children(dir)
-	col = self.selectedColumn
-	info = self.colInfo[col]
-	info.selIdx = (info.selIdx + info.files.len + delta) % info.files.len
-	self.selection = info.files[info.selIdx].path
-	self.drawColumn col
-	if info.files[info.selIdx].isDirectory then
-		self.directory = self.selection
-		if col+1 < self.columns then self.reloadColumn col+1, self.directory
-	else
-		if col+1 < self.columns then self.reloadColumn col+1, null
-	end if
-	if col+2 < self.columns then self.reloadColumn col+2, null
+	self.selIdx = (self.selIdx + self.files.len + delta) % self.files.len
+	self.select self.files[self.selIdx].path
+	self.drawFiles
+	self.drawPreview
 	return true
 end function
 
@@ -538,30 +602,24 @@ FileDialog.reloadAll = function
 end function
 
 FileDialog.handleKey = function(k)
+	self.stopPreview
 	kcode = k.code
 	if kcode == 19 then return self.selectNext(-1)		// up-arrow
 	if kcode == 20 then return self.selectNext(1)		// down-arrow
 	if kcode == 10 or kcode == 3 or kcode == 18 then	// return or right-arrow
-		col = self.selectedColumn
-		info = self.colInfo[col]
-		selFile = info.files[info.selIdx]
-		if not selFile.isDirectory then return false
-		children = file.children(selFile.path)
-		if not children then return true
-		self.directory = selFile.path
-		self.selection = file.child(self.directory, children[0])
-		if col < self.columns-1 then
-			self.reloadColumn col+1, self.directory
-			self.drawColumn col
-		else
-			self.reloadAll
-		end if
+		info = self.files[self.selIdx]
+		if not info.isDirectory then return false
+		self.select file.child(info.path, file.children(info.path)[0])
+		self.drawFiles
+		self.drawPreview
+		return true
 	else if kcode == 17 then							// left-arrow
 		parent = file.parent(self.selection)
-		if parent == null then return true
-		self.selection = self.directory
-		self.directory = parent
-		self.reloadAll
+		if parent == "/" then return true
+		self.select self.directory
+		self.drawFiles
+		self.drawPreview
+		return true
 	end if
 end function
 
@@ -580,5 +638,6 @@ if locals == globals and 1 then
 	text.color = color.orange
 	text.backColor = "#00000D"
 	d = FileDialog.make
-	d.show
+	hit = d.show
+	if hit == d.okBtn then print "You selected: " + d.selection
 end if

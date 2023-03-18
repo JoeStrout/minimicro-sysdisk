@@ -93,6 +93,7 @@
 - ☑︎ Added `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
 - ☑︎ Added `sound.amp` to get the current amplitude of a playing sound (in the range 0-1, but typically closer to 0), enabling you to make a sort of graphic equalizer display, or do lip-syncing to speech, etc.
 - ☑︎ remove test characters currently at char(29) and char(30)
+- ☐ BUG: Display.install does not work with a display of type 0 (off)
 - ☑︎ fix crash that occurs when setting gfx.scrollX to NaN
 - **Code Editor**
   - ☑︎ Code editor uses a new custom font, including all special characters available in the text display.
