@@ -25,6 +25,7 @@
   - ☑︎ on launch, adds MS_SCRIPT_DIR and MS_EXE_DIR to the environment variables, as well as MS_IMPORT_PATH if not already defined
   - ☑︎ new `import` intrinsic now searches directories in MS_IMPORT_PATH for the import module and imports them, just like Mini Micro
   - ☑︎ binaries ship with a set of core libraries similar to /sys/lib in Mini Micro, including dateTime 
+  - ☐ rename linux package to miniscript-linux.tar.gz, so it will unpack more easily
   
 - **Documentation**
   - ☐ document `super` in the Quick Reference
@@ -59,6 +60,7 @@
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
+- ☐ add a simple file picker/browser to /sys/lib/textUtil
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display
 - ☑ qa module: now correctly returns "map" for `qa.typeOf {}`
 

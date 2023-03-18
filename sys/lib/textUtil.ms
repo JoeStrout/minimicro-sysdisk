@@ -188,6 +188,30 @@ setContent = function(data)
 	end for
 end function
 
+// getState: get the content of the screen as well as the text
+// colors and cursor position.  Use with setState (below).
+getState = function
+	result = {}
+	result.text = getContent
+	result.color = text.color
+	result.backColor = text.backColor
+	result.delimiter = text.delimiter
+	result.row = text.row
+	result.column = text.column
+	return result
+end function
+
+// setState: set the screen content, text colors, and cursor position
+// (as obtained from getState).
+setState = function(state)
+	setContent state.text
+	text.color = state.color
+	text.backColor = state.backColor
+	text.delimiter = state.delimiter
+	text.row = state.row
+	text.column = state.column
+end function
+
 // Dialog class: used to define a simple message dialog,
 // with title, message, and 1-3 buttons.  Create a new Dialog,
 // with Dialog.make, assign all its other properties as desired,
@@ -251,12 +275,9 @@ Dialog.make = function(title="", message="Your message here.")
 	return dlog
 end function
 
-Dialog.show = function(timeout=null)
-	priorText = getContent
-	priorTextColor = text.color
-	priorBgColor = text.backColor
-	priorDelim = text.delimiter
-
+// Helper function to draw the dialog and return the button instances.
+// Most user code will not call this directly; call Dialog.show instead.
+Dialog.draw = function	
 	rows = range(12 - floor(self.height/2), 11 + ceil(self.height/2))
 	cols = range(34 - floor(self.width/2), 33 + ceil(self.width/2))
 	
@@ -271,14 +292,12 @@ Dialog.show = function(timeout=null)
 	text.row = rows[-1] + 1; text.column = cols[0]
 	print " " * floor(spacesNeeded/2) + self.title + " " * ceil(spacesNeeded/2)
 	
-	// draw box and message
+	// draw box and content
 	text.setCell cols, rows, " "
 	text.setCellBackColor cols, rows, self.backColor
+	self.drawContent cols, rows
+	text.color = self.textColor
 	text.backColor = self.backColor
-	text.row = rows[-2]
-	for line in self.msgLines
-		text.column = cols[2]; print line
-	end for
 	
 	// draw buttons
 	btnRow = rows[1]
@@ -294,13 +313,41 @@ Dialog.show = function(timeout=null)
 		btn.draw
 		btnX = btn.x - 2
 	end for
+	return buttons
+end function
+
+// Another internal helper function used to draw the content of the dialog,
+// given the range of rows and columns.
+Dialog.drawContent = function(cols, rows)
+	text.color = self.textColor
+	text.backColor = self.backColor
+	text.row = rows[-2]
+	for line in self.msgLines
+		text.column = cols[2]; print line
+	end for
+end function
+
+// Methods that subclasses can override to do special event processing.
+// Return true if event handled, false or null otherwise.  To close
+// the dialog, set self.done = true.
+Dialog.handleMouse = null
+Dialog.handleKey = function(k); end function
+
+// Main entry point: call this to show your dialog, and get back the caption
+// of the button that was pressed.
+Dialog.show = function(timeout=null)
+	priorState = getState
+	
+	// draw the dialog, and get back the list of visible buttons
+	buttons = self.draw
 	
 	// now wait until we get a key shortcut or a valid click on a button,
 	// or (optionally) time out
 	btnHit = null
 	startTime = time
-	while not btnHit
-		if mouse.button then
+	self.done = false
+	while not btnHit and not self.done
+		if mouse.button and not self.handleMouse then
 			for btn in buttons
 				if not btn.visible or not btn.contains(mouse) then continue
 				if btn.trackHit then
@@ -311,6 +358,7 @@ Dialog.show = function(timeout=null)
 		end if
 		if key.available then
 			k = key.get
+			if self.handleKey(k) then continue
 			if k.code == 3 or k.code == 13 then k = char(10)
 			for btn in buttons
 				if btn.visible and btn.key == k then
@@ -322,18 +370,215 @@ Dialog.show = function(timeout=null)
 		if timeout != null and time > startTime + timeout then break
 	end while
 	
-	text.color = priorTextColor
-	text.backColor = priorBgColor
-	setContent priorText
-	text.delimiter = priorDelim
+	setState priorState	
 	return btnHit
 end function
 
-if locals == globals then
+// FileDialog: a Dialog subclass specialized for picking a folder or file.
+FileDialog = new Dialog
+FileDialog.width = 50
+FileDialog.columns = 3
+FileDialog.listTextColor = "#AAAAFF"
+FileDialog.listBackColor = "#222222"
+FileDialog.curDirBackColor = "#444466"
+FileDialog.selTextColor = "#000044"
+FileDialog.selBackColor = "#FFFF00"
+
+FileDialog.make = function(title="Select file")
+	dlog = Dialog.make(title)
+	dlog.__isa = FileDialog
+	dlog.height = 18
+	dlog.cancelBtn.visible = true
+	dlog.directory = file.curdir
+	dlog.selection = file.curdir - "/"
+//	children = file.children(dlog.directory)
+//	if children then dlog.selection = file.child(dlog.selection, children[0])
+	dlog.colInfo = {}	// map of left, top, files, etc.
+	return dlog
+end function
+
+FileDialog.loadColumn = function(colNum, dirPath, width)
+	info = {}
+	self.colInfo[colNum] = info
+	info.left = text.column
+	info.top = text.row
+	info.width = width
+	info.dirPath = dirPath
+	info.selIdx = null
+	if dirPath == null then
+		files = null
+	else
+		// load file info (path, isDirectory, etc.) for all files in this directory
+		files = file.children(dirPath)
+		for i in files.indexes
+			files[i] = file.info(file.child(dirPath, files[i]))
+			files[i].name = file.name(files[i].path)
+			if self.selection.startsWith(files[i].path) then info.selIdx = i
+		end for
+	end if
+	info.files = files
+	self.drawColumn colNum
+end function
+
+FileDialog.reloadColumn = function(colNum, dirPath)
+	info = self.colInfo[colNum]
+	text.row = info.top
+	text.column = info.left
+	self.loadColumn colNum, dirPath, info.width
+end function
+
+FileDialog.drawColumn = function(colNum)
+	info = self.colInfo[colNum]
+	text.row = info.top
+	text.column = info.left
+	files = info.files
+	width = info.width
+	dirIndicator = char(8594)	// (right-arrow symbol)
+	dirIndColor = color.lerp(self.listTextColor, self.listBackColor, 0.3)
+	scroll = 0	// ToDo!
+	for row in range(0, self.height-6)
+		idx = scroll + row
+		hilight = false; selected = false; isDir = false; s = ""
+		if files and idx < files.len then
+			f = files[idx]
+			s = f.name
+			isDir = f.isDirectory
+			if idx == info.selIdx then
+				hilight = true
+				if f.path == self.selection then selected = true
+			end if
+		end if
+		s = (s + " "*width)[:width]
+		if selected then
+			text.color = self.selTextColor
+			text.backColor = self.selBackColor
+		else
+			text.color = self.listTextColor
+			text.backColor = self.curDirBackColor * hilight + self.listBackColor * (not hilight)
+		end if
+		text.column = info.left; print s, ""
+		if isDir then
+			text.color = dirIndColor
+			print char(8) + dirIndicator
+			text.color = self.listTextColor
+		else
+			print
+		end if
+	end for
+end function
+
+FileDialog.drawContent = function(cols, rows)
+	text.color = self.textColor
+	text.backColor = self.backColor
+	text.row = rows[-2]; text.column = cols[2]
+	print self.directory
+	pathParts = self.directory.split("/")
+	
+	// Start up a level or two (depending on how many columns we have)
+	partIdx = pathParts.len - self.columns
+	if partIdx < 0 then partIdx = 0
+	
+	// draw a column for each subpath
+	x = cols[2]
+	colWidth = floor((self.width - 4) / self.columns) - 1
+	for col in range(0, self.columns - 1)
+		if col == self.columns - 1 then colWidth = cols[-2] - x
+		if partIdx+1+col >= pathParts.len then
+			path = null
+		else
+			path = pathParts[:partIdx+1+col].join("/")
+			if not path then path = "/"
+		end if
+		text.column = x; text.row = rows[-3]
+		self.loadColumn col, path, colWidth
+		x = x + colWidth + 1
+	end for
+end function
+
+FileDialog.selectedColumn = function
+	col = self.columns - 1
+	while self.colInfo[col].selIdx == null and col > 0
+		col -= 1
+	end while
+	return col
+end function
+
+FileDialog.selectNext = function(delta)
+	dir = file.parent(self.selection)
+	name = file.name(self.selection)
+	allNames = file.children(dir)
+	col = self.selectedColumn
+	info = self.colInfo[col]
+	info.selIdx = (info.selIdx + info.files.len + delta) % info.files.len
+	self.selection = info.files[info.selIdx].path
+	self.drawColumn col
+	if info.files[info.selIdx].isDirectory then
+		self.directory = self.selection
+		if col+1 < self.columns then self.reloadColumn col+1, self.directory
+	else
+		if col+1 < self.columns then self.reloadColumn col+1, null
+	end if
+	if col+2 < self.columns then self.reloadColumn col+2, null
+	return true
+end function
+
+FileDialog.reloadAll = function
+	pathParts = self.directory.split("/")
+	partIdx = pathParts.len - self.columns
+	if partIdx < 0 then partIdx = 0
+	for col in range(0, self.columns-1)
+		if partIdx+1+col >= pathParts.len then
+			path = null
+		else
+			path = pathParts[:partIdx+1+col].join("/")
+			if not path then path = "/"
+		end if
+		self.reloadColumn col, path
+	end for
+end function
+
+FileDialog.handleKey = function(k)
+	kcode = k.code
+	if kcode == 19 then return self.selectNext(-1)		// up-arrow
+	if kcode == 20 then return self.selectNext(1)		// down-arrow
+	if kcode == 10 or kcode == 3 or kcode == 18 then	// return or right-arrow
+		col = self.selectedColumn
+		info = self.colInfo[col]
+		selFile = info.files[info.selIdx]
+		if not selFile.isDirectory then return false
+		children = file.children(selFile.path)
+		if not children then return true
+		self.directory = selFile.path
+		self.selection = file.child(self.directory, children[0])
+		if col < self.columns-1 then
+			self.reloadColumn col+1, self.directory
+			self.drawColumn col
+		else
+			self.reloadAll
+		end if
+	else if kcode == 17 then							// left-arrow
+		parent = file.parent(self.selection)
+		if parent == null then return true
+		self.selection = self.directory
+		self.directory = parent
+		self.reloadAll
+	end if
+end function
+
+
+
+if locals == globals and 0 then
 	d = Dialog.make("Message Test", 
 	"Hello world!  This is a test of the nifty text-based Dialog system.")
 	d.altBtn.visible = true
 	d.altBtn.key = "b"
 	d.cancelBtn.visible = true
 	print d.show.caption
+end if
+
+if locals == globals and 1 then
+	text.color = color.orange
+	text.backColor = "#00000D"
+	d = FileDialog.make
+	d.show
 end if
