@@ -60,7 +60,7 @@
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
-- ☐ add a simple file picker/browser to /sys/lib/textUtil
+- ☑︎ add a simple file picker/browser to /sys/lib/textUtil, and a related `findFile` utility command
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display
 - ☑ qa module: now correctly returns "map" for `qa.typeOf {}`
 
