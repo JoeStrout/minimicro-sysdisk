@@ -7,6 +7,7 @@ import "mathUtil"
 import "bmfFonts"
 import "gui"
 
+oldTextColor = text.color
 gui.setupDisplays
 
 // import certain gui identifiers into our own global space
@@ -284,6 +285,7 @@ handleShortcutKey = function(key)
 	else if key == "w" then
 		w = gui.frontmostWindow
 		if w then w.close
+		if w == rootWindow then globals.rootWindow = null
 	end if
 end function
 
@@ -309,7 +311,31 @@ end function
 //----------------------------------------------------------------------
 
 menubar = gui.Menubar.make(["File", "Edit", "Window", "Help"])
+
+menu = gui.Menu.make(["New Window", "Close Window", "-", "Exit to Shell"])
+menu.items[0].action = function
+	w = FileWindow.make("/", 384, 128, 0, 80)		
+	w.goTo 200, 450
+	if rootWindow == null then globals.rootWindow = w
+end function
+menu.items[1].action = function
+	w = gui.frontmostWindow
+	if w then w.close
+	if w == rootWindow then globals.rootWindow = null
+	w = gui.frontmostWindow
+	if w then w.moveToFront
+end function
+menu.items[-1].action = function
+	menubar.openMenu null
+	clear
+	text.color = oldTextColor
+	exit
+end function
+menubar.items[0].submenu = menu
+
 menubar.draw
+menubar.installHandlers
+
 
 rootWindow = FileWindow.make("/", 384, 128, 0, 80)
 rootWindow.goTo 200, 450

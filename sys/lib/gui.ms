@@ -623,12 +623,18 @@ Window._positionContent = function
 	end if
 end function
 
-Window.goTo = function(x, y)
+Window.goTo = function(x, y, keepOnScreen=true)
 	self.x = x
 	self.y = y
+	if keepOnScreen then
+		if self.left > 960 then self.x -= self.left - 960
+		if self.right < 0 then self.x += 0 - self.right
+		if self.bottom > 640 - kMenuBarHeight then self.y -= self.bottom - (640-kMenuBarHeight)
+		if self.top < -16 then self.y += -16 - self.top // (because title bar)
+	end if
 	extra = 6 * (self.dragMode == kDragMove)
-	self.shadow.x = x + 4 + extra
-	self.shadow.y = y - 4 - extra
+	self.shadow.x = self.x + 4 + extra
+	self.shadow.y = self.y - 4 - extra
 	self._positionContent
 	self.titleBounds.x = self.x - self.width/2 + self.titleLeft + self.titleWidth/2 - 8
 	self.titleBounds.y = self.y + self.height/2 + 8
@@ -743,6 +749,7 @@ end function
 //----------------------------------------------------------------------
 
 MenuItem = {}
+MenuItem._name = "gui.MenuItem"
 MenuItem.text = ""
 MenuItem.selected = false
 MenuItem.disabled = false
@@ -752,6 +759,7 @@ MenuItem.action = null	// function invoked for this menu item
 MenuItem.make = function(text)
 	item = new MenuItem
 	item.text = text
+	if text == "-" then item.disabled = true
 	return item
 end function
 
@@ -771,6 +779,7 @@ MenuItem.openSubmenu = function(asTopLevelMenu = false)
 end function
 
 Menu = {}
+Menu._name = "gui.Menu"
 Menu.items = null		// list of MenuItem
 Menu.top = 0
 Menu.left = 0
@@ -809,6 +818,10 @@ Menu.selectItem = function(item)
 		self.selectedItem.selected = false
 		self.redrawItem self.items.indexOf(self.selectedItem)
 	end if
+	if item and item.disabled then
+		self.selectedItem = null
+		return
+	end if
 	if item then
 		item.selected = true
 		self.redrawItem self.items.indexOf(item)
@@ -845,7 +858,7 @@ end function
 
 Menu.itemAtPoint = function(point)
 	if point.x < self.left or point.x > self.left + self.width then return null
-	y = self.top
+	y = self.top - menuDisp.scrollY
 	if point.y > y then return null
 	for item in self.items
 		y -= kMenuItemHeight
@@ -855,6 +868,7 @@ Menu.itemAtPoint = function(point)
 end function
 
 Menubar = new Menu
+Menubar._name = "gui.Menubar"
 Menubar.draw = function
 	x = 40; y = 624
 	menuDisp.drawImage images.menuBar, 0, y, 960+16, kMenuBarHeight
@@ -1075,7 +1089,7 @@ testMenus = function
 
 	menu = Menu.make(["New Window", "Close Window", "-", "Exit to Shell"])
 	menu.items[1].disabled = true
-	menu.items[-1].action = function; menubar.openMenu; exit; end function
+	menu.items[-1].action = function; menubar.openMenu null; exit; end function
 	menubar.items[0].submenu = menu
 	
 	menu = Menu.make(["Item One", "Second Item jg", "Item the Third", "-", "Disabled Item", "Last Item"])
