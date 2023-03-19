@@ -9,16 +9,13 @@ max = @mathUtil.max; min = @mathUtil.min
 
 // Print without a carriage return (i.e. moving to the next line).
 printNoCR = function(s)
-	oldDelim = text.delimiter
-	text.delimiter = ""
-	print s
-	text.delimiter = oldDelim
+	print s, ""
 end function
 
 // Draw a button with the given caption at the cursor position.
 drawButton = function(caption)
 	text.inverse = not text.inverse
-	printNoCR char(57856) + caption + char(57857)
+	print char(57856) + caption + char(57857), ""
 	text.inverse = not text.inverse
 end function
 
