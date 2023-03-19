@@ -1,6 +1,11 @@
 // Text Utilities (related to displaying text on the Mini Micro screen).
 
+// (Note that importing this module imports stringUtil, and therefore adds
+// some methods directly to the string type.)
+
 import "stringUtil"
+import "mathUtil"
+max = @mathUtil.max; min = @mathUtil.min
 
 // Print without a carriage return (i.e. moving to the next line).
 printNoCR = function(s)
@@ -361,8 +366,17 @@ Dialog.show = function(timeout=null)
 				end if
 			end for
 		end if
-		if key.available then
-			k = key.get
+		k = null
+		if key.available then k = key.get
+		if key.pressed("page up") then
+			while key.pressed("page up"); yield; end while
+			k = char(21)  // control-U
+		end if
+		if key.pressed("page down") then
+			while key.pressed("page down"); yield; end while
+			k = char(4)  // control-D
+		end if		
+		if k != null then
 			if self.handleKey(k) then continue
 			if k.code == 3 or k.code == 13 then k = char(10)
 			for btn in buttons
@@ -390,6 +404,7 @@ FileDialog.listBackColor = "#222222"
 FileDialog.curDirBackColor = "#444466"
 FileDialog.selTextColor = "#000044"
 FileDialog.selBackColor = "#FFFF00"
+FileDialog.dirIndColor = color.lerp(FileDialog.listTextColor, FileDialog.listBackColor, 0.5)
 FileDialog.directoryIcon = "/"
 FileDialog.playingSound = null
 FileDialog.origDisp0 = null
@@ -399,9 +414,9 @@ FileDialog.make = function(title="Select file", width=null)
 	dlog.__isa = FileDialog
 	dlog.height = 18
 	dlog.cancelBtn.visible = true
-	dlog.selection = file.children(file.curdir)[0]
+	dlog.directory = file.curdir - "/"
+	dlog.selection = file.child(file.curdir, file.children(file.curdir)[0])
 	dlog.files = []
-	dlog.directory = file.parent(dlog.selection)
 	if width != null then self.width = width
 	dlog.colWidth = []
 	dlog.colWidth.push floor((dlog.width-4)/3)
@@ -438,25 +453,40 @@ FileDialog.getFileInfoForDir = function(dir)
 		files[i] = file.info(file.child(dir, files[i]))
 		files[i].name = file.name(files[i].path)
 	end for
+	files.sort "name"
 	return files
 end function	
 
-FileDialog.drawFiles = function(colNum=1, files=null, scroll=0)
+FileDialog.drawFiles = function(colNum=1, files=null)
 	if files == null then files = self.files
 	width = self.colWidth[colNum]
-	dirIndColor = color.lerp(self.listTextColor, self.listBackColor, 0.3)
 	text.row = self.top - 2
-	for row in range(0, self.height-6)
+	rows = self.height - 5
+	
+	if colNum == 0 then
+		for i in files.indexes
+			if files[i].isDirectory and self.selection.startsWith(files[i].path+"/") then
+				highlightedIdx = i
+				break
+			end if
+		end for
+	else
+		highlightedIdx = self.selIdx
+	end if
+	
+	scroll = highlightedIdx - floor(rows/2)
+	scroll = min(scroll, files.len - rows)
+	if scroll < 0 then scroll = 0
+	
+	for row in range(0, rows-1)
 		idx = scroll + row
 		hilight = false; selected = false; isDir = false; s = ""
 		if files and idx < files.len then
 			f = files[idx]
 			s = f.name
 			isDir = f.isDirectory
-			if idx == self.selIdx then
-				hilight = true
-				if colNum == 1 then selected = true
-			end if
+			if self.selection.startsWith(f.path) then hilight = true
+			if colNum == 1 and idx == self.selIdx then selected = true
 		end if
 		s = s.pad(width)
 		if selected then
@@ -468,7 +498,7 @@ FileDialog.drawFiles = function(colNum=1, files=null, scroll=0)
 		end if
 		text.column = self.colLeft[colNum]; print s, ""
 		if isDir then
-			text.color = dirIndColor
+			text.color = self.dirIndColor
 			print char(8) + self.directoryIcon
 			text.color = self.listTextColor
 		else
@@ -477,9 +507,21 @@ FileDialog.drawFiles = function(colNum=1, files=null, scroll=0)
 	end for
 end function
 
-FileDialog.drawParentDir = function()
-	files = FileDialog.getFileInfoForDir(file.parent(self.directory))
-	self.drawFiles 0, files
+FileDialog.drawParentDir = function
+	if d.directory == "/" then
+		text.row = self.top - 2
+		text.column = self.colLeft[0]
+		text.color = self.listTextColor
+		text.backColor = self.listBackColor
+		print "(disks)".pad(self.colWidth[0]-1), ""
+		text.color = self.dirIndColor; print self.directoryIcon
+		for row in range(1, self.height-6)
+			text.column = self.colLeft[0]; print " " * self.colWidth[0]
+		end for
+	else
+		files = FileDialog.getFileInfoForDir(file.parent(self.directory))
+		self.drawFiles 0, files
+	end if
 end function
 
 FileDialog.drawPreviewText = function(lines)
@@ -538,9 +580,8 @@ FileDialog.drawPreview = function
 			if scaleH < scaleV then scale = scaleH else scale = scaleV
 			disp.drawImage pic, x-pic.width*scale/2, y-pic.height*scale/2,
 			  pic.width*scale, pic.height*scale
-			disp.drawRect x-w/2, y-h/2, w, h, color.yellow		
 		end if
-			return
+		return
 	end if
 	self.drawPreviewText []
 end function
@@ -570,42 +611,28 @@ FileDialog.drawCurDir = function
 	print self.directory.pad(self.width-4)
 end function
 
-FileDialog.selectedColumn = function
-	col = self.columns - 1
-	while self.colInfo[col].selIdx == null and col > 0
-		col -= 1
-	end while
-	return col
-end function
-
-FileDialog.selectNext = function(delta)
-	self.selIdx = (self.selIdx + self.files.len + delta) % self.files.len
+FileDialog.selectIdx = function(newSelIdx)
+	self.selIdx = newSelIdx % self.files.len
+	if self.selIdx < 0 then self.selIdx += self.files.len
 	self.select self.files[self.selIdx].path
 	self.drawFiles
 	self.drawPreview
 	return true
 end function
 
-FileDialog.reloadAll = function
-	pathParts = self.directory.split("/")
-	partIdx = pathParts.len - self.columns
-	if partIdx < 0 then partIdx = 0
-	for col in range(0, self.columns-1)
-		if partIdx+1+col >= pathParts.len then
-			path = null
-		else
-			path = pathParts[:partIdx+1+col].join("/")
-			if not path then path = "/"
-		end if
-		self.reloadColumn col, path
-	end for
-end function
-
 FileDialog.handleKey = function(k)
 	self.stopPreview
 	kcode = k.code
-	if kcode == 19 then return self.selectNext(-1)		// up-arrow
-	if kcode == 20 then return self.selectNext(1)		// down-arrow
+	count = self.files.len
+	rows = self.height - 6
+	if kcode == 19 then return self.selectIdx(self.selIdx-1)	// up-arrow
+	if kcode == 20 then return self.selectIdx(self.selIdx+1)	// down-arrow
+	if kcode == 1 then return self.selectIdx(0)					// Home
+	if kcode == 5 then return self.selectIdx(count-1)			// End
+	if kcode == 21 then return self.selectIdx(
+			mathUtil.clamp(self.selIdx - rows, 0, count-1))			// Page Up
+	if kcode == 4 then return self.selectIdx(
+			mathUtil.clamp(self.selIdx + rows, 0, count-1))			// Page Down
 	if kcode == 10 or kcode == 3 or kcode == 18 then	// return or right-arrow
 		info = self.files[self.selIdx]
 		if not info.isDirectory then return false
@@ -621,6 +648,9 @@ FileDialog.handleKey = function(k)
 		self.drawPreview
 		return true
 	end if
+	for i in self.files.indexes
+		if self.files[i].name[0].lower == k then return self.selectIdx(i)
+	end for
 end function
 
 

@@ -291,6 +291,19 @@ clamp = function(x, minval=0, maxval=1)
 	return x
 end function
 
+// max: returns the greater of two values.
+// (Note: if you have more than two, consider importing listUtil
+// and using list.max instead.)
+max = function(a, b)
+	if b > a then return b else return a
+end function
+
+// min: returns the lesser of two values.
+// (As above, also consider list.min from listUtil.)
+min = function(a, b)
+	if b < a then return b else return a
+end function
+
 // numToStr: converts a number to a string, with a specified precision
 // (number of digits past the decimal place).  Trailing zeros will be
 // added as needed to get the decimal point at the right place.
