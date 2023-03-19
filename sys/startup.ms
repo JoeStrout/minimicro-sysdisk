@@ -344,6 +344,13 @@ _viewImage = function(pic)
 	text.delimiter = _EOL		
 end function
 
+findFile = function
+	import "textUtil"
+	dlog = textUtil.FileDialog.make
+	hit = dlog.show
+	if hit == dlog.okBtn then return dlog.selection
+end function
+
 view = function(path)
 	if not path then
 		print "Image or file name/path is required"

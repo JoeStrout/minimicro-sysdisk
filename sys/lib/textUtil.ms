@@ -412,6 +412,7 @@ FileDialog.origDisp0 = null
 FileDialog.make = function(title="Select file", width=null)
 	dlog = Dialog.make(title)
 	dlog.__isa = FileDialog
+	dlog.okBtn.caption = "Select"
 	dlog.height = 18
 	dlog.cancelBtn.visible = true
 	dlog.directory = file.curdir - "/"
@@ -508,7 +509,7 @@ FileDialog.drawFiles = function(colNum=1, files=null)
 end function
 
 FileDialog.drawParentDir = function
-	if d.directory == "/" then
+	if self.directory == "/" then
 		text.row = self.top - 2
 		text.column = self.colLeft[0]
 		text.color = self.listTextColor
@@ -630,9 +631,9 @@ FileDialog.handleKey = function(k)
 	if kcode == 1 then return self.selectIdx(0)					// Home
 	if kcode == 5 then return self.selectIdx(count-1)			// End
 	if kcode == 21 then return self.selectIdx(
-			mathUtil.clamp(self.selIdx - rows, 0, count-1))			// Page Up
+			mathUtil.clamp(self.selIdx - rows, 0, count-1))		// Page Up
 	if kcode == 4 then return self.selectIdx(
-			mathUtil.clamp(self.selIdx + rows, 0, count-1))			// Page Down
+			mathUtil.clamp(self.selIdx + rows, 0, count-1))		// Page Down
 	if kcode == 10 or kcode == 3 or kcode == 18 then	// return or right-arrow
 		info = self.files[self.selIdx]
 		if not info.isDirectory then return false
@@ -653,21 +654,32 @@ FileDialog.handleKey = function(k)
 	end for
 end function
 
+FileDialog.handleMouse = function
+	row = textRow(mouse.y)
+	if row > self.top-2 or row < self.top-2 - (self.height-6) then return false
+	col = textCol(mouse.x)
+	if col >= self.colLeft[0] and col < self.colLeft[0]+self.colWidth[0] then
+		// handle click in parent directory column
+	else if col >= self.colLeft[1] and col < self.colLeft[1]+self.colWidth[1] then
+		// handle click in selection column
+	else if col >= self.colLeft[2] and col < self.colLeft[1]+self.colWidth[2] then
+		// handle click in preview column (only if selection is a directory)
+	end if
+	return false
+end function
 
-
-if locals == globals and 0 then
+if locals == globals then
 	d = Dialog.make("Message Test", 
 	"Hello world!  This is a test of the nifty text-based Dialog system.")
 	d.altBtn.visible = true
 	d.altBtn.key = "b"
+	d.altBtn.caption = "FileDialog"
 	d.cancelBtn.visible = true
-	print d.show.caption
-end if
-
-if locals == globals and 1 then
-	text.color = color.orange
-	text.backColor = "#00000D"
-	d = FileDialog.make
-	hit = d.show
-	if hit == d.okBtn then print "You selected: " + d.selection
+	btnHit = d.show
+	print "You hit: " + btnHit.caption
+	if btnHit == d.altBtn then
+		d = FileDialog.make
+		hit = d.show
+		if hit == d.okBtn then print "You selected: " + d.selection	
+	end if
 end if
