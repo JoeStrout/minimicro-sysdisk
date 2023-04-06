@@ -1255,7 +1255,7 @@ Swatch.init = function(x, y, labelYOffset, selected=false)
 	if Swatch.instances.indexOf(self) == null then Swatch.instances.push self
 end function
 
-Swatch.make = function(x, y, c=color.white, selected=false)
+Swatch.make = function(x, y, c="#FFFFFF", selected=false)
 	noob = new Swatch
 	noob.init x, y, c, selected
 	return noob
