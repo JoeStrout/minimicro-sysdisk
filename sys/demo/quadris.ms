@@ -5,6 +5,7 @@
 import "listUtil"
 import "qa"
 import "mathUtil"
+import "sounds"
 
 clear
 display(4).mode = displayMode.sprite
@@ -133,6 +134,7 @@ Shape.fallOneStep = function
 	self.row = self.row - 1
 	// check if we hit bottom (or an existing block)
 	if self.hitsSomething then
+		sounds.land.play
 		self.row = self.row + 1
 		self.done = true
 		if self.fitsInBin then
@@ -413,6 +415,7 @@ clearCompleteLines = function
 		end if
 	end for
 	if not clearCount then return
+	if clearCount == 4 then sounds.wow.play else sounds.roboWhat.play
 	while updateVanishingBlocks; end while
 	pointValues = [0, 40, 100, 300, 1200]
 	addToScore pointValues[clearCount], clearCount
@@ -468,9 +471,9 @@ drawNextShape = function(shape)
 	if nextShapeOnScreen then nextShapeOnScreen.remove
 	globals.nextShapeOnScreen = shape	
 	shape.init
-	shape.setPosition 15, 8
+	shape.setPosition 13, 8
 end function
-gfx.print "NEXT", xForColumn(15)-18, yForRow(8)+80, color.silver, "small"
+gfx.print "NEXT", xForColumn(14)-18, yForRow(8)+80, color.silver, "small"
 
 pickNextShape = function
 	nextShapeClass = shapesBag.pop
@@ -482,6 +485,27 @@ pickNextShape = function
 	end if
 	drawNextShape shapesBag[-1]
 end function
+
+autoplay = env.hasIndex("shell") and env.shell and env.autorun
+if autoplay then
+	// make some dummy inputs for auto-play mode!
+	globals.originalKey = key
+	key = {}
+	key.axisCount = 0
+	key.axis = function(which)
+		c = cos(time*1.1) + cos(time/2) + cos(time/3)
+		self.axisCount += 1
+		if abs(c) < 0.5 or self.axisCount % 2 then return 0
+		return sign(c)
+	end function
+	key.pressed = function(k)
+		if k == "escape" then return originalKey.pressed(k)
+		if k != "space" then return false
+		return rnd < 0.01
+	end function
+	key.clear = null
+end if
+
 
 // Main Loop
 prevTime = time
@@ -496,7 +520,7 @@ drawScore
 shapesBag = allShapes[:]; shapesBag.shuffle
 pickNextShape
 
-while not gameOver
+while not gameOver and not key.pressed("escape")
 	now = time
 	dt = now - prevTime
 	prevTime = now
@@ -528,9 +552,16 @@ while not gameOver
 	yield
 end while
 
+if autoplay then globals.remove "key"
 text.row = 12; text.column = 30
 print "GAME OVER"
 wait
 key.clear
 text.row = 1
+
+// If we are returning to the shell, wait for a keypress;
+// or if we're in auto-run mode, just wait a short time
+if env.hasIndex("shell") and env.shell then
+	if env.autorun then wait 2 else key.get
+end if
 

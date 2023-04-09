@@ -24,6 +24,7 @@ games.push "drumMachine"
 games.push "flappyBat"
 games.push "mochiBounce"
 games.push "platformer"
+games.push "quadris"
 games.push "speedConquest"
 games.push "textAdventure"
 games.push "ticTacToe"
@@ -31,7 +32,6 @@ games.push "typing"
 games.push "wumpusTrap"
 
 simple.push "countdown"
-simple.push "dogYears"
 
 visual.push "cardFlip"
 visual.push "globe"
@@ -180,10 +180,11 @@ runProgram = function(program)
 end function
 
 autorunNext = function
-	pgms = ["globe", "sunset", "theMatrix", "turtleDemo", "asteroids"]
+	pgms = ["globe", "sunset", "quadris", "theMatrix", "turtleDemo", "asteroids"]
 	idx = pgms.indexOf(env.autorun)
 	if idx == null then idx = 0 else idx = (idx + 1) % pgms.len
 	env.autorun = pgms[idx]
+	globals.selected = ""
 	if not runProgram(pgms[idx]) then
 		env.autorun = false
 		clear
