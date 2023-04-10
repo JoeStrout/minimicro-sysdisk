@@ -19,9 +19,23 @@ kBinHeight = 17
 // cell increments.
 kSkootch = true
 
+// Input keys
+keys = {}
+keys.softDrop = ["down"]
+keys.hardDrop = ["up", "space", "joystick button 0", "joystick button 1"]
+keys.rotLeft = ["left shift", "right shift", "joystick button 4"]
+keys.rotRight = ["left alt", "right alt", "joystick button 5"]
+
+anyPressed = function(keyList)
+	for k in keyList
+		if key.pressed(k) then return true
+	end for
+	return false
+end function
+
 inBounds = function(column, row)
 	return column >= 0 and column < kBinWidth and
-	  row >= 0 and row < kBinHeight
+	row >= 0 and row < kBinHeight
 end function
 
 xForColumn = function(column)
@@ -39,7 +53,7 @@ Block = new Sprite
 Block.images = []
 for i in range(0,15)
 	Block.images.push blockAtlas.getImage(
-	 (i%4) * 32, (3-floor(i/4)) * 32, 32, 32)
+	(i%4) * 32, (3-floor(i/4)) * 32, 32, 32)
 end for
 Block.connN = false  // (connected to neighboring block
 Block.connE = false  //  in any direction that's true)
@@ -47,7 +61,7 @@ Block.connS = false
 Block.connW = false
 Block.selectImage = function
 	self.image = Block.images[
-	  self.connN + self.connE*2 + self.connS*4 + self.connW*8]
+	self.connN + self.connE*2 + self.connS*4 + self.connW*8]
 end function
 Block.image = Block.images[0]
 Block.row = -1
@@ -82,11 +96,13 @@ softDropKey = false  // true when down-arrow key was pressed
 hardDropKey = false
 
 softDropKeyDown = function
-	return key.pressed("down") and not softDropKey
+	return (anyPressed(keys.softDrop) or 
+	  key.axis("Vertical") < -0.5) and not softDropKey
 end function
 
 hardDropKeyDown = function
-	return (key.pressed("up") or key.pressed("space")) and not hardDropKey
+	return (anyPressed(keys.hardDrop) or
+	  key.axis("Vertical") > 0.5) and not hardDropKey
 end function
 
 bin = list.init2d(kBinWidth, kBinHeight)
@@ -532,10 +548,9 @@ while not gameOver and not key.pressed("escape")
 		currentShape.shift horInp
 		prevHorInp = horInp
 	end if
-	rotInp = key.pressed("left shift") + key.pressed("right shift") -
-			 key.pressed("left alt") - key.pressed("right alt")
+	rotInp = anyPressed(keys.rotRight) - anyPressed(keys.rotLeft)
 	if rotInp != prevRotInp then
-		currentShape.rotate rotInp
+		currentShape.rotate -rotInp
 		prevRotInp = rotInp
 	end if
 	// update the shape
@@ -546,8 +561,9 @@ while not gameOver and not key.pressed("escape")
 		prevTime = time
 	end if
 	// update keys
-	softDropKey = key.pressed("down")	
-	hardDropKey = key.pressed("up") or key.pressed("space")	
+	verInp = round(key.axis("Vertical"))
+	softDropKey = anyPressed(keys.softDrop) or verInp < 0
+	hardDropKey = anyPressed(keys.hardDrop) or verInp > 0
 	
 	yield
 end while
