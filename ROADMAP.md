@@ -42,20 +42,20 @@
 - ☑︎ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
 - ☐ /sys/demo/desktop: a GUI shell
   - ☐ scrollbars and close boxes on file windows
-  - ☐ working menubar: new Folder, etc.
-  - ☐ move/copy files by drag & drop
-  - ☐ contextual menu on files (Open/Launch/View, Rename, Delete, etc.)
-  - ☐ in-GUI viewer windows for pictures, source files, text files, and sounds
+  - ☐ working menubar: New Window, etc.
+  - ~~☐ move/copy files by drag & drop~~
+  - ~~☐ contextual menu on files (Open/Launch/View, Rename, Delete, etc.)~~
+  - ~~☐ in-GUI viewer windows for pictures, source files, text files, and sounds~~
   - ☐ launch a program
 - ☐ /sys/demo/lcars: a different GUI shell
   - ☑︎ calculator
   - ☐ clock
   - ☐ file manager
-  - ☑︎ primary file browser
-  - ☐ secondary (destination) file browser
-  - copy, move, rename, delete files
-  - preview of images, sounds, and text files
-  - launch of program files
+    - ☑︎ primary file browser
+    - ~~☐ secondary (destination) file browser~~
+    - ~~copy, move, rename, delete files~~
+    - ~~preview of images, sounds, and text files~~
+    - launch of program files
 - ☑︎ /sys/fonts folder of built-in fonts
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
