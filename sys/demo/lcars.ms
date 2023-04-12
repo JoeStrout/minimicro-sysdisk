@@ -893,7 +893,7 @@ mainMenu.switchTo = function(modePanel)
 end function
 
 // Mini-clock at the top
-InfoBlock.make dateTime.now[-8:-3], mainMenu, null, null, null, 40
+miniClock = InfoBlock.make(dateTime.now[-8:-3], mainMenu, null, null, null, 40)
 // Settings button
 Button.make "Settings", mainMenu, null, null, null, mainMenu.style.buttonHeight
 // ...gap...
@@ -925,6 +925,11 @@ events.eventLoop.onGotKey = function(k)
 end function
 events.eventLoop.onUpdate = function
 	mainMenu.curMode.onUpdate
+	time = dateTime.now[-8:-3]
+	if time != miniClock.text then
+		miniClock.text = time
+		miniClock.present
+	end if
 end function
 
 mainMenu.layout
