@@ -62,6 +62,7 @@
 - ☑︎ /sys/fonts folder of built-in fonts
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
+- ☑︎ /sys/lib/styledText: parsing and printing (with word wrap) of styled text
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
 - ☑︎ add a simple file picker/browser to /sys/lib/textUtil, and a related `findFile` utility command
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display

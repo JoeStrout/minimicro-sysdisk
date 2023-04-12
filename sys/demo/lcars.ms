@@ -12,6 +12,7 @@ ensureImport "events"
 ensureImport "bmfFonts"
 ensureImport "dateTime"
 ensureImport "gui"
+ensureImport "styledText"
 
 clear
 spriteDisp = display(4)
@@ -938,44 +939,21 @@ news.content.present = function
 		end for
 		if curItem then news.data.push curItem
 	end if
-	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
-	news.presenting = {"part":"title", "pos":0, "color":color.yellow}
-	news.presenting.x = self.left
-	news.presenting.y = self.top - mediumFont.lineHeight
-	data = news.data[news.curItemIdx]
-	news.date.text = data.date; news.date.present
+	story = news.data[news.curItemIdx]
+	news.date.text = story.date; news.date.present
 	news.posCount.text = news.curItemIdx + " / " + news.data.len; news.posCount.present
+
+	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
+
+	printer = new styledText.BmfPrinter
+	printer.font = mediumFont
+	gfx.color = color.yellow
+	printer.print styledText.parseHTML(story.title), self.left, self.top - 20, self.right
+	gfx.color = self.style.textColor
+	printer.print styledText.parseHTML(story.shortText), self.left, self.top - 100, self.right
+	printer.print styledText.parseHTML(story.moreText), self.left, self.top - 200, self.right	
 end function
-news.onUpdate = function
-	p = self.presenting
-	if not p then return
-	data = self.data[self.curItemIdx]
-	s = data[p.part][p.pos:]
-	if not s then; p = false; return; end if
-	nextx = p.x + mediumFont.width(s[0])
-	if nextx > self.content.right then
-		p.x = self.content.left
-		p.y -= mediumFont.lineHeight
-		nextx = p.x + mediumFont.width(s[0])
-	end if
-	mediumFont.print s[0], p.x, p.y, 1, p.color
-	p.x = nextx
-	p.pos += 1
-	if p.pos >= data[p.part].len then
-		if p.part == "title" then
-			p.part = "shortText"
-		else if p.part == "shortText" then
-			p.part = "moreText"
-		else
-			self.presenting = false
-			return
-		end if
-		self.presenting.color = self.style.textColor
-		p.x = self.content.left
-		p.y -= mediumFont.lineHeight * 1.5
-		p.pos = 0
-	end if		
-end function
+
 
 //----------------------------------------------------------------------
 // Main Menu: a simple panel of buttons (and gaps) on the left side of the screen.
