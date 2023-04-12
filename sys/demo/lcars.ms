@@ -322,6 +322,13 @@ Button.present = function
 	super.present
 end function
 
+Button.move = function(dx, dy)
+	self.left += dx; self.bottom += dy
+	if self.sprite then
+		self.sprite.x += dx; self.sprite.y += dy
+	end if
+end function
+
 Button.dismiss = function
 	if self.sprite != null then self.sprite.stop
 	if self.key isa list then
@@ -747,6 +754,7 @@ calc.style.displayColor = "#88CCFF"
 calc.header = Frame.make(calc, null, calc.top - 108)
 calc.header.configure false, true, true, false
 calc.displayStr = "0"
+calc.clearOnInput = false
 Block.make calc.header.leftPanel
 Block.make calc.header.bottomPanel
 title = InfoBlock.make("CALCULATOR", calc.header,
@@ -762,8 +770,9 @@ end function
 
 calc.doAction = function(s)
 	if s >= "0" and s <= "9" then
-		if self.displayStr == "0" then self.displayStr = ""
+		if self.displayStr == "0" or self.clearOnInput then self.displayStr = ""
 		self.displayStr += s
+		self.clearOnInput = false
 	else if s == "Backspace" and self.displayStr then
 		self.displayStr = calc.displayStr[:-1]
 		if not self.displayStr then self.displayStr = "0"
@@ -789,6 +798,8 @@ calc.doAction = function(s)
 		if op == "or" then result = valA or valB
 		if op == "not" then result = valA not valB
 		self.displayStr = str(result)
+		self.main.log.add valA + " " + op + " " + valB, self.displayStr
+		self.clearOnInput = true
 	else
 		self.opA.text = self.displayStr
 		self.operator.text = s
@@ -803,7 +814,7 @@ calc.main = Frame.make(calc, null, 0, null, calc.height - 118)
 calc.main.configure true, false, true, false
 
 Gap.make calc.main.topPanel
-InfoBlock.make "Calculation Log", calc.main.topPanel, null, null, 320
+calc.main.logHeader = InfoBlock.make("Calculation Log", calc.main.topPanel, null, null, 320)
 calc.main.topPanel.layout
 
 b = Button.make("Backspace", calc.main.leftPanel, null, null, null, calc.style.buttonHeight)
@@ -847,6 +858,23 @@ calc.main.setup = function
 end function
 calc.main.setup
 
+calc.main.log = Panel.make(calc.main, calc.main.logHeader.left, 16, calc.main.logHeader.width, calc.main.topPanel.bottom - 40)
+calc.main.log.add = function(expression, result)
+	h = self.style.topBarHeight
+	gap = 8
+	y = self.top - h - self.children.len * (h+gap)
+	while y < self.bottom
+		self.children[0].dismiss; self.children[0].destroy
+		for b in self.children; b.move 0, h+gap; end for
+		y += h+gap
+	end while
+	b = Button.make(expression + " = " + result, self, self.left, y, self.width, h)
+	b.action = function
+		calc.displayStr = result
+		calc.display.present
+	end function
+	b.present
+end function
 
 //----------------------------------------------------------------------
 // Main Menu: a simple panel of buttons (and gaps) on the left side of the screen.

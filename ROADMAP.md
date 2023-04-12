@@ -56,6 +56,7 @@
     - ~~copy, move, rename, delete files~~
     - ~~preview of images, sounds, and text files~~
     - ☐ launch of program files
+  - ☐ news module (displays MiniScript news feed)
   - ☐ clock at top of main menu updates
   - ☐ fun audio feedback throughout
 - ☑︎ /sys/fonts folder of built-in fonts
