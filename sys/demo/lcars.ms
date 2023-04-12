@@ -877,6 +877,107 @@ calc.main.log.add = function(expression, result)
 end function
 
 //----------------------------------------------------------------------
+// News panel
+news = Panel.make(root, 168, 0, 960-168, 640)
+news.style.displayColor = "#88CCFF"
+news.header = Frame.make(news, null, news.top - 108)
+news.header.configure false, true, true, false
+news.clearOnInput = false
+Block.make news.header.leftPanel
+Block.make news.header.bottomPanel
+title = InfoBlock.make("NEWS", news.header,
+	news.header.right - 200, news.top - 30, 200, 30)
+title.font = largeFont
+title.inverted = true
+
+news.main = Frame.make(news, null, 0, null, news.height - 118)
+news.main.configure true, false, true, false
+
+Gap.make news.main.topPanel
+news.date = InfoBlock.make("2000-01-01", news.main.topPanel, null, null, 160)
+news.posCount = InfoBlock.make("0 / 0", news.main.topPanel, null, null, 160)
+news.main.topPanel.layout
+
+Gap.make news.main.leftPanel
+
+b = Button.make("Previous", news.main.leftPanel, null, null, null, news.style.buttonHeight)
+b.action = function; news.nextStory -1; end function
+b.key = char(17)
+
+b = Button.make("Next", news.main.leftPanel, null, null, null, news.style.buttonHeight)
+b.action = function; news.nextStory 1; end function
+b.key = char(18)
+
+Gap.make news.main.leftPanel
+news.main.leftPanel.layout
+
+news.data = null; news.curItemIdx = 0
+news.nextStory = function(delta=1)
+	if not self.data then return
+	self.curItemIdx = (self.curItemIdx + self.data.len + delta) % self.data.len
+	self.content.present
+end function
+
+news.content = Panel.make(news.main, news.main.topPanel.left, 0, 
+			940 - news.main.topPanel.left, news.main.topPanel.bottom - 16)
+news.presenting = false	// or a map of context data
+news.content.present = function
+	if news.data == null then
+		lines = http.get("https://miniscript.org/news/news.dat").splitLines
+		news.data = []
+		curItem = {}
+		for line in lines
+			if line == "" then
+				if curItem then news.data.push curItem
+				curItem = {}
+				continue
+			end if
+			parts = line.split(": ", 2)
+			if parts.len < 2 then continue
+			curItem[parts[0]] = parts[1]
+		end for
+		if curItem then news.data.push curItem
+	end if
+	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
+	news.presenting = {"part":"title", "pos":0, "color":color.yellow}
+	news.presenting.x = self.left
+	news.presenting.y = self.top - mediumFont.lineHeight
+	data = news.data[news.curItemIdx]
+	news.date.text = data.date; news.date.present
+	news.posCount.text = news.curItemIdx + " / " + news.data.len; news.posCount.present
+end function
+news.onUpdate = function
+	p = self.presenting
+	if not p then return
+	data = self.data[self.curItemIdx]
+	s = data[p.part][p.pos:]
+	if not s then; p = false; return; end if
+	nextx = p.x + mediumFont.width(s[0])
+	if nextx > self.content.right then
+		p.x = self.content.left
+		p.y -= mediumFont.lineHeight
+		nextx = p.x + mediumFont.width(s[0])
+	end if
+	mediumFont.print s[0], p.x, p.y, 1, p.color
+	p.x = nextx
+	p.pos += 1
+	if p.pos >= data[p.part].len then
+		if p.part == "title" then
+			p.part = "shortText"
+		else if p.part == "shortText" then
+			p.part = "moreText"
+		else
+			self.presenting = false
+			return
+		end if
+		self.presenting.color = self.style.textColor
+		p.x = self.content.left
+		p.y -= mediumFont.lineHeight * 1.5
+		p.pos = 0
+	end if		
+end function
+
+//----------------------------------------------------------------------
 // Main Menu: a simple panel of buttons (and gaps) on the left side of the screen.
 // Color of each button corresponds to the primary color of the UI it shows.
 mainMenu = Panel.make(root, 0, 0, 144, 640)
@@ -909,7 +1010,9 @@ end function
 Button.make("Calculator", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
 	mainMenu.switchTo calc
 end function
-Button.make "News", mainMenu, null, null, null, mainMenu.style.buttonHeight
+Button.make("News", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
+	mainMenu.switchTo news
+end function
 // ...gap...
 Gap.make mainMenu
 // Exit button at bottom
