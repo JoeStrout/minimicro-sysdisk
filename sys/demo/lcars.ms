@@ -946,12 +946,18 @@ news.content.present = function
 	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
 
 	printer = new styledText.BmfPrinter
+	printer.x = self.left
+	printer.wrapTo = self.left
+	printer.wrapAt = self.right
+	printer.y = self.top - 20
 	printer.font = mediumFont
 	gfx.color = color.yellow
-	printer.print styledText.parseHTML(story.title), self.left, self.top - 20, self.right
-	gfx.color = self.style.textColor
-	printer.print styledText.parseHTML(story.shortText), self.left, self.top - 100, self.right
-	printer.print styledText.parseHTML(story.moreText), self.left, self.top - 200, self.right	
+	printer.printHTML story.title, self.left
+	gfx.color = self.style.textColor; printer.y -= 20
+	printer.printHTML story.shortText, self.left; printer.y -= 20
+	if story.hasIndex("moreText") then
+		printer.printHTML story.moreText, self.left
+	end if
 end function
 
 

@@ -166,9 +166,48 @@ replaceEntities = function(text)
 end function
 
 //-----------------------------------------------------------------
-// TextPrinter: prints using a Text display.  Feel free to 
-// override the applyStyle method for custom purposes.
-TextPrinter = {}
+// Printer: base class for the printers below; responsible for
+// printing a string (interpreted as markup) or a list of StyleRuns.
+Printer = {}
+Printer._name = "Printer"
+Printer.wrapAt = 960	// X position at which to wrap; units vary with subclass
+Printer.wrapTo = 0		// X position to wrap to; again, units vary
+Printer.x = 0			// current X position (to print at next)
+Printer.y = 0			// same for Y
+
+// Main entry point: print the given content with word-wrap and style.
+// May be given a list of StyleRuns, or a string which is assumed to
+// be in Markup format.  See also printPlainText and printHTML.
+Printer.print = function(content, x=null, y=null, wrapAt=null, wrapTo=null)
+	if content isa string then content = parseMarkup(content)
+	if x != null then self.x = x
+	if y != null then self.y = y
+	if wrapAt != null then self.wrapAt = wrapAt
+	if wrapTo != null then self.wrapTo = wrapTo
+	self.printStyleRuns content
+end function
+
+Printer.printStyleRuns = function(runs)
+	// Subclasses must override this to do the actual printing:
+	print "Printer subclass must override printStyleRuns"
+	exit
+end function
+
+Printer.printPlainText = function(text, x=null, y=null, wrapAt=null, wrapTo=null)
+	runs = [StyleRun.make(text)]
+	self.print text, x, y, wrapAt, wrapTo
+end function
+
+Printer.printHTML = function(html, x=null, y=null, wrapAt=null, wrapTo=null)
+	self.print parseHTML(html), x, y, wrapAt, wrapTo
+end function
+
+//-----------------------------------------------------------------
+// TextPrinter: prints using a Text display.  All units are in
+// text columns and rows.
+TextPrinter = new Printer
+TextPrinter._name = "TextPrinter"
+TextPrinter.wrapAt = 68
 TextPrinter.color = {}
 TextPrinter.color.normal = null			// (null: use text.color at the time of printing)
 TextPrinter.color.normalBack = null		// (null: use text.backColor)
@@ -180,6 +219,8 @@ TextPrinter.color.strikethrough = color.gray
 TextPrinter.color.highlight = null
 TextPrinter.color.highlightBack = color.yellow
 
+// Apply the given style to the text display.
+// Feel free to override this for custom purposes!
 TextPrinter.applyStyle = function(style)
 	self.prevColor = text.color
 	self.prevBack = text.backColor
@@ -208,6 +249,7 @@ TextPrinter.applyStyle = function(style)
 	if c then text.color = c
 end function
 
+// Restore the previous text colors.
 TextPrinter.restore = function
 	text.color = self.prevColor
 	text.backColor = self.prevBack
@@ -236,33 +278,33 @@ TextPrinter.cutToFit = function(styleRun, width, forceCut=false)
 	return result
 end function
 
-// Main entry point: print the given content with word-wrap and style.
-// May be given a list of StyleRuns, or a string which is assumed to
-// be in Markup format.
-TextPrinter.print = function(content, col, row, wrapAt=68, wrapTo=null)
-	if content isa string then content = parseMarkup(content)
-	if col != null then text.column = col
-	if row != null then text.row = row
-	if wrapTo == null then wrapTo = text.column
-	oldDelim = text.delimiter
-	text.delimiter = ""
-	for styleRun in content
+// Print the given StyleRuns.
+TextPrinter.printStyleRuns = function(runs)
+	text.column = self.x
+	text.row = self.y
+	if self.wrapTo == null then self.wrapTo = text.column
+	for styleRun in runs
 		self.applyStyle styleRun
-		while wrapAt - text.column < styleRun.text.len
-			text.print self.cutToFit(styleRun, wrapAt - text.column, text.column<=wrapTo) + char(13)
-			text.column = wrapTo
+		while self.wrapAt - text.column < styleRun.text.len
+			partialText = self.cutToFit(styleRun, 
+			  self.wrapAt - text.column, text.column <= self.wrapTo)
+			text.print partialText
+			text.column = self.wrapTo
+			self.y -= 1; text.row = self.y
 		end while
-		text.print styleRun.text
+		text.print styleRun.text, ""
 		self.restore
 	end for
-	text.print oldDelim
-	text.delimiter = oldDelim
+	text.print
+	self.x = self.wrapTo
+	self.y = text.row
 end function
 	
 //-----------------------------------------------------------------
 // GfxPrinter: Prints to a PixelDisplay (gfx by default).  Always prints in the
 // current color, but you can define the color to use for the highlight background.
-GfxPrinter = {}
+GfxPrinter = new Printer
+GfxPrinter._name = "GfxPrinter"
 GfxPrinter.highlightBackColor = color.yellow
 GfxPrinter.font = "normal"
 GfxPrinter.display = null	// if null, uses current gfx at time of printing
@@ -353,26 +395,25 @@ GfxPrinter.printOneRun = function(style, text, x, y)
 	return x1	
 end function
 
-// Main entry point: print the given content with word-wrap and style.
-// May be given a list of StyleRuns, or a string which is assumed to
-// be in Markup format.
-GfxPrinter.print = function(content, x, y, wrapAt=960, wrapTo=null)
-	if content isa string then content = parseMarkup(content)
-	if wrapTo == null then wrapTo = x
-	for styleRun in content
-		while wrapAt - x < self.width(styleRun.text)
-			partialText = self.cutToFit(styleRun, wrapAt - x, x <= wrapTo)
-			self.printOneRun styleRun, partialText, x, y
-			x = wrapTo
-			y = y - self.lineHeight[self.font]
+// Print the given StyleRuns.
+GfxPrinter.printStyleRuns = function(runs)
+	for styleRun in runs
+		while self.wrapAt - self.x < self.width(styleRun.text)
+			partialText = self.cutToFit(styleRun, self.wrapAt - self.x, self.x <= self.wrapTo)
+			self.printOneRun styleRun, partialText, self.x, self.y
+			self.x = self.wrapTo
+			self.y -= self.lineHeight[self.font]
 		end while
-		x = self.printOneRun(styleRun, styleRun.text, x, y)
+		self.x = self.printOneRun(styleRun, styleRun.text, self.x, self.y)
 	end for
+	self.x = self.wrapTo
+	self.y -= self.lineHeight[self.font]
 end function
 
 //-----------------------------------------------------------------
 // BmfPrinter: prints using BMF fonts.
-BmfPrinter = {}
+BmfPrinter = new Printer
+BmfPrinter._name = "BmfPrinter"
 BmfPrinter.highlightBackColor = color.yellow
 BmfPrinter.font = null				// required (a BMF font)
 BmfPrinter.boldFont = null			// optional
@@ -456,24 +497,23 @@ BmfPrinter.printOneRun = function(style, text, x, y, dryRun=false)
 	return x1	
 end function
 
-// Main entry point: print the given content with word-wrap and style.
-// May be given a list of StyleRuns, or a string which is assumed to
-// be in Markup format.
-BmfPrinter.print = function(content, x, y, wrapAt=960, wrapTo=null)
-	if content isa string then content = parseMarkup(content)
-	if wrapTo == null then wrapTo = x
-	for styleRun in content
-		while wrapAt - x < self.font.width(styleRun.text)
-			partialText = self.cutToFit(styleRun, wrapAt - x, x <= wrapTo)
-			self.printOneRun styleRun, partialText, x, y
-			x = wrapTo
-			y = y - self.font.lineHeight
+// Print the given StyleRuns.
+BmfPrinter.printStyleRuns = function(runs)
+	for styleRun in runs
+		while self.wrapAt - self.x < self.font.width(styleRun.text)
+			partialText = self.cutToFit(styleRun, self.wrapAt - self.x, self.x <= self.wrapTo)
+			self.printOneRun styleRun, partialText, self.x, self.y
+			self.x = self.wrapTo
+			self.y -= self.font.lineHeight
 		end while
-		x = self.printOneRun(styleRun, styleRun.text, x, y)
+		self.x = self.printOneRun(styleRun, styleRun.text, self.x, self.y)
 	end for
+	self.x = self.wrapTo
+	self.y -= self.font.lineHeight
 end function
 
-BmfPrinter.calcHeight = function(markup, x, wrapAt=960, wrapTo=null)
+BmfPrinter.calcHeight = function(markup, x, wrapAt=null, wrapTo=null)
+	if wrapAt == null then wrapAt = self.wrapAt
 	if wrapTo == null then wrapTo = x
 	y = 0
 	top = y - self.font.sizeOver
@@ -500,11 +540,13 @@ runDemo = function
 	"to do *word wrap*, and it's __vital__ that we do this ~~fast~~ correctly. " +
 	"Even with _*bold italic*_ text!"
 	outer.tp = new TextPrinter
+	tp.y = 25
 	tp.print msg1
 	tp.print msg2
-	text.column = 4; tp.print msg3
+	tp.print msg3, 4, null, 64, 4
 	gfx.color = color.silver
 	outer.gp = new GfxPrinter
+	gp.wrapTo = 10
 	y = 450
 	for f in ["small", "normal", "large"]	// ToDo: add "medium" in v1.2
 		gp.font = f
