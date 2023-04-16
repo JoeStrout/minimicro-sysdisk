@@ -14,6 +14,8 @@ ensureImport "dateTime"
 ensureImport "gui"
 ensureImport "styledText"
 
+file.loadSound("/sys/sounds/blip-thinking.wav").play
+
 clear
 spriteDisp = display(4)
 display(7).mode = displayMode.pixel
@@ -21,10 +23,10 @@ scratch = display(7)
 gfx.clear color.black
 
 smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
-mediumFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-16.bmf")	// ToDo: get this on /sys!
+mediumFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
 largeFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-20.bmf")
 
-resourcePic = file.loadImage("/usr/data/desktop/desktopGfx.png")	// ToDo: get from /sys
+resourcePic = file.loadImage("/sys/data/desktop/desktopGfx.png")
 swoopImages = []
 w = 163; h = 73
 for i in range(0,3)
@@ -43,6 +45,11 @@ smallFont.addChar downInChar, resourcePic.getImage(0,458,13,10), 0, 1, null
 smallFont.addChar upOutChar, resourcePic.getImage(0,468,13,13), 0, -1, null
 mediumFont.addChar downInChar, resourcePic.getImage(16,454,15,12), 0, 2, null
 mediumFont.addChar upOutChar, resourcePic.getImage(16,466,15,14), 0, 0, null
+
+// And prepare some sounds
+sounds = {}
+sounds.blip = file.loadSound("/usr/sounds/blipA4.wav")	// ToDo: get this from /sys
+sounds.alert = file.loadSound("/sys/sounds/blip-alert.wav")
 
 //----------------------------------------------------------------------
 Style = {}
@@ -525,6 +532,7 @@ FileRow.setPath = function(path)
 		self.children[0].dismiss; self.children[0].destroy
 		self.children = []
 	end if
+	self.selected = false
 end function
 FileRow.drawToScratch = function
 	f = self.file
@@ -546,7 +554,6 @@ FileRow.drawToScratch = function
 	if f == null then
 		smallFont.printCentered self.file, (x0+x1)/2, y, 1, color.red
 		return
-		
 	end if
 	
 	smallFont.printCentered f.date[-8:-3], x1-w/2, y, 1, color.black; x1 -= w + gap
@@ -562,7 +569,8 @@ FileRow.drawToScratch = function
 			b = RoundButton.make(downInChar + " Directory", self, self.left + x1 - w, self.bottom, w, 24)
 			b.captionFont = smallFont
 			b.action = function
-				globals.wtf = self
+				sounds.blip.play 0.5, 0, noteFreq(69)/440
+				wait 0.05; sounds.blip.play 0.5, 0, noteFreq(65)/440
 				fb = self.parent.parent
 				fb.load self.parent.file.path
 				fb.present
@@ -595,6 +603,7 @@ end function
 FileRow.select = function(selectIt)
 	if self.selected == selectIt then return
 	self.selected = selectIt
+	sounds.blip.play 1, 0, noteFreq(60 + 7*selectIt)/440
 	self.redrawSprite
 end function
 
@@ -638,6 +647,8 @@ fileManager.fileBox.setup = function
 	b.action = function
 		fb = self.parent.parent
 		if fb.path == "/" then return
+		sounds.blip.play 0.5, 0, noteFreq(69)/440
+		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(72)/440
 		fb.load file.parent(fb.path)
 		fb.present
 	end function
@@ -673,7 +684,7 @@ fileManager.fileBox.load = function(path)
 	self.path = path
 	children = file.children(path)
 	for i in range(0,13)
-		if i >= children.len then break
+		if i >= children.len then; i -= 1; break; end if
 		if i >= self.fileRows.len then
 			fr = FileRow.make(self, 
 			  self.topPanel.left-20, self.topPanel.bottom - 36 - 32*i, 
@@ -690,7 +701,8 @@ fileManager.fileBox.load = function(path)
 		end if
 		self.fileRows[i].setPath file.child(self.path, children[i])
 	end for	
-	while self.fileRows.len > i
+	while self.fileRows.len-1 > i
+		print "Destroying extra row " + (self.fileRows.len-1)
 		self.fileRows[-1].dismiss; self.fileRows[-1].destroy
 		self.fileRows.remove -1
 	end while
@@ -715,6 +727,8 @@ fileManager.fileBox.load("/usr/")
 //----------------------------------------------------------------------
 // Clock panel
 clock = Panel.make(root, 168, 0, 960-168, 640)
+clock.style.color = "#cc4499"
+clock.style.textColor = "#cc88ff"
 clock.header = Frame.make(clock, null, clock.top - 200)
 clock.header.configure false, true, true, false
 Block.make clock.header.leftPanel
@@ -751,6 +765,8 @@ end function
 //----------------------------------------------------------------------
 // Calculator panel
 calc = Panel.make(root, 168, 0, 960-168, 640)
+calc.style.color = "#33cc99"
+calc.style.buttonColor = "#99dd66"
 calc.style.displayColor = "#88CCFF"
 calc.header = Frame.make(calc, null, calc.top - 108)
 calc.header.configure false, true, true, false
@@ -774,15 +790,21 @@ calc.doAction = function(s)
 		if self.displayStr == "0" or self.clearOnInput then self.displayStr = ""
 		self.displayStr += s
 		self.clearOnInput = false
+		sounds.blip.play 0.5, 0, noteFreq(67)/440
 	else if s == "Backspace" and self.displayStr then
 		self.displayStr = calc.displayStr[:-1]
 		if not self.displayStr then self.displayStr = "0"
+		sounds.blip.play 0.5, 0, noteFreq(71)/440
+		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(72)/440
 	else if s == "Clear" then
 		self.displayStr = "0"
 		self.opA.text = ""
 		self.operator.text = ""
 		self.opA.present
 		self.operator.present
+		sounds.blip.play 0.5, 0, noteFreq(64)/440
+		wait 0.1; sounds.blip.play 0.5, 0, noteFreq(67)/440
+		wait 0.1; sounds.blip.play 0.5, 0, noteFreq(72)/440
 	else if s == "=" then
 		op = self.operator.text
 		if not op then return
@@ -799,14 +821,18 @@ calc.doAction = function(s)
 		if op == "or" then result = valA or valB
 		if op == "not" then result = valA not valB
 		self.displayStr = str(result)
+		sounds.blip.play 0.5, 0, noteFreq(60)/440
 		self.main.log.add valA + " " + op + " " + valB, self.displayStr
+		self.opA.text = ""; self.opA.present
+		self.operator.text = ""; self.operator.present
 		self.clearOnInput = true
+		wait 0.1
 	else
-		self.opA.text = self.displayStr
-		self.operator.text = s
-		self.displayStr = "0"
-		self.opA.present
-		self.operator.present
+		if self.operator and not self.clearOnInput then self.doAction "="
+		self.opA.text = self.displayStr; self.opA.present
+		self.operator.text = s; self.operator.present
+		self.clearOnInput = true
+		sounds.blip.play 0.5, 0, noteFreq(64)/440
 	end if
 	self.display.present
 end function
@@ -873,6 +899,8 @@ calc.main.log.add = function(expression, result)
 	b.action = function
 		calc.displayStr = result
 		calc.display.present
+		sounds.blip.play 0.5, 0, noteFreq(65)/440
+		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(67)/440
 	end function
 	b.present
 end function
@@ -880,7 +908,9 @@ end function
 //----------------------------------------------------------------------
 // News panel
 news = Panel.make(root, 168, 0, 960-168, 640)
-news.style.displayColor = "#88CCFF"
+news.style.color = "#ffaa44"
+news.style.buttonColor = "#ff7700"
+news.style.textColor = "#ffeecc"
 news.header = Frame.make(news, null, news.top - 108)
 news.header.configure false, true, true, false
 news.clearOnInput = false
@@ -967,12 +997,14 @@ end function
 mainMenu = Panel.make(root, 0, 0, 144, 640)
 mainMenu.style = new root.style
 mainMenu.style.buttonHeight = 36
+mainMenu.style.buttonColor = "#ffaa90"
 mainMenu.style.infoBlockColor = "#D0B0A0"
 mainMenu.curMode = null
 
 mainMenu.switchTo = function(modePanel)
 	if self.curMode == modePanel then return
 	if self.curMode then self.curMode.dismiss
+	sounds.alert.play
 	self.curMode = modePanel
 	self.curMode.present
 end function
@@ -985,16 +1017,22 @@ Button.make "Settings", mainMenu, null, null, null, mainMenu.style.buttonHeight
 Gap.make mainMenu
 // Main buttons, one for each mode
 b = Button.make("File Manager", mainMenu, null, null, null, mainMenu.style.buttonHeight)
-b.style.buttonColor = fileManager.style.buttonColor
+b.style.buttonColor = fileManager.style.color
 b.action = function; mainMenu.switchTo fileManager; end function
 
-Button.make("Clock", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
+b = Button.make("Clock", mainMenu, null, null, null, mainMenu.style.buttonHeight)
+b.style.buttonColor = clock.style.color
+b.action = function
 	mainMenu.switchTo clock
 end function
-Button.make("Calculator", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
+b = Button.make("Calculator", mainMenu, null, null, null, mainMenu.style.buttonHeight)
+b.style.buttonColor = calc.style.color
+b.action = function
 	mainMenu.switchTo calc
 end function
-Button.make("News", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
+b = Button.make("News", mainMenu, null, null, null, mainMenu.style.buttonHeight)
+b.style.buttonColor = news.style.color
+b.action = function
 	mainMenu.switchTo news
 end function
 // ...gap...

@@ -55,10 +55,11 @@
     - ~~☐ secondary (destination) file browser~~
     - ~~copy, move, rename, delete files~~
     - ~~preview of images, sounds, and text files~~
+    - ☐ scrolling/paging through long file lists
     - ☐ launch of program files
   - ☑︎ news module (displays MiniScript news feed)
   - ☑︎ clock at top of main menu updates
-  - ☐ fun audio feedback throughout
+  - ☑ fun audio feedback throughout
 - ☑︎ /sys/fonts folder of built-in fonts
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
