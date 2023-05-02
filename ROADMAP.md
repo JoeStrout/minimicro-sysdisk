@@ -42,23 +42,28 @@
 - ☑︎ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
 - ☐ /sys/demo/desktop: a GUI shell
   - ☐ scrollbars and close boxes on file windows
-  - ☐ working menubar: new Folder, etc.
-  - ☐ move/copy files by drag & drop
-  - ☐ contextual menu on files (Open/Launch/View, Rename, Delete, etc.)
-  - ☐ in-GUI viewer windows for pictures, source files, text files, and sounds
+  - ☐ working menubar: New Window, etc.
+  - ~~☐ move/copy files by drag & drop~~
+  - ~~☐ contextual menu on files (Open/Launch/View, Rename, Delete, etc.)~~
+  - ~~☐ in-GUI viewer windows for pictures, source files, text files, and sounds~~
   - ☐ launch a program
 - ☐ /sys/demo/lcars: a different GUI shell
   - ☑︎ calculator
-  - ☐ clock
+  - ☑︎ clock
   - ☐ file manager
-  - ☑︎ primary file browser
-  - ☐ secondary (destination) file browser
-  - copy, move, rename, delete files
-  - preview of images, sounds, and text files
-  - launch of program files
+    - ☑︎ primary file browser
+    - ~~☐ secondary (destination) file browser~~
+    - ~~copy, move, rename, delete files~~
+    - ~~preview of images, sounds, and text files~~
+    - ☐ scrolling/paging through long file lists
+    - ☐ launch of program files
+  - ☑︎ news module (displays MiniScript news feed)
+  - ☑︎ clock at top of main menu updates
+  - ☑ fun audio feedback throughout
 - ☑︎ /sys/fonts folder of built-in fonts
 - ☐ update /sys/help to include info about `demo` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
+- ☑︎ /sys/lib/styledText: parsing and printing (with word wrap) of styled text
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
 - ☑︎ add a simple file picker/browser to /sys/lib/textUtil, and a related `findFile` utility command
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display

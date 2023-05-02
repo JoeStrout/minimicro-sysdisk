@@ -12,6 +12,9 @@ ensureImport "events"
 ensureImport "bmfFonts"
 ensureImport "dateTime"
 ensureImport "gui"
+ensureImport "styledText"
+
+file.loadSound("/sys/sounds/blip-thinking.wav").play
 
 clear
 spriteDisp = display(4)
@@ -20,10 +23,10 @@ scratch = display(7)
 gfx.clear color.black
 
 smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
-mediumFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-16.bmf")	// ToDo: get this on /sys!
+mediumFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
 largeFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-20.bmf")
 
-resourcePic = file.loadImage("/usr/data/desktop/desktopGfx.png")	// ToDo: get from /sys
+resourcePic = file.loadImage("/sys/data/desktop/desktopGfx.png")
 swoopImages = []
 w = 163; h = 73
 for i in range(0,3)
@@ -42,6 +45,11 @@ smallFont.addChar downInChar, resourcePic.getImage(0,458,13,10), 0, 1, null
 smallFont.addChar upOutChar, resourcePic.getImage(0,468,13,13), 0, -1, null
 mediumFont.addChar downInChar, resourcePic.getImage(16,454,15,12), 0, 2, null
 mediumFont.addChar upOutChar, resourcePic.getImage(16,466,15,14), 0, 0, null
+
+// And prepare some sounds
+sounds = {}
+sounds.blip = file.loadSound("/usr/sounds/blipA4.wav")	// ToDo: get this from /sys
+sounds.alert = file.loadSound("/sys/sounds/blip-alert.wav")
 
 //----------------------------------------------------------------------
 Style = {}
@@ -85,6 +93,7 @@ Panel.right = function; return self.left + self.width; end function
 Panel.top = function; return self.bottom + self.height; end function
 Panel.midX = function; return self.left + self.width/2; end function
 Panel.midY = function; return self.bottom + self.height/2; end function
+Panel.onUpdate = null
 
 Panel.make = function(parent, left, bottom, width, height)
 	p = new Panel
@@ -321,6 +330,13 @@ Button.present = function
 	super.present
 end function
 
+Button.move = function(dx, dy)
+	self.left += dx; self.bottom += dy
+	if self.sprite then
+		self.sprite.x += dx; self.sprite.y += dy
+	end if
+end function
+
 Button.dismiss = function
 	if self.sprite != null then self.sprite.stop
 	if self.key isa list then
@@ -516,6 +532,7 @@ FileRow.setPath = function(path)
 		self.children[0].dismiss; self.children[0].destroy
 		self.children = []
 	end if
+	self.selected = false
 end function
 FileRow.drawToScratch = function
 	f = self.file
@@ -537,7 +554,6 @@ FileRow.drawToScratch = function
 	if f == null then
 		smallFont.printCentered self.file, (x0+x1)/2, y, 1, color.red
 		return
-		
 	end if
 	
 	smallFont.printCentered f.date[-8:-3], x1-w/2, y, 1, color.black; x1 -= w + gap
@@ -553,7 +569,8 @@ FileRow.drawToScratch = function
 			b = RoundButton.make(downInChar + " Directory", self, self.left + x1 - w, self.bottom, w, 24)
 			b.captionFont = smallFont
 			b.action = function
-				globals.wtf = self
+				sounds.blip.play 0.5, 0, noteFreq(69)/440
+				wait 0.05; sounds.blip.play 0.5, 0, noteFreq(65)/440
 				fb = self.parent.parent
 				fb.load self.parent.file.path
 				fb.present
@@ -586,6 +603,7 @@ end function
 FileRow.select = function(selectIt)
 	if self.selected == selectIt then return
 	self.selected = selectIt
+	sounds.blip.play 1, 0, noteFreq(60 + 7*selectIt)/440
 	self.redrawSprite
 end function
 
@@ -629,6 +647,8 @@ fileManager.fileBox.setup = function
 	b.action = function
 		fb = self.parent.parent
 		if fb.path == "/" then return
+		sounds.blip.play 0.5, 0, noteFreq(69)/440
+		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(72)/440
 		fb.load file.parent(fb.path)
 		fb.present
 	end function
@@ -664,7 +684,7 @@ fileManager.fileBox.load = function(path)
 	self.path = path
 	children = file.children(path)
 	for i in range(0,13)
-		if i >= children.len then break
+		if i >= children.len then; i -= 1; break; end if
 		if i >= self.fileRows.len then
 			fr = FileRow.make(self, 
 			  self.topPanel.left-20, self.topPanel.bottom - 36 - 32*i, 
@@ -681,7 +701,8 @@ fileManager.fileBox.load = function(path)
 		end if
 		self.fileRows[i].setPath file.child(self.path, children[i])
 	end for	
-	while self.fileRows.len > i
+	while self.fileRows.len-1 > i
+		print "Destroying extra row " + (self.fileRows.len-1)
 		self.fileRows[-1].dismiss; self.fileRows[-1].destroy
 		self.fileRows.remove -1
 	end while
@@ -706,6 +727,8 @@ fileManager.fileBox.load("/usr/")
 //----------------------------------------------------------------------
 // Clock panel
 clock = Panel.make(root, 168, 0, 960-168, 640)
+clock.style.color = "#cc4499"
+clock.style.textColor = "#cc88ff"
 clock.header = Frame.make(clock, null, clock.top - 200)
 clock.header.configure false, true, true, false
 Block.make clock.header.leftPanel
@@ -715,13 +738,40 @@ title = InfoBlock.make("CLOCK", clock.header,
 title.font = largeFont
 title.inverted = true
 
+clock.topDisplay = Panel.make(clock, clock.left + 160, clock.header.bottom + 50, 400, clock.header.height - 50)
+clock.topDisplay.present = function
+	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
+	now = dateTime.val
+	y = self.top - largeFont.lineHeight * 3
+	x = self.left + 20
+	largeFont.print dateTime.str(now, "dddd"), x, y, 2, self.style.textColor
+	y = y - largeFont.lineHeight * 2
+	largeFont.print dateTime.str(now, "MMMM d, yyyy"), x, y, 1, self.style.textColor
+end function
+
+clock.main = Panel.make(clock, clock.left, 0, clock.width, clock.header.bottom)
+clock.main.present = function
+	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
+	s = dateTime.now.split[1]
+	largeFont.printCentered s, self.midX, self.midY - 50, 6, self.style.textColor
+	self.curTimeShown = s
+end function
+
+clock.onUpdate = function
+	s = dateTime.now.split[1]
+	if s != self.main.curTimeShown then self.main.present
+end function
+
 //----------------------------------------------------------------------
 // Calculator panel
 calc = Panel.make(root, 168, 0, 960-168, 640)
+calc.style.color = "#33cc99"
+calc.style.buttonColor = "#99dd66"
 calc.style.displayColor = "#88CCFF"
 calc.header = Frame.make(calc, null, calc.top - 108)
 calc.header.configure false, true, true, false
 calc.displayStr = "0"
+calc.clearOnInput = false
 Block.make calc.header.leftPanel
 Block.make calc.header.bottomPanel
 title = InfoBlock.make("CALCULATOR", calc.header,
@@ -737,17 +787,24 @@ end function
 
 calc.doAction = function(s)
 	if s >= "0" and s <= "9" then
-		if self.displayStr == "0" then self.displayStr = ""
+		if self.displayStr == "0" or self.clearOnInput then self.displayStr = ""
 		self.displayStr += s
+		self.clearOnInput = false
+		sounds.blip.play 0.5, 0, noteFreq(67)/440
 	else if s == "Backspace" and self.displayStr then
 		self.displayStr = calc.displayStr[:-1]
 		if not self.displayStr then self.displayStr = "0"
+		sounds.blip.play 0.5, 0, noteFreq(71)/440
+		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(72)/440
 	else if s == "Clear" then
 		self.displayStr = "0"
 		self.opA.text = ""
 		self.operator.text = ""
 		self.opA.present
 		self.operator.present
+		sounds.blip.play 0.5, 0, noteFreq(64)/440
+		wait 0.1; sounds.blip.play 0.5, 0, noteFreq(67)/440
+		wait 0.1; sounds.blip.play 0.5, 0, noteFreq(72)/440
 	else if s == "=" then
 		op = self.operator.text
 		if not op then return
@@ -764,12 +821,18 @@ calc.doAction = function(s)
 		if op == "or" then result = valA or valB
 		if op == "not" then result = valA not valB
 		self.displayStr = str(result)
+		sounds.blip.play 0.5, 0, noteFreq(60)/440
+		self.main.log.add valA + " " + op + " " + valB, self.displayStr
+		self.opA.text = ""; self.opA.present
+		self.operator.text = ""; self.operator.present
+		self.clearOnInput = true
+		wait 0.1
 	else
-		self.opA.text = self.displayStr
-		self.operator.text = s
-		self.displayStr = "0"
-		self.opA.present
-		self.operator.present
+		if self.operator and not self.clearOnInput then self.doAction "="
+		self.opA.text = self.displayStr; self.opA.present
+		self.operator.text = s; self.operator.present
+		self.clearOnInput = true
+		sounds.blip.play 0.5, 0, noteFreq(64)/440
 	end if
 	self.display.present
 end function
@@ -778,7 +841,7 @@ calc.main = Frame.make(calc, null, 0, null, calc.height - 118)
 calc.main.configure true, false, true, false
 
 Gap.make calc.main.topPanel
-InfoBlock.make "Calculation Log", calc.main.topPanel, null, null, 320
+calc.main.logHeader = InfoBlock.make("Calculation Log", calc.main.topPanel, null, null, 320)
 calc.main.topPanel.layout
 
 b = Button.make("Backspace", calc.main.leftPanel, null, null, null, calc.style.buttonHeight)
@@ -822,6 +885,111 @@ calc.main.setup = function
 end function
 calc.main.setup
 
+calc.main.log = Panel.make(calc.main, calc.main.logHeader.left, 16, calc.main.logHeader.width, calc.main.topPanel.bottom - 40)
+calc.main.log.add = function(expression, result)
+	h = self.style.topBarHeight
+	gap = 8
+	y = self.top - h - self.children.len * (h+gap)
+	while y < self.bottom
+		self.children[0].dismiss; self.children[0].destroy
+		for b in self.children; b.move 0, h+gap; end for
+		y += h+gap
+	end while
+	b = Button.make(expression + " = " + result, self, self.left, y, self.width, h)
+	b.action = function
+		calc.displayStr = result
+		calc.display.present
+		sounds.blip.play 0.5, 0, noteFreq(65)/440
+		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(67)/440
+	end function
+	b.present
+end function
+
+//----------------------------------------------------------------------
+// News panel
+news = Panel.make(root, 168, 0, 960-168, 640)
+news.style.color = "#ffaa44"
+news.style.buttonColor = "#ff7700"
+news.style.textColor = "#ffeecc"
+news.header = Frame.make(news, null, news.top - 108)
+news.header.configure false, true, true, false
+news.clearOnInput = false
+Block.make news.header.leftPanel
+Block.make news.header.bottomPanel
+title = InfoBlock.make("NEWS", news.header,
+	news.header.right - 200, news.top - 30, 200, 30)
+title.font = largeFont
+title.inverted = true
+
+news.main = Frame.make(news, null, 0, null, news.height - 118)
+news.main.configure true, false, true, false
+
+Gap.make news.main.topPanel
+news.date = InfoBlock.make("2000-01-01", news.main.topPanel, null, null, 160)
+news.posCount = InfoBlock.make("0 / 0", news.main.topPanel, null, null, 160)
+news.main.topPanel.layout
+
+Gap.make news.main.leftPanel
+
+b = Button.make("Previous", news.main.leftPanel, null, null, null, news.style.buttonHeight)
+b.action = function; news.nextStory -1; end function
+b.key = char(17)
+
+b = Button.make("Next", news.main.leftPanel, null, null, null, news.style.buttonHeight)
+b.action = function; news.nextStory 1; end function
+b.key = char(18)
+
+Gap.make news.main.leftPanel
+news.main.leftPanel.layout
+
+news.data = null; news.curItemIdx = 0
+news.nextStory = function(delta=1)
+	if not self.data then return
+	self.curItemIdx = (self.curItemIdx + self.data.len + delta) % self.data.len
+	self.content.present
+end function
+
+news.content = Panel.make(news.main, news.main.topPanel.left, 0, 
+			940 - news.main.topPanel.left, news.main.topPanel.bottom - 16)
+news.presenting = false	// or a map of context data
+news.content.present = function
+	if news.data == null then
+		lines = http.get("https://miniscript.org/news/news.dat").splitLines
+		news.data = []
+		curItem = {}
+		for line in lines
+			if line == "" then
+				if curItem then news.data.push curItem
+				curItem = {}
+				continue
+			end if
+			parts = line.split(": ", 2)
+			if parts.len < 2 then continue
+			curItem[parts[0]] = parts[1]
+		end for
+		if curItem then news.data.push curItem
+	end if
+	story = news.data[news.curItemIdx]
+	news.date.text = story.date; news.date.present
+	news.posCount.text = news.curItemIdx + " / " + news.data.len; news.posCount.present
+
+	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
+
+	printer = new styledText.BmfPrinter
+	printer.x = self.left
+	printer.wrapTo = self.left
+	printer.wrapAt = self.right
+	printer.y = self.top - 20
+	printer.font = mediumFont
+	gfx.color = color.yellow
+	printer.printHTML story.title, self.left
+	gfx.color = self.style.textColor; printer.y -= 20
+	printer.printHTML story.shortText, self.left; printer.y -= 20
+	if story.hasIndex("moreText") then
+		printer.printHTML story.moreText, self.left
+	end if
+end function
+
 
 //----------------------------------------------------------------------
 // Main Menu: a simple panel of buttons (and gaps) on the left side of the screen.
@@ -829,34 +997,44 @@ calc.main.setup
 mainMenu = Panel.make(root, 0, 0, 144, 640)
 mainMenu.style = new root.style
 mainMenu.style.buttonHeight = 36
+mainMenu.style.buttonColor = "#ffaa90"
 mainMenu.style.infoBlockColor = "#D0B0A0"
 mainMenu.curMode = null
 
 mainMenu.switchTo = function(modePanel)
 	if self.curMode == modePanel then return
 	if self.curMode then self.curMode.dismiss
+	sounds.alert.play
 	self.curMode = modePanel
 	self.curMode.present
 end function
 
 // Mini-clock at the top
-InfoBlock.make dateTime.now[-8:-3], mainMenu, null, null, null, 40
+miniClock = InfoBlock.make(dateTime.now[-8:-3], mainMenu, null, null, null, 40)
 // Settings button
 Button.make "Settings", mainMenu, null, null, null, mainMenu.style.buttonHeight
 // ...gap...
 Gap.make mainMenu
 // Main buttons, one for each mode
 b = Button.make("File Manager", mainMenu, null, null, null, mainMenu.style.buttonHeight)
-b.style.buttonColor = fileManager.style.buttonColor
+b.style.buttonColor = fileManager.style.color
 b.action = function; mainMenu.switchTo fileManager; end function
 
-Button.make("Clock", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
+b = Button.make("Clock", mainMenu, null, null, null, mainMenu.style.buttonHeight)
+b.style.buttonColor = clock.style.color
+b.action = function
 	mainMenu.switchTo clock
 end function
-Button.make("Calculator", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
+b = Button.make("Calculator", mainMenu, null, null, null, mainMenu.style.buttonHeight)
+b.style.buttonColor = calc.style.color
+b.action = function
 	mainMenu.switchTo calc
 end function
-Button.make "News", mainMenu, null, null, null, mainMenu.style.buttonHeight
+b = Button.make("News", mainMenu, null, null, null, mainMenu.style.buttonHeight)
+b.style.buttonColor = news.style.color
+b.action = function
+	mainMenu.switchTo news
+end function
 // ...gap...
 Gap.make mainMenu
 // Exit button at bottom
@@ -869,6 +1047,14 @@ exitBtn.key = char(27)
 
 events.eventLoop.onGotKey = function(k)
 	Button.checkKey k
+end function
+events.eventLoop.onUpdate = function
+	mainMenu.curMode.onUpdate
+	time = dateTime.now[-8:-3]
+	if time != miniClock.text then
+		miniClock.text = time
+		miniClock.present
+	end if
 end function
 
 mainMenu.layout
