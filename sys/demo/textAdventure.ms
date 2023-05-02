@@ -98,9 +98,9 @@ end function
 
 Object.descInRoom = function
 	if rnd > 0.5 then
-		print "You see a " + self.name + " lying here."
+		print "You see " + self.fullName + " lying here."
 	else
-		print "There is a " + self.name + " here."
+		print "There is " + self.fullName + " here."
 	end if
 end function
 
@@ -110,13 +110,14 @@ Object.describe = function
 end function
 
 Object.moveTo = function(location)
-	if self.location != null then removeValue(self.location.contents, self)
+	oldLoc = self.location
+	self.location = location
+	if oldLoc != null then removeValue oldLoc.contents, self
 	self.location = location
 	if location == null then return
 	// Note how we don't use location.contents.push here, because we don't
 	// want to accidentally share lists among multiple objects.
 	location.contents = location.contents + [self]
-	///print "Moved " + self.name + " to " + location.name
 end function
 
 Object.listContents = function(headerMsg, emptyMsg)
@@ -307,28 +308,36 @@ end function
 //----------------------------------------------------------------------
 CountableThing = new Thing
 CountableThing.name = "Countable"
+
 CountableThing.pluralName = function
 	return self.name + "s"
 end function
+
 CountableThing.count = 1
+
 CountableThing.fullName = function
 	if self.count == 1 then return aOrAn(self.name)
 	return self.count + " " + self.pluralName
 end function
+
 CountableThing.singleDesc = "You see #FULLNAME#."
 CountableThing.pluralDesc = "You see #FULLNAME#."
+
 CountableThing.desc = function
 	if self.count == 1 then return self.singleDesc.replace("#FULLNAME#", self.fullName)
 	return self.pluralDesc.replace("#FULLNAME#", self.fullName)
 end function
+
 CountableThing.descInRoom = function
 	return self.desc - "." + " here."
 end function
+
 CountableThing.isCalled = function(s)
 	if super.isCalled(s) then return true
 	if self.count > 1 and super.isCalled(s - "s") then return true
 	return false
 end function
+
 numberWordToVal = {"a":1, "one":1, "two":2, "three":3}
 CountableThing.splitItem = function(s)
 	count = null
@@ -343,13 +352,35 @@ CountableThing.splitItem = function(s)
 		return self
 	end if
 	if not count or count > self.count then return null
+	if count == self.count then return self
 	// OK, we need to split this item by the given count.
-	noob = new self.__isa
-	noob = noob + self
+	noob = self + {}   // (makes a shallow copy of self)
 	noob.count = count
-	self.count = self.count - count
+	self.count -= count
 	noob.location.contents.push noob
 	return noob
+end function
+
+CountableThing.moveTo = function(location)
+	oldLoc = self.location
+	if oldLoc != null then
+		self.location = null
+		removeValue oldLoc.contents, self
+	else
+		print self.fullName + " location == null"
+		pprint stackTrace
+	end if
+	self.location = null
+	if location == null then return
+	// combine with an existing item of the same type, if possible
+	for item in location.contents
+		if item isa CountableThing and item.name == self.name then
+			item.count += self.count
+			return
+		end if
+	end for
+	// ...failing that, just move in the standard way
+	super.moveTo location
 end function
 //----------------------------------------------------------------------
 Liquid = new Thing
@@ -357,7 +388,7 @@ Liquid.name = "Liquid"
 Liquid.desc = "You see some nondescript liquid."
 Liquid.a = "some"
 Liquid.canGet = function
-	print "You try to pick up " + self.fullName + ", but it just falls through your fingers."
+	printWrap "You try to pick up " + self.fullName + ", but it just falls through your fingers."
 	return false
 end function
 
@@ -380,7 +411,7 @@ Container.handleCommand = function(cmd, pass)
 end function
 Container.contain = function(obj)
 	obj.moveTo self
-	print "You put " + obj.fullName + " into " + self.fullName + "."
+	printWrap "You put " + obj.fullName + " into " + self.fullName + "."
 end function
 
 //----------------------------------------------------------------------
@@ -390,28 +421,40 @@ Player.altNames = ["me", "myself"]
 Player.desc = "You see yourself."
 Player.descInRoom = null
 
-Player.findObj = function(objStr)
+Player.findObj = function(objStr, inventoryFirst=false)
 	if objStr == null then return null
 	
+	if inventoryFirst then
+		// Check the player's inventory, including one level deeper
+		item = Player.contentNamed(objStr)
+		if item != null then return item
+		for item in Player.contents
+			subitem = item.contentNamed(objStr)
+			if subitem != null then return subitem
+		end for
+	end if
+			
 	// Check the room
 	item = Player.location.contentNamed(objStr)
 	if item != null then return item
 	
-	// Check the player's inventory
-	item = Player.contentNamed(objStr)
-	if item != null then return item
+	// Check the player's inventory (if we haven't already)
+	if not inventoryFirst then
+		item = Player.contentNamed(objStr)
+		if item != null then return item
+	end if
 	
 	// Check things contained one level deeper
-	for item in Player.location.contents + Player.contents
+	for item in Player.location.contents + Player.contents * (not inventoryFirst)
 		subitem = item.contentNamed(objStr)
 		if subitem != null then return subitem
 	end for
 	return null
 end function
 
-Player.findObjs = function(objects)
+Player.findObjs = function(objects, inventoryFirst=false)
 	if objects == null then return null
-	result = [self.findObj(objects[0]), self.findObj(objects[1])]
+	result = [self.findObj(objects[0], inventoryFirst), self.findObj(objects[1], inventoryFirst)]
 	if not result[0] or not result[1] then return null
 	return result
 end function
@@ -444,15 +487,15 @@ Player.handleCommand = function(cmd, pass)
 		return self.get(obj)
 	end if
 	
-	objs = self.findObjs(matchPrep("put", "in", cmd))
-	if not objs then objs = self.findObjs(matchPrep("put", "into", cmd))
-	if not objs then objs = self.findObjs(matchPrep("give", "to", cmd))
+	objs = self.findObjs(matchPrep("put", "in", cmd), true)
+	if not objs then objs = self.findObjs(matchPrep("put", "into", cmd), true)
+	if not objs then objs = self.findObjs(matchPrep("give", "to", cmd), true)
 	if objs then
 		globals.it = objs[0].name
 		return self.put(objs[0], objs[1])
 	end if
 	
-	obj = self.findObj(match(["drop", "put down", "toss"], cmd))
+	obj = self.findObj(match(["drop", "put down", "toss"], cmd), true)
 	if obj then
 		globals.it = obj.name
 		return self.drop(obj)
@@ -587,14 +630,14 @@ if locals == globals then
 	" examine the credits, or quit."
 	
 	doors = Exit.connect(fountainRoom, "north", endRoom)
-	exit = doors[0]
-	exit.altNames = ["exit", "leave", "out", "door", "n"]
-	exit.desc = "It's a great stone door, with a carving of a" +
+	mainExit = doors[0]
+	mainExit.altNames = ["exit", "leave", "out", "door", "n"]
+	mainExit.desc = "It's a great stone door, with a carving of a" +
 	" gargoyle that appears amazingly lifelike."
 	doors[1].altNames = ["s"]
-	exit.open = false
-	exit.salient = false
-	exit.openDoor = function
+	mainExit.open = false
+	mainExit.salient = false
+	mainExit.openDoor = function
 		print "The stone door won't budge."
 	end function
 	
@@ -673,7 +716,7 @@ if locals == globals then
 	
 	goldCoin = new CountableThing
 	goldCoin.name = "gold coin"
-	goldCoin.name = "coin"
+	goldCoin.altNames = ["coin", "real coin"]
 	goldCoin.moveTo Player
 	
 	tinCoin = new CountableThing
@@ -731,7 +774,7 @@ if locals == globals then
 				printWrap "As you place "+obj.fullName+" into the"+
 	" gargoyle's glowing hand, its face comes to life once again.  It"+
 	" cocks an eye at the dark round "+shapes+" in its hand.  Frowning,"+
-	" it turns them over and appears to be judging "+their+" weight." +
+	" it turns "+them+" over and appears to be judging "+their+" weight." +
 	"  With a shrug, it lifts a clawed finger and begins counting."
 				if obj.count < 3 then
 					printWrap "Finding only " + obj.count + " " +
@@ -745,11 +788,11 @@ if locals == globals then
 					obj.moveTo null
 					print; wait 2
 					printWrap "Grinning, the gargoyle splits in half,"+
-	" right down the middle.  His two halves separate and slide" +
+	" right down the middle.  Its two halves separate and slide" +
 	" apart, taking the two halves of the great stone door with them."+
 	"  A dark passageway extends beyond the door to the north."
-					exit.open = true
-					exit.salient = true
+					mainExit.open = true
+					mainExit.salient = true
 				end if
 			end if
 		else
