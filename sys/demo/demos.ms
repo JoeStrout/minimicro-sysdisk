@@ -188,6 +188,7 @@ autorunNext = function
 	if not runProgram(pgms[idx]) then
 		env.autorun = false
 		clear
+		globals.selected = allPrograms[idx]
 		drawList; drawProgram
 		return false
 	end if
@@ -215,15 +216,15 @@ while true
 	idx = allPrograms.indexOf(selected)
 	if k.code == 19 then // up-arrow
 		idx = (idx + allPrograms.len - 1) % allPrograms.len
-	else if k.code == 20 then
+	else if k.code == 20 then  // down-arrow
 		idx = (idx + allPrograms.len + 1) % allPrograms.len
-	else if k.code == 10 or k.code == 13 then
+	else if k.code == 10 or k.code == 13 then  // return/enter
 		runProgram selected
 	else if k == "a" or k == "A" then
 		env.autorun = ""
 		autorunNext
-	else if k.code == 27 then
-		text.row = 1
+	else if k.code == 27 then  // esc
+		text.row = 0; print
 		env.autorun = false
 		env.shell = ""
 		exit

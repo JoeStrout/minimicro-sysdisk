@@ -366,9 +366,6 @@ CountableThing.moveTo = function(location)
 	if oldLoc != null then
 		self.location = null
 		removeValue oldLoc.contents, self
-	else
-		print self.fullName + " location == null"
-		pprint stackTrace
 	end if
 	self.location = null
 	if location == null then return

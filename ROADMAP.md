@@ -21,6 +21,12 @@
 - ☑︎ fix: loops in the `__isa` chain now throw a proper error instead of freezing the app.
 - ☑︎ fix: `a[3]` where `a` is `null` now reliably throws a runtime error.
 
+## MiniScript (language) v1.6.1
+
+- ☑︎ bug: map comparisons can erronously report as equal two maps with parallel structures that contain `null` at the same place in both.
+- ☐ bug (command line only): printing a map containing a function reference fails to print FUNCTION() like the C# version.
+- ☐ bug: when entering a `for` loop at the REPL, C++ MiniScript immediately executes the first time through, while C# MiniScript waits until `end for` to execute even once; and with an if block, it'll execute the body even if the condition is false!
+
 - **Command-line MiniScript v1.6**
   - ☑︎ on launch, adds MS_SCRIPT_DIR and MS_EXE_DIR to the environment variables, as well as MS_IMPORT_PATH if not already defined
   - ☑︎ new `import` intrinsic now searches directories in MS_IMPORT_PATH for the import module and imports them, just like Mini Micro
@@ -38,7 +44,7 @@
 ## Contents of /sys disk
 
 - ☑︎ /sys/demo/demos: presents menu of demos, and includes an auto-run ("screen saver" or "attract mode") feature that auto-runs several of the smaller demos; also shows you how to load and run these manually
-- ☐ New `demos`, `desktop`, and `lcars` commands load and run the respective shells
+- ☑︎ New `demos`, `desktop`, and `lcars` commands load and run the respective shells
 - ☑︎ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
 - ☐ /sys/demo/desktop: a GUI shell
   - ☐ scrollbars and close boxes on file windows
@@ -61,18 +67,19 @@
   - ☑︎ clock at top of main menu updates
   - ☑ fun audio feedback throughout
 - ☑︎ /sys/fonts folder of built-in fonts
-- ☐ update /sys/help to include info about `demo` and shells
+- ☐ update /sys/help to include info about `demos` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
 - ☑︎ /sys/lib/styledText: parsing and printing (with word wrap) of styled text
 - ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
 - ☑︎ add a simple file picker/browser to /sys/lib/textUtil, and a related `findFile` utility command
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display
 - ☑ qa module: now correctly returns "map" for `qa.typeOf {}`
+- ☑ textAdventure demo: fixed some bugs related to countable coins
+- ☑︎ `grfon.Parse` now returns an empty map for `{}`, rather than returning null.
 
 ## Mini Micro itself
 
 - ☑︎ Added key.axis("Tilt X") and similar "Tilt Y" and "Tilt Z" for reading the accelerometer on devices that have one.
-- ☑︎ `grfon.Parse` now returns an empty map for `{}`, rather than returning null.
 - ☑︎ `file.loadImage` new stores the image name and path on the image object; `www.get` does the same with the name and URL.
 - ☑︎ fixed: TileDisplay no longer shows LOL emojis if you don't assign a tileSet
 - ☑︎ fixed: TileDisplay: you could set tileSet but not get it
@@ -85,6 +92,7 @@
 - ☑︎ `"/"` is now a valid path (in cd, dir, etc.)
 - ☑︎ The `edit` and `run` commands now take an optional filename to `load`.  If you have unsaved changes, the user is advised to `save` or `reset` and the operation is aborted.
 - ☑︎ Fixed: Esc key did not enter the keyboard buffer (as seen by `key.available` and `key.get`) on Windows and Linux.
+- ☐ BUG: Tab key does not accept autocomplete on the command line in Linux (and Windows?)
 - ☑︎ `key.axis`: added a `smoothed` parameter (default true), enabling raw (unsmoothed) inputs.
 - ☑︎ `Image.fromScreen` takes a screen shot, including all layers
 - ☑︎ `Image.flip` and `Image.rotate` (in 90° increments)
@@ -97,13 +105,13 @@
 - ☑︎ Added `mouse.locked` to lock the mouse cursor, e.g. for FPS games	
 - ☑︎ Added `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
 - ☑︎ Added `sound.amp` to get the current amplitude of a playing sound (in the range 0-1, but typically closer to 0), enabling you to make a sort of graphic equalizer display, or do lip-syncing to speech, etc.
-- ☑︎ remove test characters currently at char(29) and char(30)
+- ☑︎ remove test characters previously at char(29) and char(30)
 - ☐ BUG: Display.install does not work with a display of type 0 (off)
 - ☑︎ fix crash that occurs when setting gfx.scrollX to NaN
 - **Code Editor**
   - ☑︎ Code editor uses a new custom font, including all special characters available in the text display.
   - ☑︎ Added customizable editor colors, via the `env.editorColors` map.
-  - ☐ increase scroll wheel speed in code editor -- should be ~1 line/click
+  - ☑︎ increase scroll wheel speed in code editor -- should be ~1 line/click
   - ☐ code editor autocomplete should include any identifiers (found as parameters, and assignments in local and global scope)
   - ☐ make sure the code editor shows the unknown-character glyph for unknown chars, rather than just blank, on all platforms
   - ☐ Correctly color parens after a line (or several lines?) continued by `and`
@@ -129,4 +137,5 @@ While not on the direct path to Mini Micro 1.2, it's worth pointing out some of 
 - Farmtronics
 - Soda
 - Desktop Font Converter (TrueType to BMF)
+ - Try-It! page: does not properly handle the new second parameter to `print`
  

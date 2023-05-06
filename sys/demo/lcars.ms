@@ -702,7 +702,6 @@ fileManager.fileBox.load = function(path)
 		self.fileRows[i].setPath file.child(self.path, children[i])
 	end for	
 	while self.fileRows.len-1 > i
-		print "Destroying extra row " + (self.fileRows.len-1)
 		self.fileRows[-1].dismiss; self.fileRows[-1].destroy
 		self.fileRows.remove -1
 	end while

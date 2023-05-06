@@ -511,6 +511,15 @@ clear = function
 	text.row = 25
 end function
 
+tip = function
+	tips = _fileReadLines("/sys/tips.txt")
+	return tips[rnd * tips.len].replace("\n", _EOL)
+end function
+
+desktop = function;	load "/sys/demo/desktop"; run; end function
+lcars = function;	load "/sys/demo/lcars"; run; end function
+demos = function;	load "/sys/demo/demos"; run; end function
+
 _saveGlobals = function
 	globals._savedGlobals = {} + globals
 end function
@@ -532,11 +541,6 @@ reset = function
 	env.importPaths = [".", "/usr/lib", "/sys/lib"]
 	print "Program source cleared and reset"
 	return null
-end function
-
-tip = function
-	tips = _fileReadLines("/sys/tips.txt")
-	return tips[rnd * tips.len].replace("\n", _EOL)
 end function
 
 _saveGlobals
