@@ -21,12 +21,6 @@
 - ☑︎ fix: loops in the `__isa` chain now throw a proper error instead of freezing the app.
 - ☑︎ fix: `a[3]` where `a` is `null` now reliably throws a runtime error.
 
-## MiniScript (language) v1.6.1
-
-- ☑︎ bug: map comparisons can erronously report as equal two maps with parallel structures that contain `null` at the same place in both.
-- ☐ bug (command line only): printing a map containing a function reference fails to print FUNCTION() like the C# version.
-- ☐ bug: when entering a `for` loop at the REPL, C++ MiniScript immediately executes the first time through, while C# MiniScript waits until `end for` to execute even once; and with an if block, it'll execute the body even if the condition is false!
-
 - **Command-line MiniScript v1.6**
   - ☑︎ on launch, adds MS_SCRIPT_DIR and MS_EXE_DIR to the environment variables, as well as MS_IMPORT_PATH if not already defined
   - ☑︎ new `import` intrinsic now searches directories in MS_IMPORT_PATH for the import module and imports them, just like Mini Micro
@@ -40,6 +34,12 @@
   - ☐ document `refEquals` in the wiki and/or manual
   - ☐ document sound.adjust and all new APIs in Mini Micro Cheat Sheet
   - ☐ document `funcRef` and other types in the manual
+
+## MiniScript (language) v1.6.1
+
+- ☑︎ bug: map comparisons can erronously report as equal two maps with parallel structures that contain `null` at the same place in both.
+- ☐ bug (command line only): printing a map containing a function reference fails to print FUNCTION() like the C# version.
+- ☐ bug: when entering a `for` loop at the REPL, C++ MiniScript immediately executes the first time through, while C# MiniScript waits until `end for` to execute even once; and with an if block, it'll execute the body even if the condition is false!
 
 ## Contents of /sys disk
 
@@ -112,8 +112,8 @@
   - ☑︎ Code editor uses a new custom font, including all special characters available in the text display.
   - ☑︎ Added customizable editor colors, via the `env.editorColors` map.
   - ☑︎ increase scroll wheel speed in code editor -- should be ~1 line/click
-  - ☐ code editor autocomplete should include any identifiers (found as parameters, and assignments in local and global scope)
-  - ☐ make sure the code editor shows the unknown-character glyph for unknown chars, rather than just blank, on all platforms
+  - ~~☐ code editor autocomplete, including standard intrinsics, global APIs, and any identifiers (found as parameters, and assignments in local and global scope)~~
+  - ☑ make sure the code editor shows the unknown-character glyph for unknown chars, rather than just blank, on all platforms
   - ☐ Correctly color parens after a line (or several lines?) continued by `and`
   - ☐ Home keypress or cmd-left: scroll all the way to the left (showing line numbers).
   - ☐ When opening different file, editor should reset to top left most position (including line-numbers) not previous position.

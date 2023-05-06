@@ -449,6 +449,7 @@ load = function(path, checkIfSafe=true)
 		globals._source = lines
 		globals._sourceFile = path
 		globals._sourceSaved = true
+		_resetEditorScrollPos
 		return lines.len + " line" + ("s" * (lines.len != 1)) + " loaded from " + path
 	end if
 	return null
