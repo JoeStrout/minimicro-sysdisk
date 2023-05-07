@@ -274,6 +274,22 @@ openFile = function(filePath, fromWindow=null)
 	end if
 end function
 
+rebuildWindowMenu = function
+	menu = menubar.items[-2]
+	items = []
+	for i in spriteDisp.sprites.indexes
+		if spriteDisp.sprites[i] isa gui.Window then
+			w = spriteDisp.sprites[i]
+			items.push gui.MenuItem.make(w.title)
+			items[-1].window = w
+			items[-1].action = function
+				 self.window.moveToFront
+			end function
+		end if
+	end for
+	menu.submenu = gui.Menu.make(items)
+end function
+
 handleShortcutKey = function(key)
 	if key == "/" then
 		if rootWindow == null then
@@ -312,6 +328,7 @@ end function
 
 menubar = gui.Menubar.make(["File", "Edit", "Window", "Help"])
 
+// File menu
 menu = gui.Menu.make(["New Window", "Close Window", "-", "Exit to Shell"])
 menu.items[0].action = function
 	w = FileWindow.make("/", 384, 128, 0, 80)		
@@ -333,15 +350,23 @@ menu.items[-1].action = function
 end function
 menubar.items[0].submenu = menu
 
+// Edit menu (all disabled for now)
+menu = gui.Menu.make(["Cut", "Copy", "Paste", "Delete"])
+for item in menu.items; item.disabled = true; end for
+menubar.items[1].submenu = menu
+
+// Window menu (dynamically created at the moment you open it)
+menubar.items[-2].openSubmenu = function(asTopLevelMenu = false)
+	rebuildWindowMenu
+	super.openSubmenu asTopLevelMenu
+end function
+
 menubar.draw
 menubar.installHandlers
 
 
 rootWindow = FileWindow.make("/", 384, 128, 0, 80)
 rootWindow.goTo 200, 450
-
-window2 = FileWindow.make("/sys/pics", 512, 350, 125, 150)
-window2.goTo 600, 400
 
 //window3 = Window.make(200,200, 25, 150, "Accessory")
 //window3.goTo 750, 500

@@ -185,6 +185,10 @@ drawMenuItemText = function(g, menuText, left, bottom, width, height, highlighte
 	if menuText != "-" then medFont.print menuText, left+6, y, 1, textColor
 end function
 
+calcMenuItemWidth = function(menuText)
+	return medFont.width(menuText) + 18
+end function
+
 // Draw the bottom of the menu.  Note that the third parameter is the bottom
 // of the bottommost menu item; we actually draw below that (border and shadow).
 drawMenuBottom = function(g, left, menuBottom, width=100)
@@ -309,6 +313,7 @@ ScrollbarH.updateThumb = function
 		thumbLeft = self.left
 	else
 		size = round(self.width * (self.pageSize / (valueRange + self.pageSize)))
+		if size < 16 then size = 16
 		// Then, the position.  The leftmost end of the thumb reflects the 
 		// position of the current value within the range, as a fraction
 		// of our total width MINUS the thumb size.
@@ -395,6 +400,7 @@ ScrollbarV.updateThumb = function
 		newx = self.bottom + self.height/2
 	else
 		size = round(self.height * (self.pageSize / (valueRange + self.pageSize)))
+		if size < 16 then size = 16
 		// Then, the position.  The bottom end of the thumb reflects the 
 		// position of the current value within the range, as a fraction
 		// of our total height MINUS the thumb size.
@@ -432,6 +438,10 @@ Window.controls = null		// list of Sprites which are "children" of this window
 Window.contentSprite = null	// sprite representing window content
 Window.scrollbarH = null
 Window.scrollbarV = null
+
+Window.minSize = function		// minimum window size (feel free to override!)
+	return [self.titleLeft + self.titleWidth + 20, 100]
+end function
 
 // Make an image for the window sprite.
 // Uses self: width, height, titleLeft, titleWidth, title
@@ -514,7 +524,7 @@ Window.init = function(width, height, titleLeft, titleWidth, title)
 		self.updateContent
 		end if
 	end if
-	
+
 	self.moveToFront // a new window should always be frontmost
 end function
 
@@ -642,6 +652,8 @@ Window.goTo = function(x, y, keepOnScreen=true)
 end function
 
 Window.resize = function(newWidth, newHeight)
+	if newWidth < self.minSize[0] then newWidth = self.minSize[0]
+	if newHeight < self.minSize[1] then newHeight = self.minSize[1]
 	if newWidth == self.width and newHeight == self.height then return
 	left = self.x - self.width/2; top = self.y + self.height/2
 	self.x = left + newWidth/2; self.y = top - newHeight/2
@@ -790,16 +802,19 @@ Menu.selectedMenu = function
 	return self.selectedItem.submenu
 end function
 
-Menu.make = function(items, width=200)
+Menu.make = function(items, width=null)
 	menu = new Menu
-	menu.width = width
 	menu.items = items
+	maxWidth = 0
 	for i in menu.items.indexes
 		if menu.items[i] isa string then
 			menu.items[i] = MenuItem.make(menu.items[i])
 		end if
+		maxWidth = max(maxWidth, calcMenuItemWidth(menu.items[i].text))
 	end for
 	menu.top = 641 + menuDisp.scrollY - kMenuBarHeight
+	if width == null then width = maxWidth
+	menu.width = width
 	return menu
 end function
 

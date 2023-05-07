@@ -40,6 +40,7 @@
 - ☑︎ bug: map comparisons can erronously report as equal two maps with parallel structures that contain `null` at the same place in both.
 - ☐ bug (command line only): printing a map containing a function reference fails to print FUNCTION() like the C# version.
 - ☐ bug: when entering a `for` loop at the REPL, C++ MiniScript immediately executes the first time through, while C# MiniScript waits until `end for` to execute even once; and with an if block, it'll execute the body even if the condition is false!
+- ☐ bug (command line only, maybe Linux only?): file.copy fails with EINVAL
 
 ## Contents of /sys disk
 
@@ -99,7 +100,6 @@
 - ☑︎ `key.put` allows you to enqueue a string, or single character by code point, into the keyboard buffer
 - ☑︎ fixed: assigning to the `freq`, `duration`, etc. of a synthesized sound while it is playing now stops it, rather than leaving it orphaned and uncontrollable
 - ☑︎ fixed the default value of `mode` for `file.open` (now "r+")
-- ☐ BUG: if you remove the folders/files previously mounted, Mini Micro locks up on launch (according to [a report on Discord](https://discord.com/channels/646000428441534474/646000634222477313/959208056854577205))
 - ☑︎ fixed: installing a PixelDisplay no longer resets its .color to white
 - ☑︎ fixed: f.readLine now returns `null` (instead of "") at end of file
 - ☑︎ Added `mouse.locked` to lock the mouse cursor, e.g. for FPS games	
@@ -114,10 +114,10 @@
   - ☑︎ increase scroll wheel speed in code editor -- should be ~1 line/click
   - ~~☐ code editor autocomplete, including standard intrinsics, global APIs, and any identifiers (found as parameters, and assignments in local and global scope)~~
   - ☑ make sure the code editor shows the unknown-character glyph for unknown chars, rather than just blank, on all platforms
-  - ☐ Correctly color parens after a line (or several lines?) continued by `and`
-  - ☐ Home keypress or cmd-left: scroll all the way to the left (showing line numbers).
-  - ☐ When opening different file, editor should reset to top left most position (including line-numbers) not previous position.
-  - ☐ Add keyboard shortcut/navigation for the Navigate menu.
+  - ☑ Correctly color parens after a line (or several lines?) continued by `and`
+  - ☑ Home keypress or cmd-left: scroll all the way to the left (showing line numbers).
+  - ☑ When opening different file, editor should reset to top left most position (including line-numbers) not previous position.
+  - ~~☐ Add keyboard shortcut/navigation for the Navigate menu.~~
 - **Building & Packaging**
   - ☐ use IL2CPP on all platforms for faster executable
   - ☐ produce both Apple Silicon (M1/M2) and Intel builds for Mac
