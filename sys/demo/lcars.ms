@@ -26,7 +26,7 @@ smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
 mediumFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
 largeFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-20.bmf")
 
-resourcePic = file.loadImage("/sys/data/desktop/desktopGfx.png")
+resourcePic = file.loadImage("/usr/data/desktop/desktopGfx.png")  // ToDo: /sys
 swoopImages = []
 w = 163; h = 73
 for i in range(0,3)
@@ -45,6 +45,14 @@ smallFont.addChar downInChar, resourcePic.getImage(0,458,13,10), 0, 1, null
 smallFont.addChar upOutChar, resourcePic.getImage(0,468,13,13), 0, -1, null
 mediumFont.addChar downInChar, resourcePic.getImage(16,454,15,12), 0, 2, null
 mediumFont.addChar upOutChar, resourcePic.getImage(16,466,15,14), 0, 0, null
+pageUpChar = char(8670)
+pageDownChar = char(8671)
+lineUpChar = char(8613)
+lineDownChar = char(8615)
+mediumFont.addChar lineUpChar, resourcePic.getImage(16, 439, 15, 14), 0, 0, null
+mediumFont.addChar pageUpChar, resourcePic.getImage(16, 424, 15, 14), 0, 0, null
+mediumFont.addChar pageDownChar, resourcePic.getImage(16, 409, 15, 14), 0, 0, null
+mediumFont.addChar lineDownChar, resourcePic.getImage(16, 394, 15, 14), 0, 0, null
 
 // And prepare some sounds
 sounds = {}
@@ -678,13 +686,40 @@ fileManager.fileBox.setup = function
 	launchBtn = Button.make("Launch", self.bottomPanel, null, null, self.style.buttonWidth)
 	launchBtn.color = "#33CC99"
 	self.bottomPanel.layout
+	
+	y0 = self.bottomPanel.top + 2
+	y4 = self.topPanel.bottom - 1
+	bh = floor((y4 - y0) / 4)
+	y1 = y0 + bh
+	y2 = y0 + bh*2
+	y3 = y0 + bh*3
+	Button.make(pageDownChar, self, self.right - 24, y0, 24, y1-y0-1).action = function
+		fb = self.parent; fb.scroll 1, true
+	end function
+	Button.make(lineDownChar, self, self.right - 24, y1, 24, y2-y1-1).action = function
+		fb = self.parent; fb.scroll 1, false
+	end function
+	Button.make(lineUpChar, self, self.right - 24, y2, 24, y3-y2-1).action = function
+		fb = self.parent; fb.scroll -1, false
+	end function
+	Button.make(pageUpChar, self, self.right - 24, y3, 24, y4-y3-1).action = function
+		fb = self.parent; fb.scroll -1, true
+	end function
 end function
 
-fileManager.fileBox.load = function(path)
+fileManager.fileBox.scroll = function(direction, byPage=false)
+	self.topRow += (1 + 13*byPage) * direction	
+	self.topRow = mathUtil.clamp(self.topRow, 0, file.children(self.path).len-13)
+	self.load self.path, false
+	self.present
+end function
+
+fileManager.fileBox.load = function(path, resetScroll=true)
 	self.path = path
 	children = file.children(path)
+	if resetScroll then self.topRow = 0
 	for i in range(0,13)
-		if i >= children.len then; i -= 1; break; end if
+		if i+self.topRow >= children.len then; i -= 1; break; end if
 		if i >= self.fileRows.len then
 			fr = FileRow.make(self, 
 			  self.topPanel.left-20, self.topPanel.bottom - 36 - 32*i, 
@@ -699,13 +734,14 @@ fileManager.fileBox.load = function(path)
 			end function
 			self.fileRows.push fr
 		end if
-		self.fileRows[i].setPath file.child(self.path, children[i])
+		self.fileRows[i].setPath file.child(self.path, children[i+self.topRow])
 	end for	
 	while self.fileRows.len-1 > i
 		self.fileRows[-1].dismiss; self.fileRows[-1].destroy
 		self.fileRows.remove -1
 	end while
 	self.pathInfo.text = path
+	fileManager.infoPanel.present
 end function
 
 fileManager.fileBox.selectAll = function(selectEm=true)
@@ -720,7 +756,7 @@ fileManager.fileBox.selection = function
 end function
 
 fileManager.fileBox.setup
-fileManager.fileBox.load("/usr/")
+fileManager.fileBox.load "/usr/"
 
 
 //----------------------------------------------------------------------
