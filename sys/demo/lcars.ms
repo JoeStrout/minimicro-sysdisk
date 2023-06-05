@@ -281,7 +281,7 @@ Button.caption = ""
 Button.captionFont = mediumFont
 Button.sprite = null
 Button.action = null
-Button.key = ""			// shortcut key, or list of keys
+Button.key = ""			// shortcut key (character), or list of keys
 Button.keyButton = {}
 Button.make = function(caption, parent, left, bottom, width, height)
 	p = super.make(parent, left, bottom, width, height)
@@ -693,16 +693,24 @@ fileManager.fileBox.setup = function
 	y1 = y0 + bh
 	y2 = y0 + bh*2
 	y3 = y0 + bh*3
-	Button.make(pageDownChar, self, self.right - 24, y0, 24, y1-y0-1).action = function
+	b = Button.make(pageDownChar, self, self.right - 24, y0, 24, y1-y0-1)
+	b.key = char(4)	 // (ctrl-D)
+	b.action = function
 		fb = self.parent; fb.scroll 1, true
 	end function
-	Button.make(lineDownChar, self, self.right - 24, y1, 24, y2-y1-1).action = function
+	b = Button.make(lineDownChar, self, self.right - 24, y1, 24, y2-y1-1)
+	b.key = char(20)  // down-arrow
+	b.action = function
 		fb = self.parent; fb.scroll 1, false
 	end function
-	Button.make(lineUpChar, self, self.right - 24, y2, 24, y3-y2-1).action = function
+	b = Button.make(lineUpChar, self, self.right - 24, y2, 24, y3-y2-1)
+	b.key = char(19)  // up-arrow
+	b.action = function
 		fb = self.parent; fb.scroll -1, false
 	end function
-	Button.make(pageUpChar, self, self.right - 24, y3, 24, y4-y3-1).action = function
+	b = Button.make(pageUpChar, self, self.right - 24, y3, 24, y4-y3-1)
+	b.key = char(21)  // ctrl-U
+	b.action = function
 		fb = self.parent; fb.scroll -1, true
 	end function
 end function
@@ -710,6 +718,7 @@ end function
 fileManager.fileBox.scroll = function(direction, byPage=false)
 	self.topRow += (1 + 13*byPage) * direction	
 	self.topRow = mathUtil.clamp(self.topRow, 0, file.children(self.path).len-13)
+	if self.topRow < 0 then self.topRow = 0
 	self.load self.path, false
 	self.present
 end function
@@ -1085,6 +1094,13 @@ events.eventLoop.onGotKey = function(k)
 end function
 events.eventLoop.onUpdate = function
 	mainMenu.curMode.onUpdate
+	if key.pressed("page down") then
+		Button.checkKey char(4)  // ctrl-D
+		while key.pressed("page down"); yield; end while
+	else if	key.pressed("page up") then
+		Button.checkKey char(21)  // ctrl-U
+		while key.pressed("page up"); yield; end while
+	end if
 	time = dateTime.now[-8:-3]
 	if time != miniClock.text then
 		miniClock.text = time

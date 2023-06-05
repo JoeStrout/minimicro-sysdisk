@@ -41,7 +41,7 @@
 - ☐ bug (command line only): printing a map containing a function reference fails to print FUNCTION() like the C# version.
 - ☐ bug: when entering a `for` loop at the REPL, C++ MiniScript immediately executes the first time through, while C# MiniScript waits until `end for` to execute even once; and with an if block, it'll execute the body even if the condition is false!
 - ☐ bug (command line only, maybe Linux only?): file.copy fails with EINVAL (possibly an issue with an encrypted file system)
-- ☐ bug: single-line `if` using `return` before `else` requires a return value (and should not).
+- ☑︎ bug: single-line `if` using `return` before `else` requires a return value (and should not).
 - ☐ bug (command line): the result of `stackTrace` is reversed; the most immediate call frame should be first in the list, rather than last.
 
 ## Contents of /sys disk
@@ -64,7 +64,7 @@
     - ~~☐ secondary (destination) file browser~~
     - ~~copy, move, rename, delete files~~
     - ~~preview of images, sounds, and text files~~
-    - ☐ scrolling/paging through long file lists
+    - ☑︎ scrolling/paging through long file lists
     - ☐ launch of program files
   - ☑︎ news module (displays MiniScript news feed)
   - ☑︎ clock at top of main menu updates
