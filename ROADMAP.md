@@ -59,13 +59,13 @@
 - ☐ /sys/demo/lcars: a different GUI shell
   - ☑︎ calculator
   - ☑︎ clock
-  - ☐ file manager
+  - ☑︎ file manager
     - ☑︎ primary file browser
     - ~~☐ secondary (destination) file browser~~
     - ~~copy, move, rename, delete files~~
     - ~~preview of images, sounds, and text files~~
     - ☑︎ scrolling/paging through long file lists
-    - ☐ launch of program files
+    - ☑︎ launch of program files
   - ☑︎ news module (displays MiniScript news feed)
   - ☑︎ clock at top of main menu updates
   - ☑ fun audio feedback throughout

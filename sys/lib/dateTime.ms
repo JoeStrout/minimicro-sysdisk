@@ -118,7 +118,7 @@ if locals == globals then
 	// Normally, dateTime would not be run in the global space, so its
 	// special str and val methods would not hide the intrinsics... but
 	// since it was, let's remove those so as to not cause grief.
-	dateTime = {"str":@str, "val":@val}
+	dt = {"str":@str, "val":@val}	// (access these as dt.str and dt.val, for testing)
 	globals.remove "str"
 	globals.remove "val"
 end if

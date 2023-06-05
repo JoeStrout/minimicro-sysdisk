@@ -58,6 +58,8 @@ mediumFont.addChar lineDownChar, resourcePic.getImage(16, 394, 15, 14), 0, 0, nu
 sounds = {}
 sounds.blip = file.loadSound("/usr/sounds/blipA4.wav")	// ToDo: get this from /sys
 sounds.alert = file.loadSound("/sys/sounds/blip-alert.wav")
+sounds.ok = file.loadSound("/sys/sounds/blip-ok.wav")
+sounds.err = file.loadSound("/sys/sounds/blip-what.wav")
 
 //----------------------------------------------------------------------
 Style = {}
@@ -678,13 +680,24 @@ fileManager.fileBox.setup = function
 	Button.make "Move/Copy", self.leftPanel, null, null, null, self.style.buttonHeight
 	self.leftPanel.layout
 	
-	Button.make "Rename", self.bottomPanel, null, null, self.style.buttonWidth
-	delBtn = Button.make("Delete", self.bottomPanel, null, null, self.style.buttonWidth)
-	delBtn.color = "#DD4444"
+//	Button.make "Rename", self.bottomPanel, null, null, self.style.buttonWidth
+//	delBtn = Button.make("Delete", self.bottomPanel, null, null, self.style.buttonWidth)
+//	delBtn.color = "#DD4444"
 	Gap.make self.bottomPanel
-	Button.make "Preview", self.bottomPanel, null, null, self.style.buttonWidth
+//	Button.make "Preview", self.bottomPanel, null, null, self.style.buttonWidth
 	launchBtn = Button.make("Launch", self.bottomPanel, null, null, self.style.buttonWidth)
 	launchBtn.color = "#33CC99"
+	launchBtn.action = function
+		sel = fileManager.fileBox.selection
+		if sel.len != 1 or not sel[0].file.path.endsWith(".ms") then
+			sounds.err.play
+		else
+			sounds.ok.play; wait 1
+			if not env.shell then env.shell = _sourceFile
+			env.autorun = false
+			clear; reset; run sel[0].file.path; exit
+		end if
+	end function
 	self.bottomPanel.layout
 	
 	y0 = self.bottomPanel.top + 2

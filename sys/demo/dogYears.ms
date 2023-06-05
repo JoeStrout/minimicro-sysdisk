@@ -18,4 +18,7 @@ while true
 end while
 
 // If we are returning to the shell, wait for a keypress
-if env.hasIndex("shell") and env.shell then key.get
+if env.hasIndex("shell") and env.shell then
+	print; print "(Press any key to continue.)"
+	key.get
+end if
