@@ -138,6 +138,7 @@ FileWindow.make = function(path, width=300, height=200, titleLeft=0, titleWidth=
 	w.selectedFiles = []
 	w.contentImage = w.makeContentImage
 	w.init width, height, titleLeft, titleWidth, path
+	if key.pressed("left shift") then exit
 	return w
 end function
 
@@ -171,10 +172,15 @@ FileWindow.onClick = function
 end function
 
 FileWindow.onDragEnd = function
-	if self.dragMode then super.onDragEnd
-	if self.selectedFiles.len == 1 and self.isDoubleClick then
+	if self.dragMode then
+		super.onDragEnd
+	else if self.selectedFiles.len == 1 and self.isDoubleClick then
 		// Open the selected file!
 		openFile pathJoin(self.path, self.selectedFiles[0]), self
+		if key.pressed("left alt") or key.pressed("right alt") then
+			// Tunnel -- close this window, while opening the other thing
+			self.close
+		end if
 	end if
 end function
 
@@ -265,6 +271,8 @@ openFile = function(filePath, fromWindow=null)
 		display(4).mode = displayMode.sprite
 	else if filePath.endsWith(".ms") then
 		text.color = color.orange
+		if not env.shell then env.shell = _sourceFile
+		env.autorun = false
 		clear; reset; load filePath; run
 		exit
 	else

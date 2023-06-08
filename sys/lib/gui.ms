@@ -548,7 +548,7 @@ Window.addScrollbars = function
 		window.updateContent
 	end function
 	self.updateScrollbars
-	self.scrollbarV.value = self.scrollbarV.maxValue
+	self.scrollbarV.value = 0//self.scrollbarV.maxValue
 	self.controls.push self.scrollbarH.thumbSprite
 	self.controls.push self.scrollbarV.thumbSprite
 	self.makeImage
@@ -556,7 +556,7 @@ Window.addScrollbars = function
 end function
 
 Window.updateScrollbars = function
-	if not self.scrollbarH then return
+	if not self.scrollbarH then return	// (for now if you have one, you must have both)
 
 	contentWidth = self.contentImage.width
 	contentHeight = self.contentImage.height
@@ -593,6 +593,8 @@ Window.close = function
 	if self.contentSprite then spriteDisp.sprites.removeVal self.contentSprite
 	spriteDisp.sprites.removeVal self.shadow
 	spriteDisp.sprites.removeVal self
+	w = frontmostWindow
+	if w != null then w.moveToFront(true)
 end function
 
 Window.contains = function(x, y)
@@ -673,7 +675,13 @@ Window.scroll = function(dx, dy)
 	// ToDo: this via scrollbars, if present.
 	self.scrollX = mathUtil.clamp(self.scrollX + dx, 0, self.contentImage.width - self.width)
 	self.scrollY = mathUtil.clamp(self.scrollY + dy, 0, self.contentImage.height - self.height)
-	self.updateContent
+	if self.scrollbarH then
+		self.scrollbarH.value = self.scrollX
+		self.scrollbarV.value = self.scrollY
+		self.updateScrollbars
+	else	
+		self.updateContent
+	end if
 end function
 
 Window.debugDrawBounds = function
@@ -681,25 +689,27 @@ Window.debugDrawBounds = function
 	menuDisp.drawPoly self.titleBounds.corners, color.orange
 end function
 
-Window.moveToFront = function
-	spriteDisp.sprites.removeVal self
-	spriteDisp.sprites.removeVal self.shadow
-	spriteDisp.sprites.push self.shadow
-	spriteDisp.sprites.push self
-	if self.contentSprite then
-		spriteDisp.sprites.removeVal self.contentSprite
-		spriteDisp.sprites.push self.contentSprite
+Window.moveToFront = function(tintOnly=false)
+	if not tintOnly then
+		spriteDisp.sprites.removeVal self
+		spriteDisp.sprites.removeVal self.shadow
+		spriteDisp.sprites.push self.shadow
+		spriteDisp.sprites.push self
+		if self.contentSprite then
+			spriteDisp.sprites.removeVal self.contentSprite
+			spriteDisp.sprites.push self.contentSprite
+		end if
+		for ctl in self.controls
+			spriteDisp.sprites.removeVal ctl
+			spriteDisp.sprites.push ctl
+		end for
 	end if
-	for ctl in self.controls
-		spriteDisp.sprites.removeVal ctl
-		spriteDisp.sprites.push ctl
-	end for
-	
+		
 	// dim out all windows and controls...
 	for i in spriteDisp.sprites.indexes
 		spriteDisp.sprites[i].tint="#DDDDEE"
 	end for
-	//... and undim the frontmost one
+	//... and undim this (frontmost) one
 	self.tint="#FFFFFF"
 	if self.contentSprite then self.contentSprite.tint="#FFFFFF"
 	for ctl in self.controls
@@ -708,7 +718,7 @@ Window.moveToFront = function
 end function
 
 Window.isFrontmost = function
-	return spriteDisp.sprites[-1] == self
+	return self == frontmostWindow
 end function
 
 Window.onClick = function
