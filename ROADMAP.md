@@ -49,13 +49,13 @@
 - ☑︎ /sys/demo/demos: presents menu of demos, and includes an auto-run ("screen saver" or "attract mode") feature that auto-runs several of the smaller demos; also shows you how to load and run these manually
 - ☑︎ New `demos`, `desktop`, and `lcars` commands load and run the respective shells
 - ☑︎ /sys/demo/asteroids: from [here](https://github.com/JoeStrout/minimicro-asteroids)
-- ☐ /sys/demo/desktop: a GUI shell
-  - ☐ scrollbars and close boxes on file windows
-  - ☐ working menubar: New Window, etc.
+- ☑︎ /sys/demo/desktop: a GUI shell
+  - ☑︎ scrollbars ~~and close boxes~~ on file windows
+  - ☑︎ working menubar: New Window, etc.
   - ~~☐ move/copy files by drag & drop~~
   - ~~☐ contextual menu on files (Open/Launch/View, Rename, Delete, etc.)~~
   - ~~☐ in-GUI viewer windows for pictures, source files, text files, and sounds~~
-  - ☐ launch a program
+  - ☑︎ launch a program
 - ☐ /sys/demo/lcars: a different GUI shell
   - ☑︎ calculator
   - ☑︎ clock
