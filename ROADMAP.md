@@ -56,7 +56,7 @@
   - ~~☐ contextual menu on files (Open/Launch/View, Rename, Delete, etc.)~~
   - ~~☐ in-GUI viewer windows for pictures, source files, text files, and sounds~~
   - ☑︎ launch a program
-- ☐ /sys/demo/lcars: a different GUI shell
+-☑︎ /sys/demo/lcars: a different GUI shell
   - ☑︎ calculator
   - ☑︎ clock
   - ☑︎ file manager
@@ -70,10 +70,10 @@
   - ☑︎ clock at top of main menu updates
   - ☑ fun audio feedback throughout
 - ☑︎ /sys/fonts folder of built-in fonts
-- ☐ update /sys/help to include info about `demos` and shells
+- ︎︎☑ update /sys/help to include info about `demos` and shells
 - ☑︎ /sys/lib/bmfFonts: latest and greatest BMF font support
 - ☑︎ /sys/lib/styledText: parsing and printing (with word wrap) of styled text
-- ☐ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
+- ☑︎ /sys/lib/gui: support for GUI windows, scrollbars, buttons, and menus
 - ☑︎ add a simple file picker/browser to /sys/lib/textUtil, and a related `findFile` utility command
 - ☑︎ `view` command now shows tiles and tile numbers if viewing the image assigned as the tileset of a current tile display
 - ☑ qa module: now correctly returns "map" for `qa.typeOf {}`
@@ -108,7 +108,7 @@
 - ☑︎ Added `env.shell`, which is the path to a "shell" app that should be automatically (re)launched after the current program exits.  This should be cleared by Control-C or any error break, and will be used by `demo` and `desktop` to return to these after running a program.  On the command line, `exit` will relaunch the current shell (if any).
 - ☑︎ Added `sound.amp` to get the current amplitude of a playing sound (in the range 0-1, but typically closer to 0), enabling you to make a sort of graphic equalizer display, or do lip-syncing to speech, etc.
 - ☑︎ remove test characters previously at char(29) and char(30)
-- ☐ BUG: Display.install does not work with a display of type 0 (off)
+- ☑ BUG: Display.install does not work with a display of type 0 (off)
 - ☑︎ fix crash that occurs when setting gfx.scrollX to NaN
 - **Code Editor**
   - ☑︎ Code editor uses a new custom font, including all special characters available in the text display.
