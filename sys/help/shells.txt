@@ -1,0 +1,18 @@
+In Mini Micro, a "shell" is a program that launches other programs,
+and which is automatically re-run when those other programs exit.
+You can make any program a shell by storing its path in `env.shell`.
+
+The `/sys/demo` directory contains three shell programs:
+
+  `demos`: lists and easily runs a subset of demos
+  `desktop`: a simple desktop-style graphical interface
+  `lcars`: a futuristic sci-fi graphical interface
+
+In addition, these are defined (by code in `/sys/startup.ms`) as
+commands in their own right.  So, for example, you can launch the
+desktop shell by just entering `desktop` at the command line.
+
+Once you have a shell defined in `env.shell`, you can return to it
+from the command line (or a program) by using `exit`.  But note that
+pressing control-C will always break out to the MiniScript prompt,
+even if a shell is defined.
