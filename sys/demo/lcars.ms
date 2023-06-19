@@ -26,7 +26,7 @@ smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
 mediumFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
 largeFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-20.bmf")
 
-resourcePic = file.loadImage("/usr/data/desktop/desktopGfx.png")  // ToDo: /sys
+resourcePic = file.loadImage("/sys/data/desktop/desktopGfx.png")
 swoopImages = []
 w = 163; h = 73
 for i in range(0,3)
@@ -56,7 +56,7 @@ mediumFont.addChar lineDownChar, resourcePic.getImage(16, 394, 15, 14), 0, 0, nu
 
 // And prepare some sounds
 sounds = {}
-sounds.blip = file.loadSound("/usr/sounds/blipA4.wav")	// ToDo: get this from /sys
+sounds.blip = file.loadSound("/sys/sounds/blipA4.wav")
 sounds.alert = file.loadSound("/sys/sounds/blip-alert.wav")
 sounds.ok = file.loadSound("/sys/sounds/blip-ok.wav")
 sounds.err = file.loadSound("/sys/sounds/blip-what.wav")

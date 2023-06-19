@@ -548,7 +548,7 @@ runDemo = function
 	outer.gp = new GfxPrinter
 	gp.wrapTo = 10
 	y = 450
-	for f in ["small", "normal", "large"]	// ToDo: add "medium" in v1.2
+	for f in ["small", "medium", "normal", "large"]
 		gp.font = f
 		gp.print msg1, 10, y
 		y -= gp.lineHeight[f] * 2
