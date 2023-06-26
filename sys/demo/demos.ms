@@ -1,9 +1,8 @@
 // This is a shell program that presents a menu of selected
-// demos, making it easy to preview/run them.
+// other, making it easy to preview/run them.
 
 // Make this program the shell (return here after running demo)
 env.shell = "/sys/demo/demos.ms"
-if file.exists("/usr/demo/demos.ms") then env.shell = "/usr/demo/demos.ms"
 
 import "chars"
 import "stringUtil"
@@ -12,11 +11,11 @@ import "textUtil"
 simple = []
 games = []
 visual = []
-demos = []
+other = []
 
 //games.push "TD"
-demos.push "2dVis"
-demos.push "angles"
+other.push "2dVis"
+other.push "angles"
 
 games.push "acey-deucey"
 games.push "asteroids"
@@ -43,7 +42,7 @@ visual.push "turtleDemo"
 
 more = "(More...)"
 
-allPrograms = simple + visual + demos + games + [more]
+allPrograms = simple + visual + other + games + [more]
 selected = allPrograms[0]
 
 text.delimiter = char(13)
@@ -69,7 +68,7 @@ showMore = function
 	textUtil.clearRect 20, 0, 48, 26, " "
 	x = 23
 	text.row = 23
-	text.column = x; print "There are many more demos to be found"
+	text.column = x; print "There are many more other to be found"
 	text.column = x; print "in the /sys/demo directory!"
 	print
 	text.column = x; print "To explore them:"
@@ -79,7 +78,7 @@ showMore = function
 	print
 	text.column = x; _printMark "2. Enter `cd ""/sys/demo""`"
 	print
-	text.column = x; _printMark "3. Use `dir` to view the available demos"
+	text.column = x; _printMark "3. Use `dir` to view the available other"
 	print
 	text.column = x; _printMark "4. `load` any program, e.g. `load ""pigDice""`"
 	print
@@ -199,7 +198,7 @@ if env.hasIndex("autorun") and env.autorun then
 	text.row = 3
 	for row in range(0, text.row); textUtil.clearRow row; end for
 	text.color = color.blue
-	print "(Press Esc now to exit auto-run demos.)"
+	print "(Press Esc now to exit auto-run other.)"
 	if not autorunNext then
 		env.autorun = false
 	end if

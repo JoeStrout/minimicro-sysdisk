@@ -517,9 +517,9 @@ tip = function
 	return tips[rnd * tips.len].replace("\n", _EOL)
 end function
 
-desktop = function;	load "/sys/demo/desktop"; run; end function
-lcars = function;	load "/sys/demo/lcars"; run; end function
-demos = function;	load "/sys/demo/demos"; run; end function
+desktop = function;	if not _checkSafeToLoad then return; load "/sys/demo/desktop"; run; end function
+lcars = function;	if not _checkSafeToLoad then return; load "/sys/demo/lcars"; run; end function
+demos = function;	if not _checkSafeToLoad then return; load "/sys/demo/demos"; run; end function
 
 _saveGlobals = function
 	globals._savedGlobals = {} + globals

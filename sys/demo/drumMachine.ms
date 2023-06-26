@@ -44,8 +44,7 @@ tile.tileSet = file.loadImage("/sys/pics/TileShapes.png")
 tile.tileSetTileSize = 64
 tile.cellSize = [48, 40]
 tile.overlap = [-8, -6]
-tile.oddRowOffset = 0
-tile.oddColOffset = 0
+tile.oddRowOffset = 0; tile.oddColOffset = 0
 darkcell1 = 9
 darkcell2 = 12
 litcell = 14
@@ -62,6 +61,7 @@ bgtile.tileSet = tile.tileSet
 bgtile.tileSetTileSize = tile.tileSetTileSize
 bgtile.cellSize = [48+8, 40+6]
 bgtile.overlap = 0
+bgtile.oddRowOffset = 0; bgtile.oddColOffset = 0
 bgtile.scrollX = tile.scrollX - tile.overlap[0]/2
 bgtile.scrollY = tile.scrollY - tile.overlap[1]/2
 

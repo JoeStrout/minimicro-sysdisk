@@ -672,7 +672,6 @@ Window.resize = function(newWidth, newHeight)
 end function
 
 Window.scroll = function(dx, dy)
-	// ToDo: this via scrollbars, if present.
 	self.scrollX = mathUtil.clamp(self.scrollX + dx, 0, self.contentImage.width - self.width)
 	self.scrollY = mathUtil.clamp(self.scrollY + dy, 0, self.contentImage.height - self.height)
 	if self.scrollbarH then

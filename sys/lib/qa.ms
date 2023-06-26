@@ -43,10 +43,7 @@ abort = function(errMsg)
 		i = i + 1
 	end for
 	errDisplay.print "(To clear this display, enter: qa.clear)"
-	if not globals.hasIndex("qa") then
-		globals.qa = {}
-		globals.clear = @clear
-	end if
+	if not globals.hasIndex("qa") then globals.qa = outer
 	exit
 end function
 
