@@ -650,9 +650,15 @@ fileManager.fileBox.configure true, true, true, false
 fileManager.fileBox.fileRows = []
 fileManager.fileBox.setup = function
 	w = 60
-	Button.make "/usr", self.topPanel, null, null, w
-	Button.make "/usr2", self.topPanel, null, null, w
-	Button.make "/sys", self.topPanel, null, null, w
+	f = function
+		sounds.ok.play
+		fb = self.parent.parent
+		fb.load self.caption
+		fb.present
+	end function
+	Button.make("/usr", self.topPanel, null, null, w).action = @f
+	Button.make("/usr2", self.topPanel, null, null, w).action = @f
+	Button.make("/sys", self.topPanel, null, null, w).action = @f
 	b = Button.make(upOutChar + " UP", self.topPanel, null, null, w)
 	b.action = function
 		fb = self.parent.parent
@@ -1069,7 +1075,11 @@ end function
 // Mini-clock at the top
 miniClock = InfoBlock.make(dateTime.now[-8:-3], mainMenu, null, null, null, 40)
 // Settings button
-Button.make "Settings", mainMenu, null, null, null, mainMenu.style.buttonHeight
+Button.make("Settings", mainMenu, null, null, null, mainMenu.style.buttonHeight).action = function
+	// We don't have any settings yet.
+	// Maybe someday!
+	sounds.err.play
+end function
 // ...gap...
 Gap.make mainMenu
 // Main buttons, one for each mode
