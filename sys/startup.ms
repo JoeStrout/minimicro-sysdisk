@@ -351,6 +351,7 @@ findFile = function
 	if hit == dlog.okBtn then return dlog.selection
 end function
 
+
 view = function(path)
 	if not path then
 		print "Image or file name/path is required"
@@ -369,9 +370,15 @@ view = function(path)
 		print "File not found (" + path + ")"
 		return
 	end if
-	if path[-4:] == ".png" or path[-4:] == ".jpg" or path[-5:] == ".jpeg" then
+	hasExtension = function(path, extensions)
+		for ext in extensions
+			if path.len > ext.len and path[-ext.len-1:] == "." + ext then return true
+		end for
+		return false
+	end function
+	if path.hasExtension(["png","jpg","jpeg"]) then
 		_viewImage file.loadImage(path)
-	else if path[-4:] == ".txt" or path[-3:] == ".ms" or path[-4:] == ".tsv" or path[-5:] == ".json" or path[-3:] == ".md" then
+	else if path.hasExtension(["txt","ms","tsv","json","json","grfon","md"]) then
 		// View a text file or MiniScript source file
 		lines = file.readLines(path)
 		if lines isa string then
@@ -547,7 +554,9 @@ end function
 _saveGlobals
 
 _bootOpt = function(key, default=false)
-	if not env.bootOpts.hasIndex(key) then return default
+	if not env.hasIndex("bootOpts") or
+	   not env.bootOpts isa map or
+	   not env.bootOpts.hasIndex(key) then return default
 	return env.bootOpts[key]
 end function
 
