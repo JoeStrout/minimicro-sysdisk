@@ -376,9 +376,9 @@ view = function(path)
 		end for
 		return false
 	end function
-	if path.hasExtension(["png","jpg","jpeg"]) then
+	if hasExtension(path, ["png","jpg","jpeg"]) then
 		_viewImage file.loadImage(path)
-	else if path.hasExtension(["txt","ms","tsv","json","json","grfon","md"]) then
+	else if hasExtension(path, ["txt","ms","tsv","json","json","grfon","md"]) then
 		// View a text file or MiniScript source file
 		lines = file.readLines(path)
 		if lines isa string then
