@@ -55,8 +55,8 @@ showProgress = function(fractionDone=null)
 	print msg
 end function
 
-showResult = function(time)
-	msg = ("   " + mathUtil.numToStr(time, 3))[-8:] + " s "
+showResult = function(time, units="s")
+	msg = ("   " + mathUtil.numToStr(time, 3))[-8:] + " " + units + " "
 	text.row = 23 - curOptIdx
 	text.column = 40
 	nom = options[curOptIdx].nominalTime
@@ -271,6 +271,18 @@ end function
 addOption @raceSim, "Race Sim (lists, randNormal)", 1.043
 
 //----------------------------------------------------------------------
+frameRate = function
+	frameCount = 0
+	t0 = time; t1 = t0 + 2
+	while time < t1
+		frameCount += 1
+		yield
+	end while
+    return frameCount / (t1 - t0)
+end function
+addOption @frameRate, "Frame Rate", 60
+
+//----------------------------------------------------------------------
 
 measure = function(func)
 	t0 = time
@@ -284,8 +296,13 @@ runAll = function
 	for i in options.indexes
 		globals.curOptIdx = i
 		if not options[i].enabled then continue
-		t = measure(@options[i].func)
-		showResult t
+		if options[i].label == "Frame Rate" then
+			fps = options[i].func
+			showResult fps, "fps"
+		else
+			t = measure(@options[i].func)
+			showResult t
+		end if
 		gfx.clear
 	end for
 end function

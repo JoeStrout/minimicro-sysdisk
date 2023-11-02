@@ -339,6 +339,7 @@ end function
 // the dialog, set self.done = true.
 Dialog.handleMouse = null
 Dialog.handleKey = function(k); end function
+Dialog.cleanup = null
 
 // Main entry point: call this to show your dialog, and get back the caption
 // of the button that was pressed.
@@ -387,6 +388,7 @@ Dialog.show = function(timeout=null)
 	end while
 	
 	setState priorState	
+	self.cleanup
 	return btnHit
 end function
 
@@ -447,9 +449,14 @@ end function
 
 FileDialog.getFileInfoForDir = function(dir)
 	files = file.children(dir)
-	for i in files.indexes
+	if not files then return []
+	for i in range(files.len - 1)
 		files[i] = file.info(file.child(dir, files[i]))
-		files[i].name = file.name(files[i].path)
+		if files[i] == null then
+			files.remove i
+		else
+			files[i].name = file.name(files[i].path)
+		end if
 	end for
 	files.sort "name"
 	return files
@@ -595,6 +602,7 @@ FileDialog.stopPreview = function
 		self.origDisp0 = null
 	end if
 end function
+FileDialog.cleanup = @FileDialog.stopPreview
 
 FileDialog.drawContent = function(cols, rows)
 	self.drawCurDir
