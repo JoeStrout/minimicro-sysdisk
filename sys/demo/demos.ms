@@ -206,6 +206,9 @@ end if
 
 print
 clear
+Sound.stopAll
+text.color = color.orange
+text.backColor = color.clear
 drawList
 drawProgram
 drawHelp
