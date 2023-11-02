@@ -75,7 +75,7 @@ end function
 
 // Font class, storing all data about a particular font.
 Font = {}
-CharData._name = "bmfFonts.Font";
+Font._name = "bmfFonts.Font";
 Font.data = null	// raw data from file
 Font.chars = null   // key: character; value: charData map
 Font.kernMap = null  // key: char1; value: map from char2->kern

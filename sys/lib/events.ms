@@ -65,6 +65,7 @@ EventSprite.onRightClick = null
 EventSprite.onDrag = null
 EventSprite.onDragEnd = null
 EventSprite.onMouseOver = null
+EventSprite.onMouseExit = null
 EventSprite.update = null
 
 EventSprite._dragging = false
@@ -181,7 +182,10 @@ eventLoop.update = function
 		// mouse isn't down, and wasn't before either; just do mouse-over
 		mouseOver = spriteHitBy(mouse)
 		if mouseOver != self.lastMouseOver then
-			if mouseOver and mouseOver.hasIndex("onMouseOver") then mouseOver.onMouseOver
+			if mouseOver and mouseOver.get("onMouseOver") then mouseOver.onMouseOver
+			if self.lastMouseOver and self.lastMouseOver.get("onMouseExit") then
+				self.lastMouseOver.onMouseExit
+			end if
 			self.lastMouseOver = mouseOver
 		end if
 	end if

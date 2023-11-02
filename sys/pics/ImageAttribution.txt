@@ -29,4 +29,4 @@ plants: adapted from artwork by ak-blanc on OpenGameArt.org.
 
 vehicles: adapted from artwork by TRBRY and TituroFox on OpenGameArt.org.
 
-textures: mostly from publicdomaintextures.com, except for the "Toon" textures which were commissioned from lucasserapiao on fiverr.com, and the Road textures which are by drummyfish on OpenGameArt.org.
+textures: mostly from publicdomaintextures.com, except for the "Toon" textures which were commissioned from lucasserapiao on fiverr.com; the Road textures which are by drummyfish on OpenGameArt.org; and the Marble textures adapted from ambientCG.com (CC0 1.0 license).
