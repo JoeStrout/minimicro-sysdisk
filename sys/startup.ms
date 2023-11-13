@@ -521,6 +521,7 @@ end function
 
 tip = function
 	tips = _fileReadLines("/sys/tips.txt")
+	while tips and not tips[-1]; tips.remove -1; end while
 	return tips[rnd * tips.len].replace("\n", _EOL)
 end function
 
