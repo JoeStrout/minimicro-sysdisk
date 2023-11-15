@@ -22,3 +22,5 @@ Use `@` to check the parameters of a function, e.g.: `@gfx.drawPoly`
 Stuck at a `...]` prompt?  Press `Control-C`!
 Press `Control-C` to stop a running program.
 Use the `pprint` command to "pretty print" a list or map.
+Use the `findFile` command to easily get the path to any file.
+Use the `demos` command to easily browse and run a subset of demos,\nor even auto-run them for an "attract" mode!
