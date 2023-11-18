@@ -110,16 +110,14 @@ runUnitTests = function
 	else
 		print errorCount + " error" + "s" * (errorCount!=1) + " found."
 	end if
-end function
-
-
-if locals == globals then
-	runUnitTests
+	
 	// Normally, dateTime would not be run in the global space, so its
 	// special str and val methods would not hide the intrinsics... but
 	// since it was, let's remove those so as to not cause grief.
 	dt = {"str":@str, "val":@val}	// (access these as dt.str and dt.val, for testing)
 	globals.remove "str"
 	globals.remove "val"
-end if
-	
+end function
+
+
+if locals == globals then runUnitTests
