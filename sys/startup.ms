@@ -591,5 +591,22 @@ welcome = function
 	print
 end function
 
+_import = function(moduleName)
+	import moduleName
+	return locals[moduleName]
+end function
+
+runSysLibTests = function
+	moduleNames = ["dateTime", "grfon", "json", "listUtil", "mapUtil", "mathUtil", "qa", "stringUtil", "tsv"]
+	for moduleName in moduleNames
+		print "--- " + moduleName + " ---"
+		mod = _import(moduleName)
+		mod.runUnitTests
+		print "press enter>", ""
+		input
+	end for
+end function
+
 if _bootOpt("startupChime", true) then _startupChime
 if _bootOpt("welcome", true) then welcome else clear
+if env.cmdLineArgs.indexOf("--testSysLib") != null then runSysLibTests
