@@ -591,7 +591,7 @@ welcome = function
 	print
 end function
 
-_import = function(moduleName)
+_importAndReturn = function(moduleName)
 	import moduleName
 	return locals[moduleName]
 end function
@@ -599,11 +599,11 @@ end function
 runSysLibTests = function
 	moduleNames = ["dateTime", "grfon", "json", "listUtil", "mapUtil", "mathUtil", "qa", "stringUtil", "tsv"]
 	for moduleName in moduleNames
+		print
 		print "--- " + moduleName + " ---"
-		mod = _import(moduleName)
+		mod = _importAndReturn(moduleName)
 		mod.runUnitTests
-		print "press enter>", ""
-		input
+		input "[Rress Return]"
 	end for
 end function
 
