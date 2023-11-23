@@ -33,6 +33,10 @@ land = new Sound
 land.init 0.1, 440, [0.1,0], Sound.noiseWave
 all.push land
 
+pew = new Sound
+pew.init 0.2, [2000,200], [1,0]
+all.push pew
+
 ds6 = noteFreq(75+12)
 gs5 = noteFreq(80)
 a5 = noteFreq(81)
