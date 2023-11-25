@@ -5,6 +5,10 @@
 // this module defines some shorter aliases for commonly-used
 // functions and constants.
 
+// (Note: "tweet" here refers to any message with a 280-character
+// limit, regardless of what shenanigans have been going on with
+// the buying and renaming of major social media services.)
+
 import "stringUtil"
 import "listUtil"
 import "mapUtil"
@@ -148,6 +152,32 @@ spr = function(nameOrURL, x=480, y=320, addToSd=true)
 	return s
 end function
 
+// tc.check: checks the current program (stripping leading whitespace)
+// to see how long it is, and whether it fits in the 280-char limit.
+// Just invoke `tc.check` after loading or editing your program.
+check = function()
+    oldColor = text.color
+    text.color = color.gray
+    count = 0
+    for line in _source
+        while line and (line[0]==" " or line[0]==char(9))
+            line = line[1:]
+        end while
+        print line
+        count = count + line.len + 1 // (+1 for line break)
+    end for
+    text.color = oldColor
+    print "Total length: " + count + " characters"
+    if count <= 280 then
+        print "TWEET IT!"
+    else if count < 300 then
+        print "Almost there!"
+    else if count < 500 then
+        print "Needs serious compression."
+    else
+        print "You must be kidding."
+    end if
+end function
 
 if locals == globals then
 	// here's an example tweetcart
