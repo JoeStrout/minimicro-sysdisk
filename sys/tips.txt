@@ -1,5 +1,5 @@
 Programmers are the witches and wizards of the modern world.
-Remember to use `==` to compare values.
+Remember to use `==` to compare values, and `=` to assign a new value.
 Use `val(s)` to convert a string to a number.
 Use `str(n)` to convert a number, list, or map to a string.
 MiniScript has two ways of looping: `for` and `while`.
@@ -20,7 +20,9 @@ Join the community at `http://miniscript.org`!
 Use the `view` command to preview any file.
 Use `@` to check the parameters of a function, e.g.: `@gfx.drawPoly`
 Stuck at a `...]` prompt?  Press `Control-C`!
-Press `Control-C` to stop a running program.
+Press `Control-C` to break out of a running program.
 Use the `pprint` command to "pretty print" a list or map.
 Use the `findFile` command to easily get the path to any file.
 Use the `demos` command to easily browse and run a subset of demos,\nor even auto-run them for an "attract" mode!
+Prefer a GUI?  Try the `desktop` command!
+For a 24th-century experience, try the `lcars` command.

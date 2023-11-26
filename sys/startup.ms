@@ -138,17 +138,15 @@ end function
 prepareKeyboard
 
 pageThrough = function(lines)
-	text.delimiter = ""
 	printed = 0
 	for i in range(0, lines.len-1)
 		line = "" + lines[i]
-		print line[:67]
-		if line.len > 67 then text.setCell 67,text.row, line[67]
-		print _EOL
+		print line[:67], ""
+		if line.len > 67 then print line[67], "" else print
 		printed = printed + 1
 		if printed > 24 and i+1 < lines.len then
 			text.inverse = true
-			print "[" + (lines.len - i - 1) + " more]"
+			print "[" + (lines.len - i - 1) + " more]", ""
 			text.inverse = false
 			done = false
 			while not done
@@ -165,7 +163,6 @@ pageThrough = function(lines)
 			printed = 0
 		end if
 	end for
-	text.delimiter = _EOL
 end function
 
 cd = function(path="")
