@@ -68,7 +68,7 @@ showMore = function
 	textUtil.clearRect 20, 0, 48, 26, " "
 	x = 23
 	text.row = 23
-	text.column = x; print "There are many more other to be found"
+	text.column = x; print "There are many more demos to be found"
 	text.column = x; print "in the /sys/demo directory!"
 	print
 	text.column = x; print "To explore them:"

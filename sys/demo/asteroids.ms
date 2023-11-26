@@ -1,6 +1,6 @@
 // Asteroids!  A loving tribute to the 1979 Atari classic.
 //
-// Use the arrow keys, WASD, or a gamepad/joistick
+// Use the arrow keys, WASD, or a gamepad/joystick
 // to turn and thrust; press spacebar or gamepad
 // button to fire.  Shoot the rocks and UFOs.
 // Try not to get blown up.
