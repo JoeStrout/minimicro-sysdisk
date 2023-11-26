@@ -127,6 +127,8 @@ runUnitTests = function
 	assertEqual d.get("twenty"), null
 	assertEqual d.get(@print), "six"
 	
+	d.remove @print
+	
 	testing = "hasValue"
 	assertEqual d.hasValue("ni"), true
 	assertEqual d.hasValue("foo"), false
