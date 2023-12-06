@@ -623,15 +623,17 @@ end function
 
 Window._positionContent = function
 	if not self.contentSprite then return
+	w = self.contentSprite.image.width
 	if self.scrollbarH then
-		self.contentSprite.x = self.x - 16 + kScrollbarSize/2
+		self.contentSprite.x = min(self.x - 16 + kScrollbarSize/2, self.left + w/2)
 	else
-		self.contentSprite.x = self.x
+		self.contentSprite.x = self.left + w/2
 	end if
+	h = self.contentSprite.image.height
 	if self.scrollbarV then
-		self.contentSprite.y = self.y - 16 + kScrollbarSize/2
+		self.contentSprite.y = max(self.y - 16 + kScrollbarSize/2, self.top - h/2)
 	else
-		self.contentSprite.y = self.y - 16
+		self.contentSprite.y = self.top - h/2
 	end if
 end function
 
@@ -657,6 +659,7 @@ Window.resize = function(newWidth, newHeight)
 	if newWidth < self.minSize[0] then newWidth = self.minSize[0]
 	if newHeight < self.minSize[1] then newHeight = self.minSize[1]
 	if newWidth == self.width and newHeight == self.height then return
+	yield	// (to try to sync to display, though that's a bit hopeless now)
 	left = self.x - self.width/2; top = self.y + self.height/2
 	self.x = left + newWidth/2; self.y = top - newHeight/2
 	self.width = newWidth
