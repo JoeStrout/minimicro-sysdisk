@@ -9,6 +9,21 @@ list.contains = function(item)
 	return self.indexOf(item) != null
 end function
 
+// lastIndexOf: returns the *last* index of the given element, optionally
+// before a given index.  Returns null if not found.
+// Examples:
+//		[7,4,7,9].lastIndexOf(7)		// returns 2
+//		[7,4,7,9].lastIndexOf(7, 2)		// returns 0
+list.lastIndexOf = function(element, beforeIdx=null)
+	if beforeIdx == null then i = self.len - 1 else i = beforeIdx - 1
+	while i >= 0
+		if self[i] == element then return i
+		i -= 1
+	end while
+	return null
+end function
+
+
 // split: similar to string.split, this splits a list into sub-lists
 // by where the given delimiter element is found.
 list.split = function(delimiter, maxCount=null)
@@ -291,6 +306,44 @@ list.filtered = function(func)
 	return result
 end function
 
+// compress: replace each run of a given value with a single instance
+// of that value (in place).
+// Example:
+//		x = [5,7,7,9,7,7,7]; x.compress(7)  // x is now [5,7,9,7]
+list.compress = function(valueToCompress)
+	i = self.len - 1
+	compressing = false
+	while i >= 0
+		if self[i] == valueToCompress then
+			if compressing then self.remove i else compressing = true
+		else
+			compressing = false
+		end if
+		i -= 1
+	end while
+end function
+
+// compressed: return a new list that has run of a given value 
+// replaced with a single instance of that value.
+// Example:
+//		x = [5,7,7,9,7,7,7]; x.compress(7)  // x is now [5,7,9,7]
+list.compressed = function(valueToCompress)
+	result = []
+	compressing = false
+	for value in self
+		if value == valueToCompress then
+			if not compressing then
+				result.push value
+				compressing = true
+			end if
+		else
+			compressing = false
+			result.push value
+		end if
+	end for
+	return result
+end function
+
 // valuesOf: operates on a list of maps (or other indexable type), and pulls
 // out the value of the given index for every element in the list, returning
 // theses as a new list in the same order.
@@ -373,6 +426,15 @@ runUnitTests = function
 			outer.errorCount = errorCount + 1
 		end if
 	end function
+
+	assertEqual [7,4,7,9].lastIndexOf(7), 2, "lastIndexOf"
+	assertEqual [7,4,7,9].lastIndexOf(7,2), 0, "lastIndexOf"
+	assertEqual [7,4,7,9].lastIndexOf(7,0), null, "lastIndexOf"
+
+	a = [5,7,7,9,7,7,7]
+	assertEqual a.compressed(7), [5,7,9,7], "compressed"
+	assertEqual a, [5,7,7,9,7,7,7], "compressed changed self"
+	a.compress(7); assertEqual a, [5,7,9,7], "compress"
 
 	a = [-1, 42, -1, 53, 87, 345, -1, 100]
 	assertEqual a.split(-1), [ [], [42], [53, 87, 345], [100] ]
