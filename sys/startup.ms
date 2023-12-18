@@ -348,6 +348,13 @@ findFile = function
 	if hit == dlog.okBtn then return dlog.selection
 end function
 
+inspect = function(value)
+	import "textUtil"
+	dlog = textUtil.InspectDialog.make(@value)
+	btn = dlog.show
+	return @btn.payload
+end function
+
 
 view = function(path)
 	if not path then
