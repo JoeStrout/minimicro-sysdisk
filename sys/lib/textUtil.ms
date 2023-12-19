@@ -385,6 +385,7 @@ Dialog.show = function(timeout=null)
 			end for
 		end if
 		if timeout != null and time > startTime + timeout then break
+		yield
 	end while
 	
 	setState priorState	
