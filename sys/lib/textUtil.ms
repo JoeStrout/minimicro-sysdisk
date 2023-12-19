@@ -339,6 +339,7 @@ end function
 // the dialog, set self.done = true.
 Dialog.handleMouse = null
 Dialog.handleKey = function(k); end function
+Dialog.handleMouseWheel = function(axisValue); end function
 Dialog.cleanup = null
 
 // Main entry point: call this to show your dialog, and get back the caption
@@ -385,6 +386,8 @@ Dialog.show = function(timeout=null)
 			end for
 		end if
 		if timeout != null and time > startTime + timeout then break
+		wheelValue = key.axis("Mouse ScrollWheel")
+		if wheelValue then self.handleMouseWheel(wheelValue)
 	end while
 	
 	setState priorState	
@@ -671,6 +674,15 @@ FileDialog.handleMouse = function
 		// handle click in preview column (only if selection is a directory)
 	end if
 	return false
+end function
+
+FileDialog.handleMouseWheel = function(axisValue)
+	if axisValue > 0 then
+		self.selectIdx(self.selIdx-1)
+	else
+		self.selectIdx(self.selIdx+1)
+	end if
+	wait 0.1  // pause a little between scrolls
 end function
 
 if locals == globals then
