@@ -176,11 +176,30 @@ list.apply = function(func)
 	end for
 end function
 
+// applied: like list.apply, but returns the result as a new list,
+// without changing the list it is called on.
+// Example:
+//		x = [1.1, 1.9, 3.45]
+//		y = x.applied(@round)  // y is now [1, 2, 3]; x is unchanged
+list.applied = function(func)
+  result = self[:]
+  result.apply @func
+  return result
+end function
+
 // apply1: same as apply, but takes 1 extra argument.
 list.apply1 = function(func, arg1)
 	for i in self.indexes
 		self[i] = func(self[i], arg1)
 	end for
+end function
+
+// applied1: like list.apply1, but returns the result as a new list,
+// without changing the list it is called on.
+list.applied1 = function(func, arg1)
+  result = self[:]
+  result.apply1 @func, arg1
+  return result
 end function
 
 // mean: return the average (sum divided by number of values)
@@ -288,6 +307,17 @@ list.filter = function(func)
 	end if
 end function
 
+// filter1: like list.filter, but takes 1 extra argument for the
+// filter function.  Note that func must be an actual function,
+// and not just the name of a map key in this case.
+list.filter1 = function(func, arg1)
+	i = self.len - 1
+	while i >= 0
+		if not func(self[i], arg1) then self.remove i
+		i = i - 1
+	end while
+end function
+
 // filtered: return a new list containing only the elements of self where
 //	the given function is true.  As with filter, you may also specify the
 //	name of a map key to look up in each element of the self.
@@ -303,6 +333,16 @@ list.filtered = function(func)
 			if func(elem) then result.push elem
 		end for
 	end if
+	return result
+end function
+
+// filtered1: like list.filter, but takes an additional argument
+// for the filter function.
+list.filtered1 = function(func, arg1)
+	result = []
+	for elem in self
+		if func(elem, arg1) then result.push elem
+	end for
 	return result
 end function
 
@@ -472,6 +512,13 @@ runUnitTests = function
 	a.apply1 @round, 2
 	assertEqual a, [1.10, 1.90, 3.45], "apply1"
 
+	a = [1.1, 1.899, 3.452]
+	b = a.applied(@round)
+	assertEqual b, [1, 2, 3], "applied"
+	b = a.applied1(@round, 2)
+	assertEqual b, [1.10, 1.90, 3.45], "applied1"
+	assertEqual a, [1.1, 1.899, 3.452], "applied/applied1"
+
 	a = range(1, 10)
 	isEven = function(x)
 		return x % 2 == 0
@@ -482,6 +529,15 @@ runUnitTests = function
 	b = a.filtered(@isEven)
 	assertEqual a, range(1, 10), "filtered"
 	assertEqual b, [2, 4, 6, 8, 10], "filtered"
+
+	moreThan = function(a, b); return a > b; end function
+	a = range(1,10)
+	a.filter1 @moreThan, 7
+	assertEqual a, [8, 9, 10], "filter1"
+	a = range(1,10)
+	b = a.filtered1(@moreThan, 7)
+	assertEqual a, range(1, 10), "filtered1"
+	assertEqual b, [8, 9, 10], "filtered1"
 
 	a = [{"x":42, "keep":true}, {"x":123, "keep":false}, {"x":0, "keep":true}]
 	a.filter "keep"
