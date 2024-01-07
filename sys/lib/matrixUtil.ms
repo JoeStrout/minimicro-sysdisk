@@ -82,6 +82,11 @@ end function
 // Instance methods: call these on a Matrix instance.
 //----------------------------------------------------------------------
 
+// m.size: return [rows, columns] size of the matrix
+Matrix.size = function
+	return [self.rows, self.columns]
+end function
+
 // m.row: return the given row of matrix m as a single-row matrix.
 Matrix.row = function(zeroBasedRowNum)
 	return Matrix.fromList(self.elem[zeroBasedRowNum])
@@ -197,6 +202,10 @@ Matrix.times = function(m2)
 	if m2 isa Matrix then m2 = m2.elem
 	if m2 isa list then
 		// matrix multiplication
+		if m2.rows != self.columns then
+			print "Matrix.times error: incompatible sizes " + self.size + " and " + m2.size
+			exit
+		end if
 		result = Matrix.ofSize(self.rows, m2[0].len)
 		for r in result.rowRange
 			resultRow = result.elem[r]
