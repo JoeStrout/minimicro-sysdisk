@@ -107,15 +107,13 @@ end function
 whitespace = " " + char(9) + cr + lf
 Parser._skipWhitespace = function
 	while self._p < self._sourceLen
-		c = self.source[self._p]
-		if c == "/" and self._p+1 < self._sourceLen and self.source[self._p+1] == "/" then
-			// comment; skip to end of line
-			self._p = self._p + 1
+		if self.source[self._p : self._p + 2] == "//" then
 			self._skipToEOL
+		else if whitespace.indexOf(self.source[self._p]) != null then
+			self._p = self._p + 1
+		else
 			break
 		end if
-		if whitespace.indexOf(c) == null then break
-		self._p = self._p + 1
 	end while
 end function
 
@@ -347,6 +345,14 @@ runUnitTests = function
 	// is rather arbitrary.  But we choose to have it return a map
 	assertEqual parse("{}"), {}
 	assertEqual parse("1; 2; {}; 4"), [1, 2, {}, 4]
+	
+	// Fixed bug with 3 lines of comments throwing Runtime Error
+	assertEqual parse("//" + cr + "foo:42"), {"foo": 42}
+	assertEqual parse("//" + cr + "//" + cr + "foo:42"), {"foo": 42}
+	assertEqual parse("//" + cr + "//" + cr + "//" + cr + "foo:42"), {"foo": 42}
+	
+	// Fixing bug with two line breaks after a comment making the "{" character a part of the key
+	assertEqual parse("//" + cr + cr + "{foo:42}"), {"foo": 42}
 	
 	if errorCount == 0 then
 		print "All tests passed.  Fus Ro Dah!"
