@@ -291,7 +291,7 @@ pprint = function(obj)
 	pageThrough lines
 end function
 
-_viewImage = function(pic)
+_viewImage = function(pic, scale=1)
 	if not pic then
 		print "Unable to read image: " + path
 		return
@@ -299,46 +299,54 @@ _viewImage = function(pic)
 	prevDisp = display(0)
 	g = new PixelDisplay
 	g.install 0
-	g.clear "#00000088"
-	g.drawImage pic, 480-pic.width/2, 320-pic.height/2
-	for dispLayer in range(0, 7)
-		d = display(dispLayer)
-		if d.mode != displayMode.tile then continue
-		if d.tileSet != pic then continue
-		// Draw the tile numbers!
-		if d.tileSetTileSize isa number then
-			tx = d.tileSetTileSize; ty = d.tileSetTileSize
-		else if d.tileSetTileSize isa list and len(d.tileSetTileSize == 2) then
-			tx = d.tileSetTileSize[0]; ty = d.tileSetTileSize[1]
-		else
-			continue
-		end if
-		columns = floor(pic.width / tx)
-		for col in range(0, columns - 1)
-			for row in range(0, floor(pic.height / ty) - 1)
-				x = 480-pic.width/2 + tx * col
-				y = 320+pic.height/2 - ty * (row + 1)
-				g.drawRect x, y, tx, ty, "#FF00FF88"
-				n = row * columns + col
-				x += tx*0.2; y += ty*0.2
-				g.print n, x+1, y-1, color.black, "small"
-				g.print n, x, y, color.fuchsia, "small"				
-			end for
-		end for
-		break
-	end for
 	print pic.width + " x " + pic.height + " image"
-	text.delimiter = ""
 	text.inverse = true
-	print "[Press any key]"
+	print "[Press + or - to zoom; any other key to exit]", ""
 	text.inverse = false
-	key.get
+	while true
+		g.clear "#00000088"
+		w = pic.width * scale; h = pic.height * scale
+		g.drawImage pic, 480-w/2, 320-h/2, w, h
+		for dispLayer in range(0, 7)
+			d = display(dispLayer)
+			if d.mode != displayMode.tile then continue
+			if d.tileSet != pic then continue
+			// Draw the tile numbers!
+			if d.tileSetTileSize isa number then
+				tx = d.tileSetTileSize; ty = d.tileSetTileSize
+			else if d.tileSetTileSize isa list and len(d.tileSetTileSize == 2) then
+				tx = d.tileSetTileSize[0]; ty = d.tileSetTileSize[1]
+			else
+				continue
+			end if
+			columns = floor(pic.width / tx)
+			for col in range(0, columns - 1)
+				for row in range(0, floor(pic.height / ty) - 1)
+					x = 480 - w/2 + tx * col * scale
+					y = 320 + h/2 - ty * (row + 1) * scale
+					g.drawRect x, y, tx*scale, ty*scale, "#FF00FF88"
+					n = row * columns + col
+					x += tx*0.2*scale; y += ty*0.2*scale
+					g.print n, x+1, y-1, color.black, "small"
+					g.print n, x, y, color.fuchsia, "small"				
+				end for
+			end for
+			break
+		end for
+		k = key.get
+		if k == "+" or k == "=" then
+			scale *= sqrt(2)
+		else if k == "-" or k == "_" then
+			scale /= sqrt(2)
+		else
+			break
+		end if
+	end while
 	text.column = 0
-	print " " * 32
+	print " " * 48
 	g.clear
 	prevDisp.install 0
-	display(0).mode = prevDisp.mode
-	text.delimiter = _EOL		
+	display(0).mode = prevDisp.mode	
 end function
 
 findFile = function
@@ -349,13 +357,13 @@ findFile = function
 end function
 
 
-view = function(path)
+view = function(path, imageScale=1)
 	if not path then
 		print "Image or file name/path is required"
 		return
 	end if
 	if path isa Image then
-		_viewImage path
+		_viewImage path, imageScale
 		return
 	end if
 	if not path isa string then
@@ -374,7 +382,7 @@ view = function(path)
 		return false
 	end function
 	if hasExtension(path, ["png","jpg","jpeg"]) then
-		_viewImage file.loadImage(path)
+		_viewImage file.loadImage(path), imageScale
 	else if hasExtension(path, ["txt","ms","tsv","json","json","grfon","md"]) then
 		// View a text file or MiniScript source file
 		lines = file.readLines(path)
@@ -600,7 +608,7 @@ runSysLibTests = function
 		print "--- " + moduleName + " ---"
 		mod = _importAndReturn(moduleName)
 		mod.runUnitTests
-		input "[Rress Return]"
+		input "[Press Return]"
 	end for
 end function
 

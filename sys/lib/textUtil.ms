@@ -388,6 +388,7 @@ Dialog.show = function(timeout=null)
 		if timeout != null and time > startTime + timeout then break
 		wheelValue = key.axis("Mouse ScrollWheel")
 		if wheelValue then self.handleMouseWheel(wheelValue)
+		yield
 	end while
 	
 	setState priorState	
