@@ -608,7 +608,7 @@ runSysLibTests = function
 		print "--- " + moduleName + " ---"
 		mod = _importAndReturn(moduleName)
 		mod.runUnitTests
-		input "[Rress Return]"
+		input "[Press Return]"
 	end for
 end function
 
