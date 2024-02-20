@@ -6,7 +6,7 @@
 
 // contains: return true if this list contains the given element.
 list.contains = function(item)
-	return self.indexOf(item) != null
+	return self.indexOf(@item) != null
 end function
 
 // lastIndexOf: returns the *last* index of the given element, optionally
@@ -17,7 +17,7 @@ end function
 list.lastIndexOf = function(element, beforeIdx=null)
 	if beforeIdx == null then i = self.len - 1 else i = beforeIdx - 1
 	while i >= 0
-		if self[i] == element then return i
+		if @self[i] == @element then return i
 		i -= 1
 	end while
 	return null
@@ -31,7 +31,7 @@ list.split = function(delimiter, maxCount=null)
 	result = []
 	p0 = 0
 	while p0 < self.len
-		p1 = self.indexOf(delimiter, p0-1)
+		p1 = self.indexOf(@delimiter, p0-1)
 		if p1 == null then
 			result.push self[p0:]
 			return result
@@ -50,7 +50,7 @@ end function
 list.deepCopy = function
 	result = self[:]
 	for i in result.indexes
-		if result[i] isa list then result[i] = result[i].deepCopy
+		if @result[i] isa list then result[i] = result[i].deepCopy
 	end for
 	return result
 end function
@@ -69,11 +69,11 @@ list.add = function(addend)
 		maxi = self.len - 1
 		if addend.len - 1 < maxi then maxi = addend.len - 1
 		for i in range(0,maxi)
-			self[i] = self[i] + addend[i]
+			self[i] += addend[i]
 		end for
 	else if addend isa string or addend isa number then
 		for i in self.indexes
-			self[i] = self[i] + addend
+			self[i] += addend
 		end for
 	else
 		print "ERROR: list.add requires a number, string, or list."
@@ -149,9 +149,9 @@ list.reverse = function
 	if not self then return self
 	for i in range(0, self.len/2-1)
 	    negi = -1 - i
-		temp = self[i]
-		self[i] = self[negi]
-		self[negi] = temp
+		temp = @self[i]
+		self[i] = @self[negi]
+		self[negi] = @temp
 	end for
 end function
 
@@ -212,10 +212,10 @@ end function
 list.counts = function
 	result = {}
 	for item in self
-		if result.hasIndex(item) then
-			result[item] = result[item] + 1
+		if result.hasIndex(@item) then
+			result[@item] += 1
 		else
-			result[item] = 1
+			result[@item] = 1
 		end if
 	end for
 	return result
@@ -283,7 +283,7 @@ list.reduce = function(func)
 	i = 2
 	while i < self.len
 		result = func(result, self[i])
-		i = i + 1
+		i += 1
 	end while
 	return result
 end function
@@ -354,7 +354,7 @@ list.compress = function(valueToCompress)
 	i = self.len - 1
 	compressing = false
 	while i >= 0
-		if self[i] == valueToCompress then
+		if @self[i] == @valueToCompress then
 			if compressing then self.remove i else compressing = true
 		else
 			compressing = false
@@ -371,14 +371,14 @@ list.compressed = function(valueToCompress)
 	result = []
 	compressing = false
 	for value in self
-		if value == valueToCompress then
+		if @value == @valueToCompress then
 			if not compressing then
-				result.push value
+				result.push @value
 				compressing = true
 			end if
 		else
 			compressing = false
-			result.push value
+			result.push @value
 		end if
 	end for
 	return result
@@ -390,7 +390,7 @@ end function
 list.valuesOf = function(indexToExtract)
 	result = []
 	for elem in self
-		result.push elem[indexToExtract]
+		result.push elem[@indexToExtract]
 	end for
 	return result
 end function
@@ -399,7 +399,7 @@ end function
 list.removeVal = function(val, removeAll=false)
 	i = 0
 	while true
-		i = self.indexOf(val, i-1)
+		i = self.indexOf(@val, i-1)
 		if i == null then return
 		self.remove i
 		if not removeAll then return
@@ -414,9 +414,9 @@ end function
 
 // swap: exchange two values in place, by their indexes
 list.swap = function(index1, index2)
-	temp = self[index1]
-	self[index1] = self[index2]
-	self[index2] = temp
+	temp = @self[index1]
+	self[index1] = @self[index2]
+	self[index2] = @temp
 end function
 
 // init: build an array initialized with an initial value.

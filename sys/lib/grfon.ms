@@ -16,7 +16,7 @@ interpretNull = true
 //	for reading GRFON data and converting it to native form.
 //	Example: parse("42")		// returns 42
 parse = function(grfonString)
-	if grfonString isa RawData then grfonString = grfonString.utf8
+	if intrinsics.hasIndex("RawData") and grfonString isa RawData then grfonString = grfonString.utf8
 	p = new Parser
 	return p.parse(grfonString)
 end function
@@ -309,21 +309,35 @@ runUnitTests = function
 	assertEqual escape("http://foo"), "http\:\/\/foo"
 	assertEqual unescape("http\:\/\/foo"), "http://foo"
 	
+	// Note: the order of key/value pairs in a dictionary is undefined.
+	// So, it's a bit hard to unit test, as the order in which they appear
+	// in GRFON isn't defined either.
 	s = toGRFON([1, 2, "foo"], true)
 	assertEqual s, "1; 2; foo";
 	s = toGRFON([1, 2, "foo"])
 	assertEqual escape(s), "1\n2\nfoo"
 	d = {1:"one", 2:"two", "three":"san"}
 	s = toGRFON(d, true)
-	assertEqual s, "1: one; 2: two; three: san"
+	//assertEqual s, "1: one; 2: two; three: san"
+	assertEqual s.indexOf("1: one") != null, true
+	assertEqual s.indexOf("2: two") != null, true
+	assertEqual s.indexOf("three: san") != null, true
+	assertEqual s.split(";").len, 3
 	s = toGRFON(d)
-	assertEqual s, unescape("1: one\n2: two\nthree: san")
+	//assertEqual s, unescape("1: one\n2: two\nthree: san")
+	assertEqual s.indexOf("1: one") != null, true
+	assertEqual s.indexOf("2: two") != null, true
+	assertEqual s.indexOf("three: san") != null, true
+	assertEqual s.split(unescape("\n")).len, 3
 	d = [0, [1], [1,2]]
 	s = toGRFON(d)
 	assertEqual s, unescape("0\n{\n  1\n}\n{\n  1\n  2\n}")
 	d = {"foo":[1, 2, 3], "bar":"baz"}
 	s = toGRFON(d, true)
-	assertEqual s, "foo: {1; 2; 3}; bar: baz"
+	//assertEqual s, "foo: {1; 2; 3}; bar: baz"
+	assertEqual s.indexOf("foo: {1; 2; 3}") != null, true
+	assertEqual s.indexOf("bar: baz") != null, true
+	assertEqual s.split(";").len, 4
 	
 	p = new Parser
 	p.init("   true")

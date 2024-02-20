@@ -4,30 +4,35 @@
 // code: assert conditions that you think should always be true, or otherwise
 // check your assumptions and report when they fail.
 
-_prevMode = 0
-
-errDisplay = null
-
-// prepareErrDisplay is used internally to prepare the default error display.
-// You probably won't ever need to call this.
-prepareErrDisplay = function
-	outer._prevMode = display(0).mode
-	display(0).mode = displayMode.text
-	outer._prevDisp = display(0)
-	outer.errDisplay = new TextDisplay
-	errDisplay.backColor = "#00000088"
-	errDisplay.color = color.red
-	errDisplay.clear
-	errDisplay.install 0
-end function
-
-// clear: clears (just) the error display.
-clear = function
-	if errDisplay == null then prepareErrDisplay
-	_prevDisp.install 0
-	display(0).mode = _prevMode
-	outer.errDisplay = null
-end function
+if intrinsics.hasIndex("Display") and intrinsics.hasIndex("displayMode") then
+	_prevMode = 0
+	errDisplay = null
+	
+	// prepareErrDisplay is used internally to prepare the default error display.
+	// You probably won't ever need to call this.
+	prepareErrDisplay = function
+		outer._prevMode = display(0).mode
+		display(0).mode = displayMode.text
+		outer._prevDisp = display(0)
+		outer.errDisplay = new TextDisplay
+		errDisplay.backColor = "#00000088"
+		errDisplay.color = color.red
+		errDisplay.clear
+		errDisplay.install 0
+	end function
+	
+	// clear: clears (just) the error display.
+	clear = function
+		if errDisplay == null then prepareErrDisplay
+		_prevDisp.install 0
+		display(0).mode = _prevMode
+		outer.errDisplay = null
+	end function
+else
+	errDisplay = {}
+	errDisplay.print = @print
+	clear = null
+end if
 
 // abort: print a stack trace (optionally, after an error message),
 // then exit the program.
@@ -66,13 +71,14 @@ assertEqual = function(actual, expected, note)
 	abort msg
 end function
 
-namedMaps = {
-	number:"number", string:"string", list:"list", map:"map",
-	Display:"Display", TextDisplay:"TextDisplay", SpriteDisplay:"SpriteDisplay",
-	TileDisplay:"TileDisplay", PixelDisplay:"PixelDisplay", 
-	SolidColorDisplay:"SolidColorDisplay",
-	FileHandle:"FileHandle", Image:"Image", Sound:"Sound", Sprite:"Sprite",
-	Bounds:"Bounds" }
+namedMaps = {number:"number", string:"string", list:"list", map:"map"}
+for cls in ("FileHandle Image Sound Sprite Bounds " +
+  "Display TextDisplay SpriteDisplay TileDisplay PixelDisplay SolidColorDisplay").split
+    if intrinsics.hasIndex(cls) then
+    	m = intrinsics[cls]
+    	namedMaps[m] = cls
+    end if
+end for
 
 typeOf = function(value)
 	if @value isa funcRef then return "funcRef"
@@ -122,8 +128,10 @@ runUnitTests = function
 	assertEqual typeOf("abc"), "string"
 	assertEqual typeOf([1,2,3]), "list"
 	assertEqual typeOf(@rnd), "funcRef"
-	assertEqual typeOf(new Sprite), "Sprite"
-	assertEqual typeOf(gfx), "PixelDisplay"
+	if intrinsics.hasIndex("Sprite") then
+		assertEqual typeOf(new Sprite), "Sprite"
+		assertEqual typeOf(gfx), "PixelDisplay"
+	end if
 	
 	if errorCount == 0 then
 		print "All tests passed.  Quality code!"

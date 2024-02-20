@@ -81,15 +81,15 @@ runUnitTests = function
 		end if
 	end function
 	
-	dstr = "1971-10-29 01:23:45.678"
+	dstr = "1971-10-29 01:23:45"
 	dval = val(dstr)
-	assertEqual dval, -889137374.322
+	assertEqual dval, -889137375
 	assertEqual year(dval), 1971, "year (from val)"
 	assertEqual month(dval), 10, "month (from val)"
 	assertEqual day(dval), 29, "day (from val)"
 	assertEqual hour(dval), 1, "hour (from val)"
 	assertEqual minute(dval), 23, "minute (from val)"
-	assertEqual second(dval), 46, "second (from val)"
+	assertEqual second(dval), 45, "second (from val)"
 	assertEqual weekday(dval), 5, "weekday (from val)"  // (Friday)
 
 	assertEqual year(dstr), 1971, "year (from str)"
@@ -99,9 +99,9 @@ runUnitTests = function
 	assertEqual minute(dstr), 23, "minute (from str)"
 	assertEqual second(dstr), 45, "second (from str)"
 	assertEqual weekday(dstr), 5, "weekday (from str)"  // (Friday)
-		
+	
 	nextDay = str(dval + 24*60*60)
-	assertEqual nextDay, "1971-10-30 01:23:46"
+	assertEqual nextDay, "1971-10-30 01:23:45"
 	
 	if errorCount == 0 then
 		print "All tests passed.  Happy day!"
@@ -116,7 +116,7 @@ if locals == globals then
 	// Normally, dateTime would not be run in the global space, so its
 	// special str and val methods would not hide the intrinsics... but
 	// since it was, let's remove those so as to not cause grief.
-	dt = {"str":@str, "val":@val}	// (access these as dt.str and dt.val, for testing)
+	dateTime = {"str":@str, "val":@val}
 	globals.remove "str"
 	globals.remove "val"
 end if

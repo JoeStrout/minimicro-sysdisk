@@ -11,7 +11,7 @@ map.get = function(key, defaultValue=null)
 		if not m.hasIndex("__isa") then break
 		m = m.__isa
 	end while
-	return defaultValue
+	return @defaultValue
 end function
 
 // hasValue: return true if this map contains the given value as
@@ -20,13 +20,13 @@ end function
 // does not walk the inheritance chain (just like .hasIndex), but
 // if you pass `true` as the second parameter, then it does.
 map.hasValue = function(v, includeInherited=false)
-	if self.indexOf(v) != null then return true
+	if self.indexOf(@v) != null then return true
 	if includeInherited then
 		m = self
 		while m
 			if not m.hasIndex("__isa") then break
 			m = m.__isa
-			if m.indexOf(v) != null then return true
+			if m.indexOf(@v) != null then return true
 		end while
 	end if
 	return false
@@ -45,7 +45,7 @@ end function
 map.inverse = function
 	result = {}
 	for kv in self
-		result[kv.value] = kv.key
+		result[@kv.value] = @kv.key
 	end for
 	return result
 end function
@@ -54,7 +54,7 @@ end function
 // does not return true.
 map.filterIndexes = function(func)
 	for k in self.indexes
-		if not func(k) then self.remove k
+		if not func(@k) then self.remove @k
 	end for
 end function
 
@@ -62,7 +62,7 @@ end function
 // function, applied to the value, does not return true.
 map.filterValues = function(func)
 	for k in self.indexes
-		if not func(self[k]) then self.remove k
+		if not func(self[@k]) then self.remove @k
 	end for
 end function
 
@@ -70,7 +70,7 @@ end function
 // in place.
 map.applyToValues = function(func)
 	for kv in self
-		self[kv.key] = func(kv.value)
+		self[@kv.key] = func(@kv.value)
 	end for
 end function
 
@@ -89,9 +89,9 @@ end function
 // applied to locals (or globals), enabling you to swap the values
 // of two variables.
 map.swap = function(key1, key2)
-	temp = self[key1]
-	self[key1] = self[key2]
-	self[key2] = temp
+	temp = @self[@key1]
+	self[key1] = @self[@key2]
+	self[key2] = @temp
 end function
 
 // mapUtils.fromTo: generate a map from one sequence (list or string)
@@ -103,7 +103,7 @@ fromTo = function(fromSeq, toSeq)
 	end if
 	result = {}
 	for i in fromSeq.indexes
-		result[fromSeq[i]] = toSeq[i]
+		result[@fromSeq[i]] = @toSeq[i]
 	end for
 	return result
 end function
