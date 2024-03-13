@@ -39,7 +39,10 @@ end if
 abort = function(errMsg)
 	if errDisplay == null then prepareErrDisplay
 	if errMsg == null then errMsg = "qa.abort has been called."
-	errDisplay.print errMsg
+	if not errMsg isa list then errMsg = [errMsg]
+	for errLine in errMsg
+		errDisplay.print errLine
+	end for
 	errDisplay.print "Call stack:"
 	i = 0
 	for line in stackTrace
@@ -68,6 +71,97 @@ assertEqual = function(actual, expected, note)
 	msg = "Assert failed"
 	if note != null then msg = msg + " (" + note + ")"
 	msg = msg + ": expected `" + @expected + "`, but got `" + @actual + "`"
+	abort msg
+end function
+
+// assertEqualOneScreen: like `assertEqual` but fits the message on one Mini Micro screen.
+assertEqualOneScreen = function(actual, expected, note)
+	if @actual == @expected then return
+	
+	// Converts to string and cuts to 35 characters to save screen space.
+	_chop35 = function(x)
+		s = str(x)
+		if s.len > 35 then s = s[:35] + "…"
+		unprintables = range(31) + [127]
+		cc = []
+		for c in s
+			if unprintables.indexOf(c.code) == null then
+				cc.push c
+			else
+				cc.push char(134) + "<char" + c.code + ">" + char(135)
+			end if
+		end for
+		return cc.join("")
+	end function
+	
+	msg = "Assert failed"
+	if note != null then msg += " (" + note + ")"
+	msg += ": expected `" + _chop35(@expected) + "`, but got `" + _chop35(@actual) + "`"
+	if (@actual isa string and @expected isa string) or
+		(@actual isa list and @expected isa list) or
+		(@actual isa map and @expected isa map) then
+		// If same type, find and report any first discrepancy
+		found = false
+		idx = null
+		vals = null
+		codes = null
+		for k in actual.indexes
+			if not expected.hasIndex(@k) then
+				// Found unexpected data among keys in actual
+				idx = "`" + _chop35(@k) + "`"
+				if actual isa map then
+					vals = ["no such index", "{… index: `" + _chop35(actual[@k]) + "` …}"]
+				else if k > 0 then
+					vals = ["end of data", "`…" + _chop35(actual[k:]) + "`"]
+				end if
+				found = true
+				break
+			else if actual[@k] != expected[@k] then
+				// Found different values of the same key
+				idx = "`" + _chop35(@k) + "`"
+				if actual isa map then
+					vals = ["{… index: `" + _chop35(expected[@k]) + "` …}", "{… index: `" + _chop35(actual[@k]) + "` …}"]
+				else if k > 0 then
+					vals = ["`…" + _chop35(expected[k:]) + "`", "`…" + _chop35(actual[k:]) + "`"]
+					if actual isa string then codes = [expected[k].code, actual[k].code]
+				end if
+				found = true
+				break
+			end if
+		end for
+		if not found then
+			// We didn't find difference iterating over actual keys, which means that some expected data is missing
+			if actual isa map then
+				for k in expected.indexes
+					if not actual.hasIndex(@k) then break
+				end for
+			else
+				k = actual.len
+			end if
+			idx = "`" + _chop35(@k) + "`"
+			if actual isa map then
+				vals = ["{… index: `" + _chop35(expected[@k]) + "` …}", "no such index"]
+			else if k > 0 then
+				vals = ["`…" + _chop35(expected[k:]) + "`", "end of data"]
+			end if
+			found = true
+		end if
+		// Engooden error message
+		msg = [msg, "At index " + @idx]
+		if vals then
+			exp = vals[0]
+			act = vals[1]
+			if actual isa list then
+				if exp[:3] == "`…[" then exp = "`…" + exp[3:]
+				if act[:3] == "`…[" then act = "`…" + act[3:]
+			end if
+			msg += [char(9) + "expected " + exp, char(9) + "but got  " + act]
+		end if
+		if codes then msg += [
+			char(9) + "           ↑",
+			char(9) + "           code(" + codes[0] + ") != code(" + codes[1] + ")",
+		]
+	end if
 	abort msg
 end function
 
