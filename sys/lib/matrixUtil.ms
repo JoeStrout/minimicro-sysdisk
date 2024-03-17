@@ -276,6 +276,7 @@ Matrix.print = function(fieldWidth=10, precision=null, columnSep="", rowSep=null
 		line = []
 		for elem in row
 			s = mathUtil.numToStr(elem, precision)
+			if s.indexOf("E-") != null then s = "0"
 			if s.len >= fieldWidth and s.indexOf(".") != null then s = s[:fieldWidth-1]
 			if s.len < fieldWidth then s = " "*(fieldWidth-s.len) + s
 			line.push s

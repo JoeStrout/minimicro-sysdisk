@@ -210,22 +210,20 @@ dir = function(path=".")
 	pageThrough lines
 end function
 
-_apiClassNames = {
-	Image:"Image",
-	Sprite:"Sprite",
-	Display:"Display",
-	TextDisplay:"TextDisplay",
-	SpriteDisplay:"SpriteDisplay",
-	PixelDisplay:"PixelDisplay",
-	SolidColorDisplay:"SolidColorDisplay",
-	TileDisplay:"TileDisplay",
-	Sound:"Sound" }
-
 mapName = function(m)
-	if not m isa map then return null
+	if not @m isa map then return null
 	if m.hasIndex("_name") then return m._name
-	if _apiClassNames.hasIndex(m) then return _apiClassNames[m]
+	for kv in intrinsics
+		// Among intrinsics, all our "class" names start with a capital letter.
+		// (And many of them are actually functions that *return* the class,
+		// so in this case we'll invoke kv.value without @.)
+		name = @kv.key
+		if name isa string and name and 
+		  "A" <= name[0] <= "Z" and refEquals(kv.value, m) then return name
+	end for
 	for kv in globals
+		// Among globals, check all regardless of name.  But don't invoke
+		// the value; it must be a direct map reference.
 		if refEquals(@kv.value, m) then return @kv.key
 	end for
 	return null

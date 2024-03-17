@@ -71,14 +71,38 @@ assertEqual = function(actual, expected, note)
 	abort msg
 end function
 
-namedMaps = {number:"number", string:"string", list:"list", map:"map"}
-for cls in ("FileHandle Image Sound Sprite Bounds " +
+// deprecated: don't use the namedMaps map directly.  Instead, just use the
+//	typeOf function below, which is both more reliable and more efficient.
+//	If you're on Mini Micro, also see the global `mapName` function added
+//	in /sys/lib/startup.ms.
+namedMaps = function
+	result = {}
+	for i in _namedMapNames.indexes
+		result[_namedMapMaps[i]] = _namedMapNames[i]
+	end for
+	return result
+end function
+
+_namedMapMaps = []
+_namedMapNames = []
+addNamedMap = function(name, map=null)
+	if map == null and intrinsics.hasIndex(name) then map = intrinsics[name]
+	if map == null then return
+	idx = _namedMapNames.indexOf(name)
+	if idx == null then
+		_namedMapNames.push name
+		_namedMapMaps.push map
+	else
+		_namedMapMaps[idx] = map
+	end if
+end function
+
+for cls in ("number string list map " +
+  "FileHandle Image Sound Sprite Bounds " +
   "Display TextDisplay SpriteDisplay TileDisplay PixelDisplay SolidColorDisplay").split
-    if intrinsics.hasIndex(cls) then
-    	m = intrinsics[cls]
-    	namedMaps[m] = cls
-    end if
+	addNamedMap cls
 end for
+
 
 typeOf = function(value)
 	if @value isa funcRef then return "funcRef"
@@ -89,9 +113,10 @@ typeOf = function(value)
 	if value isa map then
 		mapType = value
 		if value.hasIndex("__isa") then mapType = value.__isa
-		for kv in namedMaps
-			if refEquals(kv.key, mapType) then return kv.value
+		for i in _namedMapMaps.indexes
+			if refEquals(_namedMapMaps[i], mapType) then return _namedMapNames[i]
 		end for
+		if mapType.hasIndex("_name") then return mapType._name
 		return "map"
 	end if
 	return "unknown"
