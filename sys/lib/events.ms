@@ -222,10 +222,13 @@ test = function
 	spr.onKey["right"] = function
 		self.x = self.x + 10
 	end function
+	eventLoop.onKey["escape"] = function
+		eventLoop.stop
+	end function
 	eventLoop.onKeyDown["space"] = function; print "space down"; end function
 	eventLoop.onKey["space"] = function; print "space held"; end function
 	eventLoop.onKeyUp["space"] = function; print "space up"; end function
-
+	
 	spr.onClick = function
 		self.scale = 1.5
 	end function
@@ -236,11 +239,14 @@ test = function
 	spr.onDragEnd = function
 		self.scale = 1
 	end function
-
+	
 	spr.x = 480
 	spr.y = 320
 	spr.start
-
+	
+	print "Click and drag, or press left/right."
+	print "All event-driven.  (Esc to exit.)"
+	
 	eventLoop.run
 end function
 

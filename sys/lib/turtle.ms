@@ -152,15 +152,16 @@ end function
 longDemo = function
 	// This demo draws a turtle, using Turtle!
 	// Based on a design by Discord user @Intas.
+	clear
 	Turtle.clear
 	Turtle.show
-
+	
 	// some helper functions...
 	smoothWave = function(valA, valB, step, waveSteps)
 		t = cos(step / waveSteps * 2 * pi)*0.5 + 0.5
 		return valB + (valA - valB) * t
 	end function
-
+	
 	drawEllipse = function(length, minWidth, extraWidth)
 		Turtle.penDown = true
 		for step in range(1,length)
@@ -168,14 +169,14 @@ longDemo = function
 			Turtle.forward 1
 		end for
 	end function
-
+	
 	move = function(initialTurn, forwardDist, endTurn=0)
 		Turtle.penDown = false
 		Turtle.right initialTurn
 		Turtle.forward forwardDist
 		Turtle.right endTurn
 	end function
-
+	
 	// Draw legs
 	Turtle.color = color.lime
 	Turtle.penDown = false
@@ -185,25 +186,25 @@ longDemo = function
 		drawEllipse 120, 30, 30
 		move 180, 120+40, -90
 	end for
-
+	
 	// Draw tail
 	move 45, 100; drawEllipse 80, 5, 20
-
+	
 	// Draw head
 	move 180, 360; drawEllipse 40, 80, 20
-
+	
 	// Draw eyes
 	Turtle.penSize = 10; Turtle.penDown = false
 	Turtle.color = color.black
 	move 180, 10; move 90, 20; Turtle.plop
 	move 180, 40; Turtle.plop
 	move 180, 20, -90
-
+	
 	// Shell (main color)
 	Turtle.forward 130
 	Turtle.color = color.green
 	drawEllipse 150, 160, 60
-
+	
 	// Shell outlines
 	move 0, 80
 	Turtle.penSize = 15; Turtle.color = color.black; 
@@ -219,7 +220,7 @@ longDemo = function
 		Turtle.left 1
 		Turtle.forward smoothWave(1, 3.4, step, 180) // trial & error!
 	end for
-
+	
 	// Shell lines
 	move -90, 75, 60
 	Turtle.penSize = 10; Turtle.color = color.black
@@ -231,7 +232,7 @@ longDemo = function
 		Turtle.right 180;	Turtle.forward lineLen
 		Turtle.right 60
 	end for
-
+	
 end function
 
 // Since this module defines only a class, we'll poke that class

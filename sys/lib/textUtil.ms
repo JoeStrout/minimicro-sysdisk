@@ -418,8 +418,10 @@ FileDialog.make = function(title="Select file", width=null)
 	dlog.okBtn.caption = "Select"
 	dlog.height = 18
 	dlog.cancelBtn.visible = true
-	dlog.directory = file.curdir - "/"
-	dlog.selection = file.child(file.curdir, file.children(file.curdir)[0])
+	dir = file.curdir
+	if file.children(file.curdir) == null then dir = "/sys"
+	dlog.directory = dir - "/"
+	dlog.selection = file.child(dir, file.children(dir)[0])
 	dlog.files = []
 	if width != null then self.width = width
 	dlog.colWidth = []

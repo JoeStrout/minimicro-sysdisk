@@ -574,9 +574,19 @@ welcome = function
 	text.color = color.gray
 	text.delimiter = _EOL
 	print "!"
-	isPreview = version.host.indexOf("PREVIEW") != null
+	if version.host isa number then
+		major = floor(version.host)
+		dec = (version.host % 1) * 100
+		minor = floor(dec / 10)
+		bugfix = round(dec % 10)
+		hostVer = [major, minor, bugfix].join(".")
+		isPreview = false		
+	else
+		hostVer = version.host
+		isPreview = version.host.indexOf("PREVIEW") != null
+	end if
 	text.color = "#444444" * (not isPreview) + "#FFFF44" * isPreview
-	hostVers = "(version " + version.host + ", " + version.buildDate + ")"
+	hostVers = "(version " + hostVer + ", " + version.buildDate + ")"
 	print hostVers
 	text.color = color.gray
 	_printMark tip

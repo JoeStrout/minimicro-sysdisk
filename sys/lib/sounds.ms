@@ -88,6 +88,8 @@ end for
 demo = function
 	clear
 	text.delimeter = char(13)
+	print "A selection of synthesized sounds:"
+	print
 	names = byName.indexes.sort
 	for i in names.indexes
 		print " " * (i<10) + i + ". " + names[i]

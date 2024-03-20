@@ -231,19 +231,19 @@ TextPrinter.applyStyle = function(style)
 	end if
 	c = null
 	if style.bold then
-		if c == null then c = self.color.bold else if c = color.lerp(c, self.color.bold, 0.5)
+		if c == null then c = self.color.bold else c = color.lerp(c, self.color.bold, 0.5)
 	end if
 	if style.italic then
-		if c == null then c = self.color.italic else if c = color.lerp(c, self.color.italic, 0.5)
+		if c == null then c = self.color.italic else c = color.lerp(c, self.color.italic, 0.5)
 	end if
 	if style.underline then
-		if c == null then c = self.color.underline else if c = color.lerp(c, self.color.underline, 0.5)
+		if c == null then c = self.color.underline else c = color.lerp(c, self.color.underline, 0.5)
 	end if
 	if style.strikethrough then
-		if c == null then c = self.color.strikethrough else if c = color.lerp(c, self.color.strikethrough, 0.5)
+		if c == null then c = self.color.strikethrough else c = color.lerp(c, self.color.strikethrough, 0.5)
 	end if
 	if style.highlight then
-		if c == null then c = self.color.highlight else if c = color.lerp(c, self.color.highlight, 0.5)
+		if c == null then c = self.color.highlight else c = color.lerp(c, self.color.highlight, 0.5)
 	end if
 	if c == null then c = self.color.normal
 	if c then text.color = c
@@ -299,7 +299,7 @@ TextPrinter.printStyleRuns = function(runs)
 	self.x = self.wrapTo
 	self.y = text.row
 end function
-	
+
 //-----------------------------------------------------------------
 // GfxPrinter: Prints to a PixelDisplay (gfx by default).  Always prints in the
 // current color, but you can define the color to use for the highlight background.
@@ -329,8 +329,8 @@ GfxPrinter.lineHeight.large = 32
 
 GfxPrinter.width = function(text)
 	if self.font == "large" then return text.len * 20
+	if self.font == "medium" then return text.len * 11
 	if self.font == "small" then return text.len * 8
-	if self.font == "medium" then return text.len * 17 // ?
 	return text.len * 14
 end function
 
@@ -552,8 +552,8 @@ runDemo = function
 		gp.font = f
 		gp.print msg1, 10, y
 		y -= gp.lineHeight[f] * 2
-		gp.print msg2, 10, y
-		y -= gp.lineHeight[f] * 3
+		//gp.print msg2, 10, y
+		//y -= gp.lineHeight[f] * 3
 	end for
 	bp = new BmfPrinter
 	bp.font = bmfFonts.Font.load("/sys/fonts/Arial14.bmf")
