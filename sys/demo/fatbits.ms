@@ -942,6 +942,7 @@ setupUI.draw = function
 			self.state = kDone
 		end if
 	else if self.state == kLoadFile then
+		key.clear
 		hit = self.dlog.show
 		if hit == self.dlog.okBtn then
 			self.path = self.dlog.selection
