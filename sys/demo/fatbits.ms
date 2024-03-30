@@ -905,6 +905,7 @@ setupUI.draw = function
 	gfx.fillRect 0, 0, 960, 640-26, text.backColor
 	spriteDisp.scrollX = 9999
 	self.buttons = []
+	self.dlog = textUtil.FileDialog.make
 	if self.state == kStart then
 		textUtil.printCenteredAt 34, 21, "Create or Load Image"
 		newBtn = new textUtil.DialogButton
@@ -941,18 +942,22 @@ setupUI.draw = function
 			self.state = kDone
 		end if
 	else if self.state == kLoadFile then
-		textUtil.printCenteredAt 34, 21, "Load Image"
-		textUtil.printAt 10, 18, "Current Directory: " + pwd
-		self.path = self.inputAt(10, 16, "Image file path: ")
-		if self.path[-4:] != ".png" then self.path = self.path + ".png"
-		self.img = file.loadImage(self.path)
-		if self.img == null then
-			textUtil.Dialog.make("Unable to Open File", "Invalid path:" + char(13) + self.path).show
+		key.clear
+		hit = self.dlog.show
+		if hit == self.dlog.okBtn then
+			self.path = self.dlog.selection
+			self.img = file.loadImage(self.path)
+			if self.img == null then
+				textUtil.Dialog.make("Unable to Open File", "Invalid path:" + char(13) + self.path).show
+				self.state = kStart
+				self.draw
+			else
+				addTabForImage self.img, self.path
+				self.state = kDone
+			end if
+		else // "Cancel" button pressed
 			self.state = kStart
 			self.draw
-		else
-			addTabForImage self.img, self.path
-			self.state = kDone
 		end if
 	end if
 	self.drawButtons
