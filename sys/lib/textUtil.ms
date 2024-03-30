@@ -411,7 +411,6 @@ FileDialog.dirIndColor = color.lerp(FileDialog.listTextColor, FileDialog.listBac
 FileDialog.directoryIcon = "/"
 FileDialog.playingSound = null
 FileDialog.origDisp0 = null
-
 FileDialog.make = function(title="Select file", width=null)
 	dlog = Dialog.make(title)
 	dlog.__isa = FileDialog
@@ -432,18 +431,22 @@ FileDialog.make = function(title="Select file", width=null)
 	dlog.colLeft.push dlog.colLeft[0] + 1 + dlog.colWidth[0]
 	dlog.colLeft.push dlog.colLeft[1] + 1 + dlog.colWidth[1]
 	dlog.files = FileDialog.getFileInfoForDir(dlog.directory)
+	dlog.scroll = [0,0,0]	// (number of rolls scrolled off the top, per column)
 	dlog.selIdx = 0
 	return dlog
 end function
 
 FileDialog.select = function(path)
+	self.stopPreview
 	self.selection = path
 	dir = file.parent(path)
+	changedDir = false
 	if dir != self.directory then
 		self.directory = dir
 		self.drawCurDir
 		self.drawParentDir
-		self.files = FileDialog.getFileInfoForDir(self.directory)		
+		self.files = FileDialog.getFileInfoForDir(self.directory)
+		changedDir = true
 	end if
 	for i in self.files.indexes
 		if self.files[i].path == path then
@@ -451,6 +454,7 @@ FileDialog.select = function(path)
 			break
 		end if
 	end for
+	if changedDir then self.scrollIntoView 1, self.files, self.selIdx
 end function
 
 FileDialog.getFileInfoForDir = function(dir)
@@ -468,26 +472,41 @@ FileDialog.getFileInfoForDir = function(dir)
 	return files
 end function	
 
+FileDialog.highlightedInCol0 = function
+	f = self.files
+	for i in f.indexes
+		if f[i].isDirectory and self.selection.startsWith(f[i].path+"/") then
+			return i
+		end if
+	end for
+end function
+
+FileDialog.highlightedInColumn = function(colNum)
+	if colNum == 0 then return self.highlightedInCol0
+	if colNum == 1 then return self.selIdx
+	return 0
+end function
+
+FileDialog.scrollIntoView = function(colNum, files, selectedIndex, padding=2)
+	posInView = selectedIndex - self.scroll[colNum]
+	if posInView < padding then
+		self.scroll[colNum] = max(0, selectedIndex - padding)
+		return
+	end if
+	if files == null then files = self.files
+	rows = self.height - 5
+	if posInView > rows - padding then
+		self.scroll[colNum] = selectedIndex - rows + padding
+	end if
+end function
+
 FileDialog.drawFiles = function(colNum=1, files=null)
 	if files == null then files = self.files
 	width = self.colWidth[colNum]
 	text.row = self.top - 2
 	rows = self.height - 5
-	
-	if colNum == 0 then
-		for i in files.indexes
-			if files[i].isDirectory and self.selection.startsWith(files[i].path+"/") then
-				highlightedIdx = i
-				break
-			end if
-		end for
-	else
-		highlightedIdx = self.selIdx
-	end if
-	
-	scroll = highlightedIdx - floor(rows/2)
-	scroll = min(scroll, files.len - rows)
-	if scroll < 0 then scroll = 0
+	highlightedIdx = self.highlightedInColumn(colNum)	
+	scroll = self.scroll[colNum]
 	
 	for row in range(0, rows-1)
 		idx = scroll + row
@@ -623,9 +642,10 @@ FileDialog.drawCurDir = function
 	print self.directory.pad(self.width-4)
 end function
 
-FileDialog.selectIdx = function(newSelIdx)
+FileDialog.selectIdx = function(newSelIdx, padding=6)
 	self.selIdx = newSelIdx % self.files.len
 	if self.selIdx < 0 then self.selIdx += self.files.len
+	self.scrollIntoView 1, self.files, self.selIdx, padding
 	self.select self.files[self.selIdx].path
 	self.drawFiles
 	self.drawPreview
@@ -670,13 +690,45 @@ FileDialog.handleMouse = function
 	if row > self.top-2 or row < self.top-2 - (self.height-6) then return false
 	col = textCol(mouse.x)
 	if col >= self.colLeft[0] and col < self.colLeft[0]+self.colWidth[0] then
-		// handle click in parent directory column
+		hitColumn = 0		// parent directory column
+		files = FileDialog.getFileInfoForDir(file.parent(self.directory))
 	else if col >= self.colLeft[1] and col < self.colLeft[1]+self.colWidth[1] then
-		// handle click in selection column
-	else if col >= self.colLeft[2] and col < self.colLeft[1]+self.colWidth[2] then
-		// handle click in preview column (only if selection is a directory)
+		hitColumn = 1		// selection column
+		files = self.files
+	else if col >= self.colLeft[2] and col < self.colLeft[2]+self.colWidth[2] then
+		hitColumn = 2		// preview column
+		files = FileDialog.getFileInfoForDir(self.selection)
+		if not files then return false
+	else
+		return false
 	end if
-	return false
+	hitIdx = self.top - 2 - row + self.scroll[hitColumn]
+	if not files or hitIdx >= files.len then return false
+
+	self.select files[hitIdx].path
+	self.drawFiles
+	self.drawPreview
+	while mouse.button; yield; end while
+	return true
+
+//	else if col >= self.colLeft[1] and col < self.colLeft[1]+self.colWidth[1] then
+//		// handle click in selection column
+//		self.selectIdx(hitRow + self.scroll[1], 0)
+//		while mouse.button; yield; end while
+//		return true
+//	else if col >= self.colLeft[2] and col < self.colLeft[2]+self.colWidth[2] then
+//		// handle click in preview column (only if selection is a directory)
+//		hitIdx = hitRow + self.scroll[2]
+//		files = FileDialog.getFileInfoForDir(self.selection)
+//		if files and hitIdx < files.len then
+//			self.select files[hitIdx].path
+//			self.drawFiles
+//			self.drawPreview
+//			while mouse.button; yield; end while
+//			return true
+//		end if
+//	end if
+//	return false
 end function
 
 FileDialog.handleMouseWheel = function(axisValue)

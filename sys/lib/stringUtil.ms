@@ -56,6 +56,46 @@ string.contains = function(s)
 	return self.indexOf(s) != null
 end function
 
+// isNumeric: returns true if this string is a valid number like "-3.1415".
+// You should be able to get a valid value out of val() whenever this is true.
+string.isNumeric = function
+	state = "PRENUM"
+	for c in self
+		if state == "PRENUM" then
+			if c <= " " then continue
+			if c == "+" or c == "-" or ("0" <= c <= "9") then
+				state = "WHOLEPART"
+			else if c == "." then
+				state = "DECPART"
+			else
+				return false
+			end if
+		else if state == "WHOLEPART" then
+			if "0" <= c <= "9" then continue
+			if c == "." then
+				state = "DECPART"
+			else if c == "E" then
+				state = "PREEXP"
+			else
+				return false
+			end if
+		else if state == "DECPART" then
+			if "0" <= c <= "9" then continue
+			if c == "E" then state = "PREEXP" else return false
+		else if state == "PREEXP" then
+			if c == "+" or c == "-" or ("0" <= c <= "9") then
+				state = "EXPONENT"
+			else
+				return false
+			end if
+		else if state == "EXPONENT" then
+			if "0" <= c <= "9" then continue
+			return false
+		end if
+	end for
+	return state != "PRENUM" and state != "PREEXP"
+end function
+
 // lastIndexOf: returns the *last* index of the given substring, optionally
 // before a given index.  Returns null if not found.
 // Examples:
@@ -458,6 +498,18 @@ runUnitTests = function
 	assertEqual "hello world".contains("world"), true
 	assertEqual "hello world".contains("lo"), true
 	assertEqual "hi".contains("hello"), false
+	
+	testing = "isNumeric"
+	assertEqual "hello".isNumeric, false
+	assertEqual "3.14abc".isNumeric, false
+	assertEqual "abc3.14".isNumeric, false
+	assertEqual "".isNumeric, false
+	assertEqual "3.14".isNumeric, true
+	assertEqual "-3.14".isNumeric, true
+	assertEqual "+3.14".isNumeric, true
+	assertEqual "3.14E6".isNumeric, true
+	assertEqual "-3.14E-6".isNumeric, true
+	assertEqual "  -3E-6".isNumeric, true	
 	
 	testing = "lastIndexOf"
 	assertEqual "Hello world".lastIndexOf("l"), 9
