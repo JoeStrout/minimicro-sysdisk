@@ -2,6 +2,7 @@
 // See http://www.cr31.co.uk/stagecast/wang/2corn.html
 
 import "listUtil"
+import "mathUtil"
 
 clear
 gfx.clear color.clear
@@ -31,26 +32,10 @@ corners = list.init2d(tiles.extent[0], tiles.extent[1], 0)
 // For every room we also keep track of what "set" the room is in;
 // all connected rooms are in the same set.  Initially, each room
 // is in a set all by itself.
-// While we're at it, make a big list of all the walls, so we can
-// shuffle that and consider walls in random order.
 Room = {}
 Room.cols = floor(tiles.extent[0]/2)
 Room.rows = floor(tiles.extent[1]/2)
 rooms = list.init2d(Room.cols, Room.rows)
-walls = []
-for col in range(0, Room.cols-1)
-	for row in range(0, Room.rows-1)
-		r = new Room
-		r.col = col; r.row = row
-		r.north = true   // wall to the north
-		r.east = true  // wall to the east
-		r.set = [r]  // in a set by itself
-		rooms[col][row] = r
-		walls.push [r, "north"]
-		walls.push [r, "east"]
-	end for
-end for
-walls.shuffle
 
 // Set corners from the rooms.  There's a solid corner
 // on either end of any solid wall.
@@ -93,8 +78,6 @@ updateTiles
 
 removeWall = function(room, whichWall)
 	room[whichWall] = false
-	//setCornersFromRooms
-	//updateTiles
 end function
 
 doOneStep = function
@@ -122,9 +105,34 @@ end function
 
 generate = function
 	// Generate a maze!
+	// Reset every room to be in a set all by itself
+	// (not connected to any neighboring rooms).
+	// And make a big list of all the walls, so we can
+	// shuffle that and consider walls in random order.
+	outer.walls = []
+	for col in range(0, Room.cols-1)
+		for row in range(0, Room.rows-1)
+			r = new Room
+			r.col = col; r.row = row
+			r.north = true   // wall to the north
+			r.east = true  // wall to the east
+			r.set = [r]  // in a set by itself
+			rooms[col][row] = r
+			walls.push [r, "north"]
+			walls.push [r, "east"]
+		end for
+	end for
+	walls.shuffle
+	
+	// Then, consider each wall in turn, knocking out
+	// any that separate two different sets of rooms.
 	while walls
 		doOneStep
 	end while
+	
+	// All our room walls are now figured out.
+	// All that's left is to update the corners from the rooms,
+	// and then update the tiles from the corners.
 	setCornersFromRooms
 	updateTiles
 end function
@@ -152,15 +160,17 @@ end function
 cornerAtMouse = function
 	d = {}
 	spacing = tiles.cellSize - tiles.overlap
-	d.col = floor(mouse.x/spacing - 0.5)
-	d.row = floor(mouse.y/spacing - 0.5)
+	d.col = mathUtil.clamp(floor(mouse.x/spacing - 0.5),
+	  0, tiles.extent[0] - 1)
+	d.row = mathUtil.clamp(floor(mouse.y/spacing - 0.5),
+	  0, tiles.extent[1] - 1)
 	return d
 end function
 
 if locals == globals then
 	// Generate a maze.
 	generate
-
+	
 	// Print instructions.
 	gfx.fillRect 0, 0, 960, 60, "#00000088"
 	c = color.yellow
@@ -168,8 +178,9 @@ if locals == globals then
 	gfx.print "1-3: thin/normal/thick", 400, 40, c, "small"
 	gfx.print "4-9: select color", 400, 25, c, "small"
 	gfx.print "  G: toggle grid", 400, 10, c, "small"
-	gfx.print "ESC: quit",780, 30, c, "small"
-
+	gfx.print "R: regenerate",780, 40, c, "small"
+	gfx.print "ESC: quit",780, 10, c, "small"
+	
 	// Main loop.
 	while true
 		yield
@@ -179,6 +190,7 @@ if locals == globals then
 			if k == "2" then baseIndex = 0
 			if k == "3" then baseIndex = 32
 			if k.lower == "g" then toggleGrid
+			if k.lower == "r" then generate
 			if k >= "4" and k <= "9" then applyColor val(k)-4
 			if k == "q" or k == char(27) then exit
 			updateTiles

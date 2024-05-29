@@ -142,7 +142,6 @@ Platformer.applyFreefall = function(dt)
 	// apply gravity
 	// (with boost, if we've still got the jump button down)
 	if self.inBoost and not inputPressed(self.jumpInput) then self.inBoost = false
-	text.row = 25
 	self.vy = self.vy + (self.gravity + self.boost * self.inBoost) * dt
 	// apply "fly" acceleration
 	self.vx = moveTowards(self.vx, self.targetSpeed, self.flyAccel * dt)
