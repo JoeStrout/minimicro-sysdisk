@@ -25,11 +25,14 @@ end function
 // Escape any special characters in the given string by preceeding
 // them with backslashes.  In addition: a newline becomes \n; a
 // carriage return becomes \r; and a tab becomes \t.
+// Note that by the special `://` rule, these characters are not escaped,
+// even though in any other combination, `:` and `//` are special.
 escape = function(s)
 	for i in _escapeIndexes
 		s = s.replace(_escapeFrom[i], _escapeTo[i])
 	end for
 	s = s.replace("//", "\/\/")
+	s = s.replace("\:\/\/", "://")
 	return s
 end function
 
@@ -98,7 +101,14 @@ Parser.init = function(source)
 	self._sourceLen = source.len
 end function
 
+// Parser.parse: main entry point for parsing GRFON data.
+//  source may be either a string, or a list of strings.
+//  Returns a MiniScript value: string, number, list, or map.
+//  Note that a collection with some key/value pairs and also
+//	some unkeyed values, will return the unkeyed values as
+//	a list keyed by "_".
 Parser.parse = function(source=null)
+	if source isa list then source = source.join(char(10))
 	if source != null then self.init source
 	self._p = 0
 	return self._parseElement
@@ -110,7 +120,7 @@ Parser._skipWhitespace = function
 		if self.source[self._p : self._p + 2] == "//" then
 			self._skipToEOL
 		else if whitespace.indexOf(self.source[self._p]) != null then
-			self._p = self._p + 1
+			self._p += 1
 		else
 			break
 		end if
@@ -120,7 +130,7 @@ end function
 Parser._skipToEOL = function
 	while self._p < self._sourceLen
 		c = self.source[self._p]
-		self._p = self._p + 1
+		self._p += 1
 		if c == cr or c == lf then break
 	end while
 end function
@@ -132,16 +142,16 @@ Parser._parseElement = function(asValue=false)
 		if self._p >= self._sourceLen then return result
 		if self.source[self._p] == "}" then 
 			// done with current collection
-			self._p = self._p + 1
+			if not asValue then self._p += 1
 			return result
 		end if
 		if self.source[self._p] == "{" then
 			// nested collection
-			self._p = self._p + 1
+			self._p += 1
 			tok = self._parseElement
 			if tok == null then tok = {}  // (interpret {} as an empty map)
 			if self._p < self._sourceLen and self.source[self._p] == "{" then
-				self._p = self._p + 1
+				self._p += 1
 			end if
 		else
 			tok = self._parseValue
@@ -152,7 +162,7 @@ Parser._parseElement = function(asValue=false)
 		self._skipWhitespace
 		if self._p < self._sourceLen then next = self.source[self._p]
 		if next == ":" then			// key:value pair
-			self._p = self._p + 1		// skip colon
+			self._p += 1		// skip colon
 			tok2 = self._parseElement(true)
 			if result == null then
 				result = {}
@@ -162,7 +172,7 @@ Parser._parseElement = function(asValue=false)
 			result[tok] = tok2
 			self._skipWhitespace
 			if self._p < self._sourceLen and self.source[self._p] == ";" then
-				self._p = self._p + 1
+				self._p += 1
 			end if
 		else if next == ";" then	// new collection element
 			if result == null then
@@ -172,7 +182,7 @@ Parser._parseElement = function(asValue=false)
 			else
 				result["_"].push tok
 			end if
-			self._p = self._p + 1		// skip semicolon
+			self._p += 1		// skip semicolon
 		else
 			if result == null then
 				result = tok
@@ -215,12 +225,16 @@ Parser._parseString = function
 	anyEscape = false
 	while self._p < self._sourceLen
 		c = self.source[self._p]
+		if c == ":" and self.source[self._p:self._p+3] == "://" then
+			self._p += 3
+			continue
+		end if
 		if _delims.indexOf(c) != null then break
-		if c == "/" and self._p+1 < self._sourceLen and self.source[self._p+1] == "/" then break
-		self._p = self._p + 1
+		if c == "/" and self.source[self._p:self._p+2] == "//" then break
+		self._p += 1
 		if c == "\" then
 			anyEscape = true
-			self._p = self._p + 1
+			self._p += 1
 		end if
 	end while
 	result = self.source[startPos : self._p]
@@ -306,7 +320,8 @@ runUnitTests = function
 	
 	assertEqual escape("foo"+char(9)+"bar"), "foo\tbar"
 	assertEqual unescape("foo\tbar"), "foo"+char(9)+"bar"
-	assertEqual escape("http://foo"), "http\:\/\/foo"
+	assertEqual escape("http://foo"), "http://foo"  // NOTE: not escaped!
+	assertEqual escape("foo: //bar"), "foo\: \/\/bar"
 	assertEqual unescape("http\:\/\/foo"), "http://foo"
 	
 	// Note: the order of key/value pairs in a dictionary is undefined.
@@ -360,6 +375,25 @@ runUnitTests = function
 	assertEqual parse("{}"), {}
 	assertEqual parse("1; 2; {}; 4"), [1, 2, {}, 4]
 	
+	// If a collection has both keyed and unkeyed values, the latter
+	// are returned as a list under "_".
+	d = parse([
+		"	foo: bar",
+		"	42",
+		"	61",
+		"	hike!"])
+	assertEqual d.foo, "bar"
+	assertEqual d["_"], [42, 61, "hike!"]
+	
+	// URLs, more specifically any occurrence of `://`, are parsed
+	// as simple strings even if not backslash-escaped.
+	assertEqual parse("https://miniscript.org"), "https://miniscript.org"
+	assertEqual parse([
+		"{", 
+		"   url: https://miniscript.org",
+		"}"]),
+	  { "url" : "https://miniscript.org" }
+	
 	// Fixed bug with 3 lines of comments throwing Runtime Error
 	assertEqual parse("//" + cr + "foo:42"), {"foo": 42}
 	assertEqual parse("//" + cr + "//" + cr + "foo:42"), {"foo": 42}
@@ -368,12 +402,24 @@ runUnitTests = function
 	// Fixing bug with two line breaks after a comment making the "{" character a part of the key
 	assertEqual parse("//" + cr + cr + "{foo:42}"), {"foo": 42}
 	
+	// Check a malformed GRFON input, where a key:value pair is missing
+	// the value.
+	d = parse([
+	    "foo: bar",
+		 "baz: {",
+		 "	this is the bug: //right here",
+		 "}",
+		 "bamf: 42"])
+	assertEqual d.foo, "bar"
+	assertEqual d.bamf, 42
+	assertEqual d.baz["this is the bug"], null
+
 	if errorCount == 0 then
 		print "All tests passed.  Fus Ro Dah!"
 	else
 		print errorCount + " error" + "s" * (errorCount!=1) + " found."
 	end if
-	
+		
 end function
 
 if locals == globals then runUnitTests
