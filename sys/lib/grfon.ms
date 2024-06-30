@@ -206,21 +206,28 @@ Parser._parseValue = function
 	self._skipWhitespace
 	if self._p >= self._sourceLen then return null
 	c = self.source[self._p]
-	s = self._parseString
+	if c == "}" then return null
+	strAndEsc = self._getStringAndEsc()
+	s = strAndEsc[0]
 	if interpretTrueAndFalse then
 		if s == "true" then return true
 		if s == "false" then return false
 	end if
 	if interpretNull and s == "null" then return null
-	numVal = val(s)
-	if s == "0" or numVal != 0 then return numVal
+	if strAndEsc[1] then
+		s = unescape(s)
+	else
+		numVal = val(s)
+		if s == "0" or numVal != 0 then return numVal
+	end if
 	return s
 end function
 
 // Get a string literal from the source.  Stop at the delimiter
 // so the caller can see if it is a ":" or "}" or whatever.
+// Return [raw string, anyEscape].
 _delims = ":;}" + cr + lf
-Parser._parseString = function
+Parser._getStringAndEsc = function
 	startPos = self._p
 	anyEscape = false
 	while self._p < self._sourceLen
@@ -238,10 +245,17 @@ Parser._parseString = function
 		end if
 	end while
 	result = self.source[startPos : self._p]
-	if anyEscape then result = unescape(result)
-	return result
+	return [result, anyEscape]
 end function
 
+// Get a string literal from the source.  Stop at the delimiter
+// so the caller can see if it is a ":" or "}" or whatever.
+// Automatically unescape the string, and return it.
+Parser._parseString = function
+	strAndEsc = self._getStringAndEsc
+	if strAndEsc[1] then return unescape(strAndEsc[0])
+	return strAndEsc[0]
+end function
 
 // Generating GRFON
 
@@ -367,7 +381,8 @@ runUnitTests = function
 	assertEqual parse("1; 2; foo"), [1, 2, "foo"]
 	assertEqual parse("1:one; 2:two"), {1:"one", 2:"two"}
 	assertEqual parse("\tHello, \""Bob\""."), char(9) + "Hello, ""Bob""."
-	
+	assertEqual parse("42.000"), 42
+	assertEqual parse("\42.000"), "42.000"  // <--- how to keep a number as a string!
 	assertEqual parse("foo:{1; 2; 3}; bar:baz"), {"foo":[1, 2, 3], "bar":"baz"}
 	
 	// An empty {} could be interpreted as a list or map, and the choice
