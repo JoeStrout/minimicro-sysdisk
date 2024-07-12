@@ -308,8 +308,8 @@ _mapToGRFON = function(m, compact, indent, topLevel=false)
 	return join(parts, "")
 end function
 
-_escapeFrom = ["\", """", ":", ";", char(8), char(9), char(10), char(12), char(13)]
-_escapeTo = ["\\", "\""", "\:", "\;", "\b","\t","\n","\f","\r"]
+_escapeFrom = ["\", """", ":", ";", "{", "}", char(8), char(9), char(10), char(12), char(13)]
+_escapeTo = ["\\", "\""", "\:", "\;", "\{", "\}", "\b","\t","\n","\f","\r"]
 _escapeIndexes = _escapeFrom.indexes
 _eol = char(10)
 
@@ -428,6 +428,11 @@ runUnitTests = function
 	assertEqual d.foo, "bar"
 	assertEqual d.bamf, 42
 	assertEqual d.baz["this is the bug"], null
+	
+	// toGRFON() should escape { and } inside strings
+	s = toGRFON("a {b} c")
+	assertEqual s, "a \{b\} c"
+	assertEqual parse(s), "a {b} c"
 
 	if errorCount == 0 then
 		print "All tests passed.  Fus Ro Dah!"
