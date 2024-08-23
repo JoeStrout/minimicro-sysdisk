@@ -18,11 +18,11 @@ spriteDisplay = display(4)
 // to that instance just like any other class method.
 invokeAsSelf = function(func, objToBeSelf)
 	objToBeSelf._f = @func
-	objToBeSelf._f
+	return objToBeSelf._f
 end function
 invokeAsSelf1 = function(func, objToBeSelf, param1)
 	objToBeSelf._f = @func
-	objToBeSelf._f param1
+	return objToBeSelf._f(param1)
 end function
 
 EventHandler = {}

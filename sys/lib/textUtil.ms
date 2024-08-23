@@ -74,10 +74,7 @@ printAt = function(column, row, s)
 	text.column = column
 	if row == 0 then
 		// avoid scrolling when printing to the bottom row
-		delim = text.delimiter
-		text.delimiter = ""
-		print s
-		text.delimiter = delim
+		print s, ""
 	else
 		print s
 	end if

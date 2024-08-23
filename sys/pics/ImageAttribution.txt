@@ -12,7 +12,8 @@ SimplePlatformTiles, KP sprites: from Kenney's "Simplified Platformer Pack".
 1bitTiles: from Kenney's "1 Bit Pack".  (Yeah, we love Kenney.)
 
 animals:
-	bats based on (bat-32x32 by MoikMellah on OpenGameArt)
+	bats based on bat-32x32 by MoikMellah on OpenGameArt
+	neko sprite sheets: public domain, from https://bomvel.neocities.org/neko/
 	other animals based on art licensed from FlatIcon.com
 
 germs: pixel artwork by Joe Strout
