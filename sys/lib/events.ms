@@ -133,7 +133,7 @@ end function
 
 spriteHitBy = function(pos)
 	if spriteDisplay == null or not spriteDisplay.sprites then return null
-	for i in range(spriteDisplay.sprites.len-1)
+	for i in range(spriteDisplay.sprites.len-1, 0, -1)
 		sp = spriteDisplay.sprites[i]
 		if not sp isa Sprite then continue
 		if sp.get("ignoreClicks", false) then continue
@@ -145,6 +145,14 @@ end function
 eventLoop.doAfter = function(delay, f)
 	self.delayedCalls.push {"time":time + delay, "action":@f}
 	self.delayedCalls.sort "time"
+end function
+
+eventLoop.cancelDoAfter = function(f)
+	for i in range(self.delayedCalls.len-1, 0, -1)
+		if self.delayedCalls[i].action == @f then
+			self.delayedCalls.remove i
+		end if
+	end for
 end function
 
 eventLoop.update = function
