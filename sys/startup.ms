@@ -214,6 +214,8 @@ dir = function(path=".")
 	pageThrough lines
 end function
 
+ls = @dir
+
 mapName = function(m)
 	if not @m isa map then return null
 	if m.hasIndex("_name") then return m._name
