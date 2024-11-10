@@ -96,6 +96,13 @@ Image9Slice.draw = function(g, left, bottom, width, height, tint="#FFFFFF")
 	srcNearRight, srcNearTop, self.rightMargin, self.topMargin, tint
 end function
 
+Image9Slice.getImage = function(width, height, tint="#FFFFFF")
+	tempG = new PixelDisplay
+	tempG.clear color.clear, width, height
+	self.draw tempG, 0, 0, width, height, tint
+	return tempG.getImage
+end function
+
 //----------------------------------------------------------------------
 // Load resources
 //----------------------------------------------------------------------

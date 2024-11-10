@@ -1,10 +1,11 @@
 // A visual editor for creating synthesized sounds.
 
 import "gui"
+import "textUtil"
 
 textColor = "#CCCCCC"
 pianoSound = file.loadSound("/sys/sounds/pianoLongC4.wav")
-desktopPic = file.loadImage("/usr/data/desktop/desktopGfx.png") // ToDo: use /sys
+desktopPic = file.loadImage("/sys/data/desktop/desktopGfx.png")
 tempG = new PixelDisplay
 
 // Class to represent any rectangular area on the screen
@@ -19,10 +20,12 @@ RectControl.contains = function(xy)
 	return xy.x > self.left-m and xy.x < self.left + self.width+m and
 	  xy.y > self.bottom-m and xy.y < self.bottom + self.height+m
 end function
+RectControl.right = function; return self.left + self.width; end function
+RectControl.top = function; return self.bottom + self.height; end function
 
 PushButton = new RectControl
 PushButton.Instances = []
-PushButton.image = null
+PushButton.image = desktopPic.getImage(248,106, 20,20)
 PushButton.icon = null
 PushButton.selected = false
 PushButton.action = function(btn); end function
@@ -32,12 +35,10 @@ PushButton.Make = function(left, bottom, image=null, icon=null)
 	noob = new self
 	noob.left = left
 	noob.bottom = bottom
-	noob.image = image
 	noob.icon = icon
-	if image then
-		noob.width = image.width
-		noob.height = image.height
-	end if
+	if image then noob.image = image
+	noob.width = noob.image.width
+	noob.height = noob.image.height
 	PushButton.Instances.push noob
 	return noob
 end function
@@ -214,7 +215,7 @@ CurveEditor.init = function(waveMode=false)
 	gfx2.drawRect left, bottom, width, height, "#AAAAAA"
 	
 	self.addButton = PushButton.Make(right-20, bottom-20,
-			desktopPic.getImage(248,106, 20,20), CurveEditor.PlusIcon)
+			null, CurveEditor.PlusIcon)
 	self.addButton.owner = function
 		for ed in CurveEditor.Instances
 			if refEquals(ed.addButton, self) then return ed
@@ -494,9 +495,10 @@ addField = function(left, bottom, label, defaultValue="0", units="", width=64)
 end function
 
 setup = function
+	text.backColor = color.clear
 	clear
 	display(7).mode = displayMode.pixel
-	display(7).drawImage file.loadImage("/usr/data/soundLab/soundLabBG.png") // ToDo: /sys
+	display(7).drawImage file.loadImage("/sys/data/soundLab/soundLabBG.png")
 	display(6).mode = displayMode.pixel
 	outer.gfx2 = display(6)
 	gfx2.clear
@@ -540,21 +542,93 @@ setup = function
 	proFont.print "R", 512 + 216, y + 7, 1, textColor
 	globals.panSlider = Slider.Make(588, y - 3, 0, -1, 1)
 	
+	btn9 = gui.Image9Slice.make(PushButton.image, 6, 6, 6, 6)
+	playBtn = PushButton.Make(780, y, btn9.getImage(72, 24))
+	tempG.clear color.clear, playBtn.width, playBtn.height
+	tempG.print "PLAY", playBtn.width/2 - 4*7, 0, color.white
+	playBtn.icon = tempG.getImage
+	playBtn.draw
+	playBtn.action = @playNote
+
+	codeBtn = PushButton.Make(playBtn.right + 12, y, playBtn.image)
+	tempG.clear color.clear, playBtn.width, playBtn.height
+	tempG.print "CODE", playBtn.width/2 - 4*7, 0, color.white
+	codeBtn.icon = tempG.getImage
+	codeBtn.draw
+	codeBtn.action = @showCode
+	
 	y -= 8
 	buildKeyboard y, function(keyHit)
 		speed = noteFreq(keyHit.note) / noteFreq(60)
 		speedFld.set str(round(speed, 2 + (speed < 10)))
 		playNote
 	end function
+	
+
+	x = 480; y = 30
+	gfx.line x-6, y-6, x, y, "#AAAAAA"
+	gfx.line x+6, y-6, x, y, "#AAAAAA"
+	
 end function
 
-playNote = function
+playNote = function(_)
 	snd = new Sound
 	snd.init durationFld.value, freqEd.nodeValues, envelopeEd.nodeValues,
 	   waveEd.nodeValues
 	snd.fadeIn = fadeInFld.value
 	snd.fadeOut = fadeOutFld.value
 	snd.play volSlider.value, panSlider.value, speedFld.value
+end function
+
+getCodeLines = function
+	lines = ["snd = new Sound"]
+	numOrList = function(values, decimalPlaces=3)
+		if values.len == 1 then return str(round(values[0], decimalPlaces))
+		s = []
+		for v in values
+			s.push str(round(v, decimalPlaces))
+		end for
+		return "[" + s.join(", ") + "]"
+	end function
+	lines.push "freq = " + numOrList(freqEd.nodeValues)
+	lines.push "envelope = " + numOrList(envelopeEd.nodeValues)
+	wave = "Custom"
+	w = waveEd.nodeValues
+	for wname in "squareWave triangleWave sawtoothWave sineWave noiseWave".split
+		wvals = Sound[wname]
+		if waveEd.nodeValues == wvals then
+			wave = "Sound." + wname
+		end if
+	end for
+	if wave == "Custom" then
+		lines.push "waveform = " + numOrList(waveEd.nodeValues)
+		wave = "waveform"
+	end if
+	lines.push "snd.init " + str(durationFld.value) + ", freq, envelope, " + wave
+
+	if fadeInFld.value != 0.1 then lines.push "snd.fadeIn = " + fadeInFld.value
+	if fadeOutFld.value != 0.1 then lines.push "snd.fadeOut = " + fadeOutFld.value
+
+	s = ""
+	if speedFld.value != 1 then s = ", " + speedFld.value
+	if panSlider.value != 0 or s then s = ", " + panSlider.value + s
+	if volSlider.value != 1 or s then s = volSlider.value + s
+	lines.push "snd.play " + s
+	return lines
+end function
+
+showCode = function(_)
+	lines =  getCodeLines	
+	state = textUtil.getState
+	text.color = color.orange
+	text.backColor = color.black
+	textUtil.clearRect 0, 5, 68, lines.len + 2
+	text.row = 6 + lines.len
+	for line in lines; print line; end for
+	print
+	text.color = color.gray
+	input "(Press Return.)"
+	textUtil.setState state
 end function
 
 main = function
@@ -588,11 +662,14 @@ main = function
 				if CurveEditor.SelEd and (k == char(8) or k == char(127)) then
 					CurveEditor.SelEd.deleteNode
 				end if
+				if k == char(27) then break
 			end if
 		end if
 		
 		yield
 	end while
+	clear
+	pageThrough getCodeLines
 end function
  
 main
