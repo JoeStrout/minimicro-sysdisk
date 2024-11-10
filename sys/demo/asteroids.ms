@@ -28,20 +28,11 @@ for type in range(0,2)
 end for
 
 // Prepare sounds
-pew = new Sound
-pew.init 0.25, [2000,100], [1,0]
-bipBoop = [new Sound, new Sound]
-bipBoop[0].init 0.1, noteFreq(42), [0.3,0]
-bipBoop[1].init 0.1, noteFreq(44), [0.3,0]
+pew = sounds.pew2
+bipBoop = [sounds.bip, sounds.boop]
 hit = file.loadSound("/sys/sounds/hit.wav")
-engineNoise = new Sound
-engineNoise.init 3, 1, 1, Sound.noiseWave
-engineNoise.loop = true
-ufoSound = new Sound
-ufoSound.init 2, 
-  [noteFreq(80), noteFreq(76), noteFreq(80), noteFreq(80)]*10, 0.25
-ufoSound.loop = true
-ufoSound.fadeIn = 0; ufoSound.fadeOut = 0
+engineNoise = sounds.engineLoop
+ufoSound = sounds.ufoLoop
 
 GameSprite = new Sprite
 GameSprite.scale = 0.5

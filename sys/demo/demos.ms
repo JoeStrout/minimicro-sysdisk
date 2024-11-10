@@ -198,7 +198,7 @@ if env.hasIndex("autorun") and env.autorun then
 	text.row = 3
 	for row in range(0, text.row); textUtil.clearRow row; end for
 	text.color = color.blue
-	print "(Press Esc now to exit auto-run other.)"
+	print "(Press Esc now to exit auto-run.)"
 	if not autorunNext then
 		env.autorun = false
 	end if

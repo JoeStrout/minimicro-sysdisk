@@ -149,7 +149,7 @@ end function
 
 eventLoop.cancelDoAfter = function(f)
 	for i in range(self.delayedCalls.len-1, 0, -1)
-		if self.delayedCalls[i].action == @f then
+		if @self.delayedCalls[i].action == @f then
 			self.delayedCalls.remove i
 		end if
 	end for

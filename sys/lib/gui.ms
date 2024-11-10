@@ -996,6 +996,150 @@ Menubar.installHandlers = function
 	events.eventLoop.onClick = function; mb.handleClick; end function
 end function
 
+//----------------------------------------------------------------------
+// Simple BMF-based numeric input field.
+//----------------------------------------------------------------------
+
+InputField = {}
+InputField.bounds = null		// a Bounds instance representing the field bounds
+InputField.text = ""
+InputField.backColor = "#111111"
+InputField.borderColor = "#888888"
+InputField.textColor = "#AAAAFF"
+InputField.focusedTextColor = "#FFFFAA"
+InputField.selColor = "#FFFFAA"
+InputField.selTextColor = "#000044"
+InputField.textSelected = false
+
+// Override gfx for InputField, or a specific instance, as desired:
+InputField.gfx = function; return globals.gfx; end function
+
+// Likewise with font; defaults to global "proFont" as below.
+InputField.font = function
+	if not globals.hasIndex("proFont") then
+		globals.proFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
+	end if
+	return proFont
+end function
+
+// Callback to get notification when the text changes:
+InputField.onTextChange = null
+
+// Class (not instance) properties:
+InputField.instances = []
+InputField.focusedField = null	// (class property, points to field with focus)
+
+InputField.make = function(left, bottom, width, height, text="0")
+	fld = new InputField
+	fld.bounds = new Bounds
+	fld.bounds.x = left + width/2
+	fld.bounds.y = bottom + height/2
+	fld.bounds.width = width
+	fld.bounds.height = height
+	fld.text = text
+	InputField.instances.push fld
+	return fld
+end function
+
+InputField.value = function
+	return val(self.text)
+end function
+
+InputField.close = function
+	idx = InputField.instances.indexOf(self)
+	if idx != null then InputField.instances.remove idx
+	self.gfx.fillPoly mathUtil.offsetPoly(self.bounds.corners, -1), color.clear
+end function
+
+InputField.closeAll = function
+	for i in range(InputField.instances.len-1, 0, -1)
+		InputField.instances[i].close
+	end for
+	InputField.focusedField = null
+end function
+
+InputField.handleClickAll = function
+	for fld in InputField.instances
+		if fld.bounds.contains(mouse) then
+			fld.select
+			while mouse.button; yield; end while
+			return true
+		end if
+	end for
+	return false
+end function
+
+InputField.handleKeyAll = function(keyChar)
+	fld = InputField.focusedField
+	keyCode = keyChar.code
+	if fld == null and keyCode != 9 and keyCode != 25 then return false
+	if keyCode == 9 or keyCode == 25 then		// tab or shift-tab
+		if not InputField.instances then return
+		reverse = key.pressed("left shift") or key.pressed("right shift") or keyCode == 25		
+		idx = InputField.instances.indexOf(fld)
+		if idx == null then
+			idx = 0 - reverse
+		else
+			idx += 1 - 2*reverse
+			if idx >= InputField.instances.len then idx = 0
+		end if
+		InputField.instances[idx].select
+	else if keyChar == char(8) then	// backspace
+		if fld.textSelected then fld.text = ""
+		fld.text = fld.text[:-1]
+		if fld.text == "" then fld.text = "0"
+		fld.textSelected = false
+		fld.draw
+		fld.onTextChange
+	else if ("0" <= keyChar <= "9") or (keyChar == "." and fld.text.indexOf(".") == null) then
+		if (fld.text == "0" and keyChar != ".") or fld.textSelected then fld.text = ""
+		fld.text += keyChar
+		fld.textSelected = false
+		fld.draw
+		fld.onTextChange
+	else
+//		print "Unknown char: " + keyChar.code
+		return false
+	end if
+	return true
+end function
+
+InputField.deselect = function
+	if InputField.focusedField == self then InputField.focusedField = null
+	self.textSelected = false
+	self.draw
+end function
+
+InputField.select = function(selectIt=true)
+	if not selectIt then return self.deselect
+
+	if InputField.focusedField then InputField.focusedField.deselect
+	InputField.focusedField = self
+	self.textSelected = true
+	self.draw
+end function
+
+InputField.draw = function
+	focused = (InputField.focusedField == self)
+	c = self.bounds.corners
+	self.gfx.fillPoly c, self.backColor
+	self.gfx.drawPoly c, self.borderColor
+	x = c[2][0] - 8 - self.font.width(self.text)
+	y = c[0][1] + 8
+	if self.textSelected then
+		self.gfx.fillPoly mathUtil.offsetPoly(c, 3), self.selColor
+		self.font.print self.text, x, y, 1, self.selTextColor
+	else
+		if focused then clr = self.focusedTextColor else clr = self.textColor
+		self.font.print self.text, x, y, 1, clr
+	end if
+end function
+
+InputField.set = function(newText="", invokeTextChange=true)
+	self.text = newText
+	self.draw
+	if invokeTextChange then self.onTextChange
+end function
 
 //----------------------------------------------------------------------
 // Setup functions

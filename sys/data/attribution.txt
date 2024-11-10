@@ -1,6 +1,6 @@
 englishWords.txt
 ================
-The "englishWords.txt" file derived from the "12dicts" package 
+The "englishWords.txt" file is derived from the "12dicts" package 
 (http://wordlist.aspell.net/12dicts/) by Alan Beale.  It is 
 essentially the file in that package called 3of6game.txt, and is
 a collection designed to be particularly useful for word games. 
