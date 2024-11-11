@@ -1,4 +1,15 @@
 // A visual editor for creating synthesized sounds.
+//
+// Click in the numeric fields, and type to change the value.
+// In the curve editors, drag nodes up and down.  Click the
+// '+' button to add a new node; press Backspace or Delete to
+// delete the selected node.
+//
+// Click Play (or the keyboard at bottom) to play the current
+// sound; click Code to see the code, which you can copy into
+// your own programs.
+//
+// Press Esc to exit SoundLab.
 
 import "gui"
 import "textUtil"

@@ -3,6 +3,10 @@
 //	This is just a little module of handy synthesized sounds you might 
 //	want to use in your own games, demos, or quick testing.  It also 
 //	serves as examples of how to define synthesized sounds in code.
+//
+// Example usage:
+//  import "sounds"
+//  sounds.bounce.play
 
 all = []
 
