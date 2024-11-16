@@ -408,6 +408,7 @@ FileDialog.dirIndColor = color.lerp(FileDialog.listTextColor, FileDialog.listBac
 FileDialog.directoryIcon = "/"
 FileDialog.playingSound = null
 FileDialog.origDisp0 = null
+FileDialog.selection = ""
 FileDialog.make = function(title="Select file", width=null)
 	dlog = Dialog.make(title)
 	dlog.__isa = FileDialog
@@ -417,7 +418,8 @@ FileDialog.make = function(title="Select file", width=null)
 	dir = file.curdir
 	if file.children(file.curdir) == null then dir = "/sys"
 	dlog.directory = dir - "/"
-	dlog.selection = file.child(dir, file.children(dir)[0])
+	files = file.children(dir)
+	if files then dlog.selection = file.child(dir, files[0])
 	dlog.files = []
 	if width != null then self.width = width
 	dlog.colWidth = []
@@ -564,6 +566,10 @@ FileDialog.drawPreviewText = function(lines)
 end function
 
 FileDialog.drawPreview = function
+	if not (0 <= self.selIdx < self.files.len) then
+		self.drawPreviewText []
+		return
+	end if
 	f = self.files[self.selIdx]
 	if f.isDirectory then
 		self.drawFiles 2, FileDialog.getFileInfoForDir(f.path)
@@ -640,6 +646,10 @@ FileDialog.drawCurDir = function
 end function
 
 FileDialog.selectIdx = function(newSelIdx, padding=6)
+	if not self.files then
+		self.selIdx = -1
+		return
+	end if
 	self.selIdx = newSelIdx % self.files.len
 	if self.selIdx < 0 then self.selIdx += self.files.len
 	self.scrollIntoView 1, self.files, self.selIdx, padding
@@ -663,9 +673,11 @@ FileDialog.handleKey = function(k)
 	if kcode == 4 then return self.selectIdx(
 			mathUtil.clamp(self.selIdx + rows, 0, count-1))		// Page Down
 	if kcode == 10 or kcode == 3 or kcode == 18 then	// return or right-arrow
+		if not (0 <= self.selIdx < self.files.len) then return false
 		info = self.files[self.selIdx]
 		if not info.isDirectory then return false
-		self.select file.child(info.path, file.children(info.path)[0])
+		files = file.children(info.path)
+		if files then self.select file.child(info.path, files[0])
 		self.drawFiles
 		self.drawPreview
 		return true

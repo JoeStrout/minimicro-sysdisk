@@ -194,6 +194,8 @@ CurveEditor.nodeValues = null // (list of values)
 CurveEditor.selIdx = null
 CurveEditor.SelEd = null
 CurveEditor.Instances = []
+CurveEditor.curveChanged = null
+CurveEditor.precision = 2
 
 CurveEditor.fillBelow = function; return not self.waveMode; end function
 
@@ -306,8 +308,12 @@ CurveEditor.handleMouse = function
 		if mathUtil.distance(mouse, self.nodePos[i]) < 7 then
 			self.selectNode i
 			while mouse.button
-				self.nodeValues[i] = self.yToValue(mouse.y)
-				self.redraw
+				newValue = round(self.yToValue(mouse.y), self.precision)
+				if newValue != self.nodeValues[i] then
+					self.nodeValues[i] = newValue
+					self.redraw
+					self.curveChanged
+				end if
 				yield
 			end while
 			return true
@@ -356,7 +362,7 @@ FreqCurveEditor = new CurveEditor
 FreqCurveEditor.fillBelow = false
 
 FreqCurveEditor.init = function(waveModeIgnored)
-	self.nodeValues = [880]
+	self.nodeValues = [220]
 	self.selIdx = 0
 	super.init
 end function
@@ -368,7 +374,15 @@ FreqCurveEditor.valueToY = function(value)
 end function
 
 FreqCurveEditor.yToValue = function(y)
-	return 10 ^ ((y - self.bottom) * LOGSCALE)
+	value = 10 ^ ((y - self.bottom) * LOGSCALE)
+	if value > 9999 then
+		value = round(value)
+	else if value > 999 then
+		value = round(value, 1)
+	else
+		value = round(value, self.precision)
+	end if
+	return value
 end function
 
 FreqCurveEditor.selectNode = function(index)
@@ -441,7 +455,7 @@ makeWaveButtons = function(bottom)
 		end if
 		btn.draw
 		x += btn.image.width
-		if i == 0 then btn.action btn
+		if i == 1 then btn.action btn
 	end for
 end function
 
@@ -522,7 +536,19 @@ setup = function
 	proFont.print "Frequency:", 496, y + 7, 1, textColor
 	globals.freqEd = FreqCurveEditor.Make(496, y - 6)
 	y = 492
-	globals.freqFld = addField(328, y, "Frequency at Selected Node", "440", "Hz", 80)
+	globals.freqFld = addField(328, y, "Frequency at Selected Node", "220", "Hz", 80)
+	freqEd.curveChanged = function
+		if 0 <= freqEd.selIdx < freqEd.nodeValues.len then
+			freqFld.set freqEd.nodeValues[freqEd.selIdx]
+		end if
+	end function
+	freqFld.onTextChange = function
+		if 0 <= freqEd.selIdx < freqEd.nodeValues.len then
+			freqEd.nodeValues[freqEd.selIdx] = freqFld.value
+			freqEd.redraw
+		end if
+	end function
+	
 	y -= 16
 	buildKeyboard y, function(keyHit)
 		freq = noteFreq(keyHit.note)
@@ -570,15 +596,23 @@ setup = function
 	
 	y -= 8
 	buildKeyboard y, function(keyHit)
-		speed = noteFreq(keyHit.note) / noteFreq(60)
+		speed = noteFreq(keyHit.note) / noteFreq(57)
 		speedFld.set str(round(speed, 2 + (speed < 10)))
 		playNote
 	end function
 	
-
-	x = 480; y = 30
-	gfx.line x-6, y-6, x, y, "#AAAAAA"
-	gfx.line x+6, y-6, x, y, "#AAAAAA"
+	y = 22
+	for octave in range(0, 4)
+		x = 480 - 16*2 + octave * 16*7
+		proFont.printCentered str(2^octave), x, y, 0.75, color.silver
+		if octave == 0 or octave > 3 then continue
+		x = 480 - 16*2 - octave * 16*7
+		proFont.printCentered "1", x-3, y+6, 0.5, color.silver
+		gfx.line x-4, y, x+4, y+8, color.silver
+		proFont.print str(2^octave), x, y-3, 0.5, color.silver
+	end for
+	//	gfx.line x-6, y-6, x, y, "#AAAAAA"
+//		gfx.line x+6, y-6, x, y, "#AAAAAA"
 	
 end function
 
