@@ -187,6 +187,8 @@ dir = function(path=".")
 		return
 	end if
 
+	lines = [dirInfo.path + " : "]	
+
 	if not dirInfo.isDirectory then
 		files = [file.name(dirInfo.path)]
 		dirInfo = file.info(file.parent(dirInfo.path))
@@ -199,7 +201,6 @@ dir = function(path=".")
 		end if
 	end if
 	
-	lines = [dirInfo.path + " : "]	
 	files.sort
 	for i in range(0, files.len-1)
 		finfo = file.info(file.child(dirInfo.path,files[i]))
