@@ -526,7 +526,9 @@ demo = function()
 	
 	y = 640
 	lastFont = null
-	for fontFile in file.children(fontsFolder)
+	fontFiles = file.children(fontsFolder)
+	fontFiles.sort
+	for fontFile in fontFiles
 		if fontFile[-4:] != ".bmf" then continue
 		f = Font.load(file.child(fontsFolder, fontFile))
 		if f == null then	continue
