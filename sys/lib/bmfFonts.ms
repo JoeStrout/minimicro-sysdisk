@@ -23,6 +23,11 @@ CharData.load = function(data, pos)
 	self.image = null
 	pos = pos + 5
 	bytes = self.width * self.height
+//	print "For " + self.charCode + " (" + char(self.charCode) + ") " + self.width+"x"+self.height + " char at " + pos + ", expecting " + bytes + " bytes of data"
+	if pos + bytes > data.len then
+		print "ERROR: unexpected end of data"
+		return pos + bytes
+	end if
 	if bytes then
 		for i in range(0, bytes-1)
 			self.colors.push data.byte(pos+i)
@@ -37,9 +42,10 @@ for i in range(0,255); hexStrToInt[hex2(i)] = i; end for
 // Find the colors array from our image and the given palette map,
 // which maps each usable color to an index (1 to number of colors).
 // Note that an index of 0 always means "don't draw" (transparent).
+// Also, this function has no effect if self.image is null.
 CharData.findColorsFromImage = function(paletteMap, alphaBits)
-	self.colors = []
 	if not self.image then return
+	self.colors = []
 	for bitmapY in range(self.height - 1)
 		for bitmapX in range(0, self.width - 1)
 			c = self.image.pixel(bitmapX, bitmapY)
@@ -104,7 +110,7 @@ Font.load = function(path)
 	f.chars = {}
 	data.littleEndian = true
 	vers = data.byte(4)
-	f.version = floor(vers/16) + "." + vers % 16
+	f.version = floor(vers/16) + 0.1 * (vers % 16)
 	f.lineHeight = data.sbyte(5)
 	f.sizeOver = data.sbyte(6)
 	f.sizeUnder = data.sbyte(7)
@@ -132,7 +138,7 @@ Font.load = function(path)
 	numAsciiChars = data.short(pos)
 	pos = pos + 2
 	
-	for i in range(1, numAsciiChars)
+	for i in range(1, numAsciiChars, 1)
 		// Read one character
 		p0 = pos
 		charData = new CharData
@@ -147,7 +153,7 @@ Font.load = function(path)
 	// Read non-ASCII characters
 	numOtherChars = data.uint(pos)
 	pos = pos + 4
-	for i in range(1, numOtherChars)
+	for i in range(1, numOtherChars, 1)
 		// Read one character
 		charData = new CharData
 		charData.charCode = data.uint(pos)
@@ -163,7 +169,7 @@ Font.load = function(path)
 	//print kernCount + " kerning pairs"
 	if kernCount > 0 then
 		pos = pos + 2
-		for i in range(1, kernCount)
+		for i in range(1, kernCount, 1)
 			c1 = data.uint(pos)
 			c2 = data.uint(pos+4)
 			k = data.short(pos+8)
@@ -239,14 +245,14 @@ Font.save = function(path)
 	end for
 	if not self.hasIndex("usedColors") then self.usedColors = self.palette.len
 	if not self.hasIndex("highestUsedColor") then self.highestUsedColor = self.palette.len
-
-	print "Saving version " +self.version + " file with " + highCharCount + " high chars"
-
+	
+//	print "Saving version " +self.version + " file with " + highCharCount + " high chars"
+	
 	paletteMap = {}  // key: color (sans alpha); value: color index + 1
 	for i in self.palette.indexes
 		paletteMap[self.palette[i]] = i + 1
 	end for
-
+	
 	// Now we can use that to write out our BMF data.
 	data = new BinaryStream
 	data.littleEndian = true
@@ -293,6 +299,7 @@ Font.save = function(path)
 		p0 = data.pos
 		data.writeByte c.code
 		self.chars[c].save data, paletteMap, self.alphaBits
+		//print "Wrote " + c.code + " (" + c + ") with " + (data.pos-p0) + " bytes at " + p0
 	end for
 	
 	if self.version > 1.1 then
@@ -324,10 +331,12 @@ Font.save = function(path)
 			data.writeUshort kernCount
 		end if
 	end if
-
+	
 	// Finally, write this to a file.
+	print "Saving " + data.pos + " bytes of data to " + path
 	data.buffer.resize data.pos
-	file.saveRaw path, data.buffer
+	err = file.saveRaw(path, data.buffer)
+	return err
 end function
 
 // Get the character data for the given character
@@ -487,6 +496,21 @@ Font.lenToFit = function(s, width=100)
 	return lo
 end function
 
+boxesSample = [
+"┌─┬┐  ╔═╦╗  ╓─╥╖  ╒═╤╕",
+"│ ││  ║ ║║  ║ ║║  │ ││",
+"├─┼┤  ╠═╬╣  ╟─╫╢  ╞═╪╡",
+"└─┴┘  ╚═╩╝  ╙─╨╜  ╘═╧╛",
+"┌───────────────────┐",
+"│  ╔═══╗ Some Text  │▒",
+"│  ╚═╦═╝ in the box │▒",
+"╞═╤══╩══╤═══════════╡▒",
+"│ ├──┬──┤           │▒",
+"│ └──┴──┘           │▒",
+"└───────────────────┘▒",
+" ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒",
+]
+
 // Demo program: find the fonts directory, then load and display
 // every font found therein.
 demo = function()
@@ -506,15 +530,42 @@ demo = function()
 		if fontFile[-4:] != ".bmf" then continue
 		f = Font.load(file.child(fontsFolder, fontFile))
 		if f == null then	continue
+		if y - f.lineHeight < 0 then
+			dy = f.lineHeight + 4
+			gfx.drawImage gfx.getImage(0, 0, 960, 640-dy), 0, dy
+			gfx.fillRect 0, 0, 960, dy, color.black
+			y = y + dy
+		end if
 		f.print fontFile + ": " + f.title, 10, y + f.sizeOver
 		y = y - f.lineHeight - 4
 		lastFont = f
 	end for
+	text.row = 0
 	
-	if lastFont != null then
-		y = y - lastFont.lineHeight*3 - 12
-		lastFont.print fontFile + " X3!", 10, 0, 3.0
-	end if
+	boxes = []
+	for c in range(9472, 9727)
+		boxes.push char(c)
+	end for
+	
+	for fontFile in ["fonts/minimicro-mono-boxes-12.bmf", "fonts/minimicro-mono-boxes-16.bmf", "fonts/minimicro-mono-boxes-20.bmf"]
+		fnt = Font.load(fontFile)
+		if fnt == null then continue
+		input "[Press Return]"
+		clear
+		print fontFile
+		charsPerLine = floor(960 / fnt.chars.A.width / 2)
+		y = 550
+		for i in range(0, boxes.len, charsPerLine)
+			line = boxes[i : i + charsPerLine].join(" ")
+			y -= (fnt.chars.A.height + 10)
+			fnt.print line, 0, y, 1, color.rgb(rnd*250, rnd*250, rnd*250)
+		end for
+		y -= 50
+		clr = color.rgb(100+rnd*150, 100+rnd*150, 100+rnd*250)
+		for i in boxesSample.indexes
+			fnt.print boxesSample[i], 100, y - i * fnt.chars.A.height, 1, clr
+		end for
+	end for
 end function
 
 if locals == globals then demo
