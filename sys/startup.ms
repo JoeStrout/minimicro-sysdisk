@@ -179,6 +179,7 @@ end function
 
 dir = function(path=".")
 	spaces = " "*80
+	text.delimiter = char(13)
 	
 	dirInfo = file.info(path)
 	if dirInfo == null then
@@ -524,6 +525,7 @@ clear = function
 	globals.text = display(3)
 	globals.gfx = display(5)
 	text.row = 25
+	text.delimiter = char(13)
 end function
 
 tip = function
