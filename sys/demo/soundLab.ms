@@ -228,7 +228,7 @@ CurveEditor.init = function(waveMode=false)
 	gfx2.drawRect left, bottom, width, height, "#AAAAAA"
 	
 	self.addButton = PushButton.Make(right-20, bottom-20,
-			null, CurveEditor.PlusIcon)
+	null, CurveEditor.PlusIcon)
 	self.addButton.owner = function
 		for ed in CurveEditor.Instances
 			if refEquals(ed.addButton, self) then return ed
@@ -287,7 +287,7 @@ CurveEditor.redraw = function
 	self.addButton.enabled = self.editable
 	self.addButton.draw
 	if not self.editable then return
-		
+	
 	if self.waveMode then pts = pts[1:-1]
 	self.nodePos = [null] * qty
 	for i in range(0, qty-1)
@@ -330,7 +330,7 @@ CurveEditor.selectNode = function(index)
 	self.selIdx = index
 	CurveEditor.SelEd = self
 end function
-	
+
 CurveEditor.deleteNode = function
 	if self.nodeValues.len < 2 or self.selIdx == null then return
 	self.nodeValues.remove self.selIdx
@@ -509,7 +509,7 @@ Slider.handleMouse = function
 	end while
 	return true
 end function
-	
+
 
 addField = function(left, bottom, label, defaultValue="0", units="", width=64)
 	fld = gui.InputField.make(left, bottom-2, width, 28, defaultValue)
@@ -523,7 +523,8 @@ setup = function
 	text.backColor = color.clear
 	clear
 	display(7).mode = displayMode.pixel
-	display(7).drawImage file.loadImage("/sys/data/soundLab/soundLabBG.png")
+	display(7).clear
+	display(7).drawImage file.loadImage("/sys/data/soundlab/SoundLabBG.png")
 	display(6).mode = displayMode.pixel
 	outer.gfx2 = display(6)
 	gfx2.clear
@@ -531,7 +532,7 @@ setup = function
 	PianoKey.Instances = []
 	
 	globals.durationFld = addField(160, 588, "Duration", "1", "sec")
-
+	
 	y = 600
 	proFont.print "Frequency:", 496, y + 7, 1, textColor
 	globals.freqEd = FreqCurveEditor.Make(496, y - 6)
@@ -559,12 +560,12 @@ setup = function
 			freqEd.redraw
 		end if
 	end function
-
+	
 	y = 340
 	proFont.print "Waveform:", 24, y + 7, 1, textColor	
 	globals.waveEd = CurveEditor.Make(24, y - 40, true)
 	makeWaveButtons y - 30
-
+	
 	proFont.print "Envelope:", 496, y + 7, 1, textColor
 	globals.envelopeEd = CurveEditor.Make(496, y - 6)
 	y -= 140
@@ -586,7 +587,7 @@ setup = function
 	playBtn.icon = tempG.getImage
 	playBtn.draw
 	playBtn.action = @playNote
-
+	
 	codeBtn = PushButton.Make(playBtn.right + 12, y, playBtn.image)
 	tempG.clear color.clear, playBtn.width, playBtn.height
 	tempG.print "CODE", playBtn.width/2 - 4*7, 0, color.white
@@ -612,7 +613,7 @@ setup = function
 		proFont.print str(2^octave), x, y-3, 0.5, color.silver
 	end for
 	//	gfx.line x-6, y-6, x, y, "#AAAAAA"
-//		gfx.line x+6, y-6, x, y, "#AAAAAA"
+	//		gfx.line x+6, y-6, x, y, "#AAAAAA"
 	
 end function
 
@@ -650,10 +651,10 @@ getCodeLines = function
 		wave = "waveform"
 	end if
 	lines.push "snd.init " + str(durationFld.value) + ", freq, envelope, " + wave
-
+	
 	if fadeInFld.value != 0.1 then lines.push "snd.fadeIn = " + fadeInFld.value
 	if fadeOutFld.value != 0.1 then lines.push "snd.fadeOut = " + fadeOutFld.value
-
+	
 	s = ""
 	if speedFld.value != 1 then s = ", " + speedFld.value
 	if panSlider.value != 0 or s then s = ", " + panSlider.value + s
