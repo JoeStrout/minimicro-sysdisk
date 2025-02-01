@@ -38,7 +38,7 @@ printWrap = function(s, width=null, maxLines=null)
 			return null
 		end if
 		foundCut = false
-		for i in range(width, 0)
+		for i in range(width, 0, -1)
 			if s[i] == " " then
 				print s[:i]
 				s = s[i+1:]

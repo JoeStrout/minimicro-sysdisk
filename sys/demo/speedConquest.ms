@@ -252,7 +252,7 @@ neighbors = function(col, row, allowWater = false)
 		result = result + [[col-1,row+1], [col,row+1]]
 	end if
 	// Remove any neighbors which are out of bounds or (optionally) water.
-	for i in range(result.len-1, 0)
+	for i in range(result.len-1, 0, -1)
 		c = result[i][0]
 		r = result[i][1]
 		if not inBounds(c,r) or (not allowWater and cellInfo[c][r].isWater) then

@@ -108,7 +108,7 @@ neighbors = function(col, row)
 		result = result + [[col-1,row+1], [col,row+1]]
 	end if
 	// Remove any neighbors which are blocked.
-	for i in range(result.len-1, 0)
+	for i in range(result.len-1, 0, -1)
 		if grid.cell(result[i][0], result[i][1]) == blockedCell then
 			result.remove i
 		end if

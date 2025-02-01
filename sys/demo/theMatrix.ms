@@ -45,7 +45,7 @@ Drop.update = function
 		  characters[characters.len * rnd]
 		text.setCellColor self.x, self.y, "#88FF00"
 	end if
-	for y in range(self.top, 0)
+	for y in range(self.top, 0, -1)
 		if y <= self.y then break
 		if y > 25 then continue
 		if y == self.top then

@@ -161,7 +161,7 @@ saveToFile = function(path, tileDisplay)
 	data.push "extent:" + tileDisplay.extent
 	data.push "--"
 	extent = sizeToXY(tileDisplay.extent)
-	for row in range(extent.y - 1, 0) // (backwards to match visually)
+	for row in range(extent.y - 1, 0, -1) // (backwards to match visually)
 		line = []
 		for col in range(0, extent.x - 1)
 			if tileDisplay.cell(col, row) == null then 
