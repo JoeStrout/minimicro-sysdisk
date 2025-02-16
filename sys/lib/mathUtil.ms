@@ -117,9 +117,7 @@ if intrinsics.hasIndex("_proportionAlongLine") then
 	//  endB: another point on the line (map or list)
 	//  p: point of interest (map or list)
 	// Returns: a number indicating how far p is from endA to endB.
-	proportionAlongLine = function(endA, endB, p)
-		return _proportionAlongLine(endA, endB, p)
-	end function
+	proportionAlongLine = @_proportionAlongLine
 	
 	// nearestPointOnLine: calculate the point on the infinite line through
 	// endA and endB that is closest to the given point p.  Note that this
@@ -130,9 +128,7 @@ if intrinsics.hasIndex("_proportionAlongLine") then
 	//  endB: another point on the line (map or list)
 	//  p: point of interest (map or list)
 	// Returns: an [x,y] list of the nearest point on the line to p.
-	nearestPointOnLine = function(endA, endB, p)
-		return _nearestPointOnLine(endA, endB, p)
-	end function
+	nearestPointOnLine = @_nearestPointOnLine
 	
 	// nearestPointOnLineSegment: calculate the point on the line segment from 
 	// endA to endB that is closest to the given point p.  This will never 
@@ -143,9 +139,7 @@ if intrinsics.hasIndex("_proportionAlongLine") then
 	//  endB: another point on the line (map or list)
 	//  p: point of interest (map or list)
 	// Returns: an [x,y] list of the nearest point on the line segment to p.
-	nearestPointOnLineSegment = function(endA, endB, p)
-		return _nearestPointOnLineSegment(endA, endB, p)
-	end function
+	nearestPointOnLineSegment = @_nearestPointOnLineSegment
 	
 	// distanceToLine: calculate the shortest distance between the given
 	// point and an infinite line.
@@ -176,21 +170,227 @@ if intrinsics.hasIndex("_proportionAlongLine") then
 	// from p1 to p2 where this intersection occurs.  If the two
 	// lines are parallel, there is no intersection and this
 	// function returns null.
-	lineIntersectProportion = function(p1, p2, p3, p4)
-		return _lineIntersectProportion(p1, p2, p3, p4)
-	end function
+	lineIntersectProportion = @_lineIntersectProportion
 	
 	// lineSegmentsIntersect: return whether the line segment p1-p2
 	// intersects segment p3-p4.
-	lineSegmentsIntersect = function(p1, p2, p3, p4)
-		return _lineSegmentsIntersect(p1, p2, p3, p4)
-	end function
+	lineSegmentsIntersect = @_lineSegmentsIntersect
 	
 	// _lineLineIntersection: return the point at which line p1-p2
 	// intersects line p3-p4.  If there is no intersection, this
 	// function returns null.
-	lineLineIntersection = function(p1, p2, p3, p4)
-		return _lineLineIntersection(p1, p2, p3, p4)
+	lineLineIntersection = @_lineLineIntersection
+	
+	// reflect: reflect a vector across a given normal.  This does
+	// the classic "angle of incidence equals angle of reflection"
+	// thing, where the angle is measured relative to the given
+	// normal vector.
+	// Parameters:
+	//	vector: [x,y] list representing vector to be reflected
+	//	normal: [x,y] list of normal vector (with length == 1)
+	// Returns: new [x,y] list representing reflected vector.
+	reflect = function(vector, normal)
+		dotProd = vector[0]*normal[0] + vector[1]*normal[1]
+		return [vector[0] - 2 * dotProd * normal[0],
+				vector[1] - 2 * dotProd * normal[1] ]
+	end function
+
+	// bounceVelocity: Calculates the new velocity of something like
+	// a ball, after colliding with a (possibly moving) line segment.
+	// Parameters:
+	//	ball: a map containing:
+	//    x, y: position at point of contact
+	//    vx, vy: velocity, in units per frame
+	//	lineSeg: a map containing:
+	//    x1, y1: position of first endpoint
+	//    x2, y2: position of second endpoint
+	//    prevX1, prevY1: previous position of first endpoint (optional)
+	//    prevX2, prevY2: previous position of second endpoint (optional)
+	// friction: determines strength of sideways friction effect.
+	// Returns: a new map containing:
+	//    vx, vy: new velocity after the bounce
+	bounceVelocity = function(ball, lineSeg, friction=0.1)		
+		// Compute velocity of each line segment endpoint
+		if lineSeg.hasIndex("prevX1") then
+			v1x = lineSeg.x1 - lineSeg.prevX1
+			v1y = lineSeg.y1 - lineSeg.prevY1
+		else
+			v1x = 0
+			v1y = 0
+		end if
+		if lineSeg.hasIndex("prevX2") then
+			v2x = lineSeg.x2 - lineSeg.prevX2
+			v2y = lineSeg.y2 - lineSeg.prevY2
+		else
+			v2x = 0
+			v2y = 0
+		end if
+		
+		// Compute contact point interpolation factor
+		lambda = proportionAlongLine(
+		[lineSeg.x1, lineSeg.y1], [lineSeg.x2, lineSeg.y2], [ball.x, ball.y])
+		contactVX = lerp(v1x, v2x, lambda)
+		contactVY = lerp(v1y, v2y, lambda)
+		
+		// Compute normal of the line segment
+		nx = -(lineSeg.y2 - lineSeg.y1)
+		ny = lineSeg.x2 - lineSeg.x1
+		nlen = sqrt(nx*nx + ny*ny)
+		nx /= nlen; ny /= nlen
+		
+		// Relative velocity in ball's moving frame
+		relVX = ball.vx - contactVX
+		relVY = ball.vy - contactVY
+		
+		// Reflect the relative velocity
+		newRel = reflect([relVX, relVY], [nx, ny])
+		
+		// Friction: Take the component of the velocity in the direction
+		// of the segment (i.e., perpendicular to the normal).
+		perp = [ny, -nx]
+		dot = relVX * perp[0] + relVY * perp[1]
+		sideVec = [dot * perp[0], dot * perp[1]]		
+		result = {
+		  "vx": newRel[0] - sideVec[0] * friction,
+		  "vy": newRel[1] - sideVec[1] * friction }
+		return result
+	end function
+	
+	// bounceOffSegment: Bounce a ball-like object -- which is attempting
+	// to move from ball.x-ball.vx, ball.y-ball.vy to ball.x, ball.y -- off
+	// of a line segment.  Segment contains x1,y1 and x2,y2 defining its
+	// current position; optionally also prevX1, prevY1 and prevX2, prevY2,
+	// defining its previous position (for a moving segment).  The fracBefore
+	// parameter is optional, and if given, short-cuts figuring out what 
+	// fraction of the ball's path comes before the impact.  This function
+	// updates the x,y and vx,vy properties of ball, in place.
+	bounceOffSegment = function(ball, segment, friction=0.1, fracBefore=null)
+		prevBallX = ball.x - ball.vx
+		prevBallY = ball.y - ball.vy
+		prevBallPos = [prevBallX, prevBallY]
+		if fracBefore == null then
+			fracBefore = lineIntersectProportion(
+			   prevBallPos, ball, 
+			   [segment.x1, segment.y1], 
+			   [segment.x2, segment.y2])
+		end if
+		ball.x = lerp(prevBallX, ball.x, fracBefore - 0.01)
+		ball.y = lerp(prevBallY, ball.y, fracBefore - 0.01)
+		newV = bounceVelocity(ball, segment, friction)
+		ball.vx = newV.vx
+		ball.vy = newV.vy
+		// If you wanted a version of this method that updates the ball to
+		// its new position after the bounce, instead of stopping at the hit
+		// point, you would do this:
+		// fracAfter = 1 - fracBefore
+		// ball.x += ball.vx * fracAfter
+		// ball.y += ball.vy * fracAfter
+		// ...but this is a bad idea unless your world has only one segment to
+		// bounce off of, because doing this will very likely cause the ball
+		// to pass right through nearby segments, instead of bouncing off of
+		// them.  Better to stop the ball for now at the contact point.
+	end function
+	
+	// bounceOffStaticPoly:  Bounce a ball-like object -- which is attempting
+	// to move from ball.x-ball.vx, ball.y-ball.vy to ball.x, ball.y -- off
+	// of a stationary polygon with points defined by polyPts.
+	// Returns true if bounced, false if not.
+	bounceOffStaticPoly = function(ball, polyPts, friction=0.1)
+		prevBallX = ball.x - ball.vx
+		prevBallY = ball.y - ball.vy
+		prevBallPos = [prevBallX, prevBallY]
+		// Find the segment which *first* intersects the ball.
+		seg = {}
+		bestFrac = 1
+		bestSeg = null
+		for i in range(polyPts, polyPts.len-1)
+			seg.x1 = polyPts[i][0]
+			seg.y1 = polyPts[i][1]
+			nexti = (i + 1) % polyPts.len
+			seg.x2 = polyPts[nexti][0]
+			seg.y2 = polyPts[nexti][1]
+			segEnd1 = [seg.x1, seg.y1]
+			segEnd2 = [seg.x2, seg.y2]
+			if not lineSegmentsIntersect(prevBallPos, ball,
+			  segEnd1, segEnd2) then continue
+			fracBefore = lineIntersectProportion(
+			  prevBallPos, ball, segEnd1, segEnd2)
+			if fracBefore <= 0 or fracBefore > bestFrac then continue			
+			bestFrac = fracBefore
+			bestSeg = seg
+			seg = {}
+		end for
+		if bestSeg == null then return false
+		bounceOffSegment ball, bestSeg, friction, bestFrac
+		return true
+	end function
+	
+	// bounceOffMovingPoly: Bounce a ball-like object -- which is attempting
+	// to move from ball.x-ball.vx, ball.y-ball.vy to ball.x, ball.y -- off
+	// of a polygon with points defined by polyPts, also moving from a previous
+	// position at prevPolyPts.
+	// Returns true if bounced, false if not.
+	bounceOffMovingPoly = function(ball, polyPts, prevPolyPts=null, friction=0.1)
+		// Find the segment which *first* intersects the ball.
+		seg = {}
+		bestFrac = 1
+		bestSeg = null
+		for i in range(polyPts, polyPts.len-1)
+			// For each segment of the moving poly, we're going to adjust
+			// the ball's velocity to zero out the segment's velocity, and
+			// do all our work in that adjusted frame... then adjust back
+			// at the end.
+			seg.x1 = polyPts[i][0]
+			seg.y1 = polyPts[i][1]
+			nexti = (i + 1) % polyPts.len
+			seg.x2 = polyPts[nexti][0]
+			seg.y2 = polyPts[nexti][1]
+			segEnd1 = [seg.x1, seg.y1]
+			segEnd2 = [seg.x2, seg.y2]
+			segVx = ((seg.x1 - prevPolyPts[i][0]) + 
+					 (seg.x2 - prevPolyPts[nexti][0])) / 2
+			segVy = ((seg.y1 - prevPolyPts[i][1]) + 
+					 (seg.y2 - prevPolyPts[nexti][1])) / 2
+			aball = ball + {"vx":ball.vx - segVx, "vy":ball.vy - segVy}
+			prevBallX = aball.x - aball.vx
+			prevBallY = aball.y - aball.vy
+			prevBallPos = [prevBallX, prevBallY]
+			if not lineSegmentsIntersect(prevBallPos, aball,
+			  segEnd1, segEnd2) then continue
+			fracBefore = lineIntersectProportion(
+			  prevBallPos, aball, segEnd1, segEnd2)
+			if fracBefore <= 0 or fracBefore > bestFrac then continue
+			bestFrac = fracBefore
+			bestSeg = seg
+			seg = {}
+			if prevPolyPts then
+				bestSeg.prevX1 = prevPolyPts[i][0] + segVx
+				bestSeg.prevY1 = prevPolyPts[i][1] + segVy
+				bestSeg.prevX2 = prevPolyPts[nexti][0] + segVx
+				bestSeg.prevY2 = prevPolyPts[nexti][1] + segVy
+				bestSeg.vx = segVx
+				bestSeg.vy = segVy
+			end if
+		end for
+		if bestSeg == null then return false
+		bounceOffSegment aball, bestSeg, friction, bestFrac
+		ball.x = aball.x; ball.y = aball.y
+		ball.vx = aball.vx + bestSeg.vx
+		ball.vy = aball.vy + bestSeg.vy
+		return true
+	end function
+	
+	// bounceOffPoly: Bounce a ball-like object -- which is attempting to
+	// move from ball.x-ball.vx, ball.y-ball.vy to ball.x, ball.y -- off of 
+	// a polygon with points defined by polyPts, possibly also moving from a 
+	// previous position at prevPolyPts.
+	// Returns true if bounced, false if not.
+	bounceOffPoly = function(ball, polyPts, prevPolyPts=null, friction=0.1)
+		if prevPolyPts == null then
+			return bounceOffStaticPoly(ball, polyPts, friction)
+		else
+			return bounceOffMovingPoly(ball, polyPts, prevPolyPts, friction)
+		end if
 	end function
 end if
 
@@ -202,18 +402,14 @@ if intrinsics.hasIndex("_polyPerimeter") then
 	// Parameters:
 	//	polygon: list of [x,y] points defining a polygon
 	// Returns: polygon perimeter.
-	polyPerimeter = function(polygon)
-		return _polyPerimeter(polygon)
-	end function
+	polyPerimeter = @_polyPerimeter
 	
 	// polyArea: Calculate the area within the given polygon.
 	//
 	// Parameters:
 	//	polygon: list of [x,y] points defining a polygon
 	// Returns: polygon area.
-	polyArea = function(polygon)
-		return _polyArea(polygon)
-	end function
+	polyArea = @_polyArea
 	
 	// pointInPoly: Test whether a given [x,y] point, or any of a list of
 	// of [x,y] points, is contained within the given polygon.
@@ -223,9 +419,7 @@ if intrinsics.hasIndex("_polyPerimeter") then
 	//	polygon: list of [x,y] points defining a polygon
 	// Returns: true if any of the given points is within the polygon;
 	//			false otherwise.
-	pointInPoly = function(point, polygon)
-		return _pointInPoly(point, polygon)
-	end function
+	pointInPoly = @_pointInPoly
 	
 	// offsetPoly: insets (shrinks) or outsets (grows) a polygon.  (Which
 	// it does depends on whether the polygon is defined clockwise or
@@ -236,9 +430,7 @@ if intrinsics.hasIndex("_polyPerimeter") then
 	//	polygon: list of points defining a polygon
 	//	delta: amount to inset/outset the polygon points
 	// Returns: new list of points defining offset polygon
-	offsetPoly = function(polygon, delta)
-		return _offsetPoly(polygon, delta)
-	end function
+	offsetPoly = @_offsetPoly
 	
 	// shiftPoly: translates a polygon by adding some amount to the X
 	// and Y values of each point. The given polygon is unchanged; instead
@@ -249,9 +441,7 @@ if intrinsics.hasIndex("_polyPerimeter") then
 	//	dx: amount to add to the X coordinate of each point
 	//	dy: amount to add to the Y coordinate of each point
 	// Returns: new list of points defining translated polygon
-	shiftPoly = function(polygon, dx=0, dy=0)
-		return _translatePoly(polygon, dx, dy)
-	end function
+	shiftPoly = @_translatePoly
 	
 	// rotatePoly: rotates all points in the given list around 0,0.
 	// The given polygon is unchanged; instead a NEW list of points
@@ -261,9 +451,7 @@ if intrinsics.hasIndex("_polyPerimeter") then
 	//	polygon: list of points defining a polygon
 	//	degrees: amount of rotation to apply, in degrees clockwise
 	// Returns: new list of points defining rotated polygon
-	rotatePoly = function(polygon, degrees)
-		return _rotatePoly(polygon, degrees)
-	end function
+	rotatePoly = @_rotatePoly
 end if
 
 // randNormal: return a normally-destributed (i.e. Gaussian) number
