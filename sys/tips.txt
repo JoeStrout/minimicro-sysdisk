@@ -28,3 +28,4 @@ Too lazy to type a program path?  Try `run findFile`!
 Use the `demos` command to easily browse and run a subset of demos,\nor even auto-run them for an "attract" mode!
 Prefer a GUI?  Try the `desktop` command!
 For a 24th-century experience, try the `lcars` command.
+When standard commands like `cd` appear broken, try the `wtf` command.

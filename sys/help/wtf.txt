@@ -1,0 +1,18 @@
+Mini Micro allows you to override (shadow) standard intrinsics
+like `print` or `file`, and replace standard globals like `text`.
+
+With great power comes great responsibility.  Casually changing
+these standard globals/intrinsics can cause standard system
+functions like `cd`, `dir`, and even `help` to malfunction.
+
+When that happens, try the `wtf` command (short for "Why The
+Failure").  If you've replaced `wtf`, then try `_savedGlobals.wtf`.
+This will scan your current global variables for potential 
+problems, and offer to fix them.
+
+Tips for avoiding such problems:
+  1. Minimize global variables in general; organize your code
+     into functions.
+
+  2. When you must use global variables, avoid names already in
+     use by the system, like `file`, `dir`, `text`, and `clear`.

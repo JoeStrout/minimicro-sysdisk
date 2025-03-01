@@ -4,21 +4,18 @@ _TAB = char(9)
 _printMark = function(s, altColor="#8888FF")
 	colors = [text.color, altColor]
 	which = 0
-	oldDelim = text.delimiter
-	text.delimiter = ""
 	while len(s)
 		pos = s.indexOf("`")
 		if pos == null then
-			print s
+			print s, ""
 			break
 		end if
-		print s[:pos]
+		print s[:pos], ""
 		which = not which
 		text.color = colors[which]
 		s = s[pos+1:]
 	end while
 	text.color = colors[0]
-	text.delimiter = oldDelim
 	print
 end function
 	
@@ -360,7 +357,6 @@ findFile = function
 	if hit == dlog.okBtn then return dlog.selection
 end function
 
-
 view = function(path, imageScale=1)
 	if not path then
 		print "Image or file name/path is required"
@@ -416,6 +412,71 @@ view = function(path, imageScale=1)
 	else
 		print "No viewer available for this file type"
 	end if
+end function
+
+wtf = function
+	// Start by fixing things we need to work in order to wtf at all
+	if not globals.hasIndex("text") or not text isa TextDisplay then
+		_savedGlobals.clear
+		_printMark "Global `text` did not refer to a TextDisplay (fixed via `clear`)."
+	end if
+	text.delimiter = char(13)
+	if @print != @intrinsics.print then
+		globals.remove "print"
+		_printMark "Global `print` shadowed the standard intrinsic (fixed)."
+	end if
+	for fixit in [false, true]
+		problems = 0
+		for k in globals.indexes
+			if intrinsics.hasIndex(k) then
+				if fixit then
+					globals[k] = @intrinsics[k]
+				else
+					_printMark "Global `" + k + "` shadows an intrinsic of the same name."
+				end if
+				problems += 1
+			end if
+		end for
+		for k in _savedGlobals.indexes
+			if k == "_" or k == "_startup" or k == "_savedGlobals" or 
+			  k[:7] == "_source" then continue
+			if k == "gfx" then
+				if not @globals[k] isa PixelDisplay then
+					if fixit then
+						_savedGlobals.clear
+					else
+						_printMark "Standard global `gfx` does not refer to a PixelDisplay."
+					end if
+					problems += 1
+				end if
+			else if not globals.hasIndex(k) then
+				if fixit then
+					globals[k] = @_savedGlobals[k]
+				else
+					_printMark "Standard global `" + k + "` appears to be missing."
+				end if
+				problems += 1
+			else if not (@_savedGlobals[k] == @globals[k]) then
+				if fixit then
+					globals[k] = @_savedGlobals[k]
+				else
+					_printMark "Standard global `" + k + "` has been replaced."
+				end if
+				problems += 1
+			end if
+		end for
+		if problems == 0 then
+			print "No issues in global state detected."
+			break
+		else if fixit then
+			print problems + " issue" + "s" * (problems != 1) + " fixed."
+		else
+			if problems == 1 then print "This is", "" else print "These are", ""
+			print " potentially causing problems."
+			yn = (input("Auto-fix (Y/N)? ") + "N").upper[0]
+			if yn != "Y" then break
+		end if
+	end for
 end function
 
 _sourceFile = null
@@ -564,13 +625,6 @@ end function
 
 _saveGlobals
 
-_bootOpt = function(key, default=false)
-	if not env.hasIndex("bootOpts") or
-	   not env.bootOpts isa map or
-	   not env.bootOpts.hasIndex(key) then return default
-	return env.bootOpts[key]
-end function
-
 welcome = function
 	clear
 	text.color = color.gray
@@ -627,6 +681,15 @@ runSysLibTests = function
 	end for
 end function
 
-if _bootOpt("startupChime", true) then _startupChime
-if _bootOpt("welcome", true) then welcome else clear
-if env.cmdLineArgs.indexOf("--testSysLib") != null then runSysLibTests
+_startup = function
+	_bootOpt = function(key, default=false)
+		if not env.hasIndex("bootOpts") or
+		   not env.bootOpts isa map or
+		   not env.bootOpts.hasIndex(key) then return default
+		return env.bootOpts[key]
+	end function
+	if _bootOpt("startupChime", true) then _startupChime
+	if _bootOpt("welcome", true) then welcome else clear
+	if env.cmdLineArgs.indexOf("--testSysLib") != null then runSysLibTests
+end function
+_startup

@@ -3,5 +3,6 @@ Available topics:
    text         sound         input
    graphics     sprites       tiles
    shells       dlc           community
+   wtf
 
 (Access these with, for example: `help "demos"`)
