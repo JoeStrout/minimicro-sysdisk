@@ -473,7 +473,7 @@ wtf = function
 		else
 			if problems == 1 then print "This is", "" else print "These are", ""
 			print " potentially causing problems."
-			yn = (input("Auto-fix (Y/N)? ") + "N").upper[0]
+			yn = (intrinsics.input("Auto-fix (Y/N)? ") + "N").upper[0]
 			if yn != "Y" then break
 		end if
 	end for
