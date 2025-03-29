@@ -510,26 +510,55 @@ _checkSafeToLoad = function
 	return false
 end function
 
+loadCodeFromURL = function(url)
+	parts = url.split("/")
+	content = null
+	if parts.len < 3 then
+		content = http.get(url)
+	else if parts[2] == "pastebin.com" and parts[3] != "raw" then
+		parts.insert 3, "raw"
+		content = http.get(parts.join("/"))
+	else if parts[2] == "gist.github.com" and parts.indexOf("raw") == null then
+		// This one's a pain -- look for the raw link
+		lines = http.get(url).split(char(10))
+		for line in lines
+			if line.indexOf("/raw/") != null then
+				p0 = line.indexOf("href=""")
+				p1 = line.indexOf("""", p0+6)
+				url = "https://gist.githubusercontent.com/" + line[p0+6:p1]
+				content = http.get(url)
+				break
+			end if
+		end for
+	else
+		content = http.get(url)
+	end if
+	return content
+end function
+
 load = function(path, checkIfSafe=true)
 	if not path then
 		print "file name or path is required"
 		return null
 	end if
 	if checkIfSafe and not _checkSafeToLoad then return
-	if len(path) < 3 or path[-3:] != ".ms" then path += ".ms"
-	if path[0] != "/" then path = file.child(file.curdir, path)
-	lines = file.readLines(path)
-	if lines == null then
-		print "Unable to read " + path
-		return null
+	if path[:5] == "http:" or path[:6] == "https:" then
+		lines = loadCodeFromURL(path)
+		if lines isa string then lines = lines.split(char(10))
 	else
-		globals._source = lines
-		globals._sourceFile = path
-		globals._sourceSaved = true
-		_resetEditorScrollPos
-		return lines.len + " line" + ("s" * (lines.len != 1)) + " loaded from " + path
+		if len(path) < 3 or path[-3:] != ".ms" then path += ".ms"
+		if path[0] != "/" then path = file.child(file.curdir, path)
+		lines = file.readLines(path)
+		if lines == null then
+			print "Unable to read " + path
+			return null
+		end if
 	end if
-	return null
+	globals._source = lines
+	globals._sourceFile = path
+	globals._sourceSaved = true
+	_resetEditorScrollPos
+	return lines.len + " line" + ("s" * (lines.len != 1)) + " loaded from " + path
 end function
 
 edit = function(path)
@@ -684,8 +713,8 @@ end function
 _startup = function
 	_bootOpt = function(key, default=false)
 		if not env.hasIndex("bootOpts") or
-		   not env.bootOpts isa map or
-		   not env.bootOpts.hasIndex(key) then return default
+		  not env.bootOpts isa map or
+		  not env.bootOpts.hasIndex(key) then return default
 		return env.bootOpts[key]
 	end function
 	if _bootOpt("startupChime", true) then _startupChime
