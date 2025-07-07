@@ -183,7 +183,7 @@ Printer.print = function(content, x=null, y=null, wrapAt=null, wrapTo=null)
 	if x != null then self.x = x
 	if y != null then self.y = y
 	if wrapAt != null then self.wrapAt = wrapAt
-	if wrapTo != null then self.wrapTo = wrapTo
+	if wrapTo != null then self.wrapTo = wrapTo else self.wrapTo = x
 	self.printStyleRuns content
 end function
 
@@ -500,13 +500,22 @@ end function
 // Print the given StyleRuns.
 BmfPrinter.printStyleRuns = function(runs)
 	for styleRun in runs
-		while self.wrapAt - self.x < self.font.width(styleRun.text)
-			partialText = self.cutToFit(styleRun, self.wrapAt - self.x, self.x <= self.wrapTo)
-			self.printOneRun styleRun, partialText, self.x, self.y
-			self.x = self.wrapTo
-			self.y -= self.font.lineHeight
-		end while
-		self.x = self.printOneRun(styleRun, styleRun.text, self.x, self.y)
+		hardlines = styleRun.text.split(char(10))
+		for i in hardlines.indexes
+			styleLine = new styleRun
+			styleLine.text = hardlines[i]
+			while self.wrapAt - self.x < self.font.width(styleLine.text)
+				partialText = self.cutToFit(styleLine, self.wrapAt - self.x, self.x <= self.wrapTo)
+				self.printOneRun styleRun, partialText, self.x, self.y
+				self.x = self.wrapTo
+				self.y -= self.font.lineHeight
+			end while
+			self.x = self.printOneRun(styleRun, styleLine.text, self.x, self.y)
+			if i < hardlines.len-1 then
+				self.x = self.wrapTo
+				self.y -= self.font.lineHeight
+			end if
+		end for
 	end for
 	self.x = self.wrapTo
 	self.y -= self.font.lineHeight
@@ -517,7 +526,7 @@ BmfPrinter.calcHeight = function(markup, x, wrapAt=null, wrapTo=null)
 	if wrapTo == null then wrapTo = x
 	y = 0
 	top = y - self.font.sizeOver
-	for styleRun in parse(markup)
+	for styleRun in parseMarkup(markup)
 		while wrapAt - x < self.font.width(styleRun.text)
 			partialText = self.cutToFit(styleRun, wrapAt - x, x <= wrapTo)
 			x = wrapTo

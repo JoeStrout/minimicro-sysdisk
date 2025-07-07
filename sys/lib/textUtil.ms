@@ -339,8 +339,8 @@ Dialog.handleKey = function(k); end function
 Dialog.handleMouseWheel = function(axisValue); end function
 Dialog.cleanup = null
 
-// Main entry point: call this to show your dialog, and get back the caption
-// of the button that was pressed.
+// Main entry point: call this to show your dialog, and get back a reference
+// to the button that was pressed.
 Dialog.show = function(timeout=null)
 	priorState = getState
 	
@@ -421,7 +421,7 @@ FileDialog.make = function(title="Select file", width=null)
 	files = file.children(dir)
 	if files then dlog.selection = file.child(dir, files[0])
 	dlog.files = []
-	if width != null then self.width = width
+	if width != null then dlog.width = width
 	dlog.colWidth = []
 	dlog.colWidth.push floor((dlog.width-4)/3)
 	dlog.colWidth.push dlog.colWidth[0]

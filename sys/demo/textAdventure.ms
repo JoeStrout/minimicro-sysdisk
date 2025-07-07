@@ -462,6 +462,11 @@ Player.handleCommand = function(cmd, pass)
 		return true
 	end if
 	
+	if cmd == "help" then
+		self.printHelp
+		return true
+	end if
+	
 	objStrs = matchPrep(["get", "pick up", "take"], "from", cmd)
 	if objStrs then
 		objs = [null, self.findObj(objStrs[1])]
@@ -531,6 +536,28 @@ end function
 Player.canGet = function
 	print "You can't get yourself.  Except in a metaphorical sense."
 	return false
+end function
+
+Player.printHelp = function
+	printWrap "Enter commands in simple English, generally of the form:"	  
+	print
+	_printMark "   `<verb> <object> <preposition> <object>`"
+	print
+	print "where all parts except for <verb> are optional.  Examples:"
+	print
+	_printMark "   `go north` (or just `north` or even just `n`)"
+	_printMark "   `open jar`"
+	_printMark "   `put cat in box`"
+	_printMark "   `get sword from rack`"
+	print
+	print "Try things and experiment!  That's part of the fun."
+	print
+	print "Common commands:"
+	_printMark "   `inventory` (or `inv` or `i`) -- view inventory"
+	_printMark "   `n`, `s`, `e`, `w` -- go north/south/east/west"
+	_printMark "   `look` -- look around the room"
+	_printMark "   `look widget` -- examine an object called ""widget"""
+	_printMark "   `quit` -- quit the game"
 end function
 
 //----------------------------------------------------------------------

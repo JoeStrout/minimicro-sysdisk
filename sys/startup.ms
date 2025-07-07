@@ -350,9 +350,9 @@ _viewImage = function(pic, scale=1)
 	display(0).mode = prevDisp.mode	
 end function
 
-findFile = function
+findFile = function(prompt="Select file")
 	import "textUtil"
-	dlog = textUtil.FileDialog.make
+	dlog = textUtil.FileDialog.make(prompt)
 	hit = dlog.show
 	if hit == dlog.okBtn then return dlog.selection
 end function
