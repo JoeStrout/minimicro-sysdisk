@@ -576,14 +576,18 @@ save = function(path)
 	end if
 	if path[-3:] != ".ms" then path = path + ".ms"
 	if path[0] != "/" then path = file.child(file.curdir, path)
-	err = file.writeLines(path, _source)
+	tmpPath = path + ".tmp"
+	err = file.writeLines(tmpPath, _source)
 	if err == null then
-		globals._sourceFile = path
-		globals._sourceSaved = true
-		print _source.len + " line" + ("s" * (_source.len != 1)) + " saved to " + path
-	else
-		return err
+		file.delete path
+		err = file.move(tmpPath, path)
+		if err == null then
+			globals._sourceFile = path
+			globals._sourceSaved = true
+			print _source.len + " line" + ("s" * (_source.len != 1)) + " saved to " + path
+		end if
 	end if
+	return err
 end function
 
 run = function(path)
