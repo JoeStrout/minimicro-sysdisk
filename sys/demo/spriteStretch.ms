@@ -3,10 +3,12 @@ import "textUtil"
 printAt = @textUtil.printAt
 
 clear
-printAt 6, 25, "Grab any corner and"
+printAt 6, 25, "Grab any corner below and"
 printAt 6, 24, "drag with the mouse."
 
-printAt 42,25, "Or, drag a UV handle!"
+printAt 40,25, "Or, drag a UV (texture)"
+printAt 40,24, "handle to change what part"
+printAt 40,23, "of the image is used."
 
 stretch = file.loadSound("/sys/sounds/stretch.wav")
 stretch.loop = true
