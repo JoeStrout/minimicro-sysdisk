@@ -101,7 +101,7 @@ while true
 	yield
 	if mouse.button then
 		bestIndex = null
-		bestDist = 200
+		bestDist = 40
 		for i in corners.indexes
 			d = mathUtil.distance(mouse, corners[i])
 			if d < bestDist then

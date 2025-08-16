@@ -109,7 +109,7 @@ if locals == globals then
 	printAlign "left or leftArrow", leftArrow
 	printAlign "up or upArrow", upArrow
 	printAlign "right or rightArrow", rightArrow
-	printAlign "down or rightArrow", downArrow
+	printAlign "down or downArrow", downArrow
 	printAlign "unprintable", unprintable
 	printAlign "buttonCapLeft", buttonCapLeft
 	printAlign "buttonCapRight", buttonCapRight

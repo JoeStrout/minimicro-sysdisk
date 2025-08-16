@@ -430,7 +430,7 @@ FileDialog.make = function(title="Select file", width=null)
 	dlog.colLeft.push dlog.colLeft[0] + 1 + dlog.colWidth[0]
 	dlog.colLeft.push dlog.colLeft[1] + 1 + dlog.colWidth[1]
 	dlog.files = FileDialog.getFileInfoForDir(dlog.directory)
-	dlog.scroll = [0,0,0]	// (number of rolls scrolled off the top, per column)
+	dlog.scroll = [0,0,0]	// (number of rows scrolled off the top, per column)
 	dlog.selIdx = 0
 	return dlog
 end function
@@ -719,25 +719,6 @@ FileDialog.handleMouse = function
 	self.drawPreview
 	while mouse.button; yield; end while
 	return true
-
-//	else if col >= self.colLeft[1] and col < self.colLeft[1]+self.colWidth[1] then
-//		// handle click in selection column
-//		self.selectIdx(hitRow + self.scroll[1], 0)
-//		while mouse.button; yield; end while
-//		return true
-//	else if col >= self.colLeft[2] and col < self.colLeft[2]+self.colWidth[2] then
-//		// handle click in preview column (only if selection is a directory)
-//		hitIdx = hitRow + self.scroll[2]
-//		files = FileDialog.getFileInfoForDir(self.selection)
-//		if files and hitIdx < files.len then
-//			self.select files[hitIdx].path
-//			self.drawFiles
-//			self.drawPreview
-//			while mouse.button; yield; end while
-//			return true
-//		end if
-//	end if
-//	return false
 end function
 
 FileDialog.handleMouseWheel = function(axisValue)
