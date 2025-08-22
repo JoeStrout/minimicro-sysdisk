@@ -14,6 +14,22 @@ map.get = function(key, defaultValue=null)
 	return @defaultValue
 end function
 
+// hasOrInherits: like hasIndex, but this one also returns true
+// for keys that are not defined directly on this map, but somewhere
+// up the superclass chain.
+//
+// When m.hasOrInherits(k) is false, map.get(k, default) returns
+// the default value.
+map.hasOrInherits = function(index)
+	m = self
+	while m
+		if m.hasIndex(@index) then return true
+		if not m.hasIndex("__isa") then break
+		m = m.__isa
+	end while
+	return false
+end function
+
 // hasValue: return true if this map contains the given value as
 // a value (compare with built-in function .hasIndex, which checks
 // whether this map has a given value as a key).  By default this
