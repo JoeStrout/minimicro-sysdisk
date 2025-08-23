@@ -204,14 +204,14 @@ eventLoop.update = function
 end function
 
 eventLoop.run = function
-	lastTime = time
-	now = time
-	outer.dt = now - lastTime
-	lastTime = now
 	self.running = true
 	self.mouseWasDown = mouse.button
 	self.dragging = null
+	lastTime = time
 	while self.running
+		now = time
+		outer.dt = now - lastTime
+		lastTime = now
 		self.update
 		yield
 	end while
