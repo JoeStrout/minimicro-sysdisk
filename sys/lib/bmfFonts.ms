@@ -120,7 +120,7 @@ Font.load = function(path)
 	f.highestUsedColor = data.byte(11)
 	f.alphaBits = 0
 	f.numPalettes = 1
-	if vers >= 1.2 then
+	if f.version >= 1.2 then
 		f.alphaBits = data.byte(12)
 		f.numPalettes = data.byte(13) + 1
 	end if
@@ -148,7 +148,7 @@ Font.load = function(path)
 		
 		f.chars[char(charData.charCode)] = charData
 	end for
-	if pos >= data.len then return f
+	if f.version < 1.2 or pos >= data.len then return f
 	
 	// Read non-ASCII characters
 	numOtherChars = data.uint(pos)
