@@ -18,7 +18,7 @@
 globals.ensureImport = function(moduleName)
 	if moduleName isa string then moduleName = [moduleName]
 	for name in moduleName
-		if globals.hasIndex(name) then return
+		if globals.hasIndex(name) then continue
 		globals[name] = "PENDING"	// (module is being imported now)
 		import name
 		globals[name] = locals[name]
