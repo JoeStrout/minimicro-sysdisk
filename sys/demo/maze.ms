@@ -144,11 +144,8 @@ applyColor = function(colorIdx)
 	colors = [color.white, color.pink, color.fuchsia,
 	   color.aqua, color.lime, color.yellow, color.orange]
 	c = colors[colorIdx % colors.len]
-	for x in range(tiles.extent[0]-1)
-		for y in range(tiles.extent[1]-1)
-			tiles.setCellTint x, y, c
-		end for
-	end for
+	tiles.setCellTint range(tiles.extent[0]-1), 
+	  range(tiles.extent[1]-1), c
 end function
 
 toggleGrid = function
