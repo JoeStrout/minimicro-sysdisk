@@ -245,6 +245,9 @@ TextPrinter.applyStyle = function(style)
 	if style.highlight then
 		if c == null then c = self.color.highlight else c = color.lerp(c, self.color.highlight, 0.5)
 	end if
+	if style.code then
+		if c == null then c = self.color.code else c = color.lerp(c, self.color.code, 0.5)
+	end if	
 	if c == null then c = self.color.normal
 	if c then text.color = c
 end function
