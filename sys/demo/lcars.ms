@@ -523,536 +523,34 @@ end function
 // Root: the base of our entire display
 root = Panel.make(null, 0, 0, 960, 640)
 
-//----------------------------------------------------------------------
-// File Manager panel
-FileRow = new Button
-FileRow.selected = false
-FileRow.file = null  // a file.info map
-FileRow.make = function(parent, left, bottom, width, height)
-	p = super.make("", parent, left, bottom, width, height)
-	p.__isa = self
-	return p
-end function
-FileRow.setPath = function(path)
-	if path.startsWith("//") then path = path[1:]
-	self.file = file.info(path)
-	if self.sprite then self.sprite.stop
-	self.sprite = null
-	if self.children then
-		self.children[0].dismiss; self.children[0].destroy
-		self.children = []
-	end if
-	self.selected = false
-end function
-FileRow.drawToScratch = function
-	f = self.file
-	gap = self.style.spacing
-	y = 6
-	globals.gfx = scratch
-	gfx.fillRect 0, 0, self.width, self.height, color.black
-	if self.selected then gfx.fillEllipse 0, 6, 16, 12, color.white
-	x0 = 20
-	leftCap24.draw gfx, x0, 0, 16, 24
-	x0 += 16 + gap
-	x1 = self.width
-	if self.selected then gfx.fillEllipse x1-16, 6, 16, 12, color.white
-	x1 -= 20
-	rightCap24.draw gfx, x1-16, 0, 16, 24; x1 -= 16 + gap
-
-	w = 48
-	gfx.fillRect x1-w, 0, w, 24, color.white
-	if f == null then
-		smallFont.printCentered self.file, (x0+x1)/2, y, 1, color.red
-		return
-	end if
-	
-	smallFont.printCentered f.date[-8:-3], x1-w/2, y, 1, color.black; x1 -= w + gap
-
-	w = 88
-	gfx.fillRect x1-w, 0, w, 24, color.white
-	smallFont.printCentered f.date[:10], x1-w/2, y, 1, color.black; x1 -= w + gap
-
-	name = file.name(f.path)
-	if f.isDirectory then
-		w = 72 + 72
-		if not self.children then
-			b = RoundButton.make(downInChar + " Directory", self, self.left + x1 - w, self.bottom, w, 24)
-			b.captionFont = smallFont
-			b.action = function
-				sounds.blip.play 0.5, 0, noteFreq(69)/440
-				wait 0.05; sounds.blip.play 0.5, 0, noteFreq(65)/440
-				fb = self.parent.parent
-				fb.load self.parent.file.path
-				fb.present
-			end function
-			self.children = [b]
-		end if
-		x1 -= w + gap
-	else
-		w = 72
-		smallFont.printCentered f.size, x1-w/2, y, 1, color.white; x1 -= w + gap
-
-		extLen = name.reverse.indexOf(".")
-		if extLen == null or extLen >= name.len - 1 then
-			ext = ""
-		else
-			ext = name[-extLen-1:]
-			name = name[:-extLen-1]
-		end if
-		w = 72
-		gfx.fillRect x1-w, 0, w, 24, color.white
-		smallFont.print ext, x1-w+2, y, 1, color.black; x1 -= w + gap
-	end if
-	
-	w = x1 - x0
-	gfx.fillRect x0, 0, w, 24, color.white
-	smallFont.print name, x0+4, y, 1, color.black; x1 -= w + gap
-	
-	globals.gfx = display(5)
-end function
-FileRow.select = function(selectIt)
-	if self.selected == selectIt then return
-	self.selected = selectIt
-	sounds.blip.play 1, 0, noteFreq(60 + 7*selectIt)/440
-	self.redrawSprite
+// Load an app module from /usr/lcarsApps, call its init, and return its panel.
+loadApp = function(name)
+	oldPaths = env.importPaths
+	env.importPaths = ["/usr/lcarsApps", "/sys/lcarsApps"] + oldPaths
+	import name
+	env.importPaths = oldPaths
+	mod = locals[name]
+	mod.init
+	return mod.panel
 end function
 
-fileManager = Panel.make(root, 168, 0, 960-168, 640)
-fileManager.style.color = "#7788ff"
-fileManager.style.buttonColor = "#88CCFF"
-fileManager.header = Frame.make(fileManager, null, fileManager.top - 108)
-fileManager.header.configure false, true, true, false
-Block.make fileManager.header.leftPanel
-Block.make fileManager.header.bottomPanel
-title = InfoBlock.make("FILE MANAGER", fileManager.header,
-	fileManager.header.right - 200, fileManager.top - 30, 200, 30)
-title.font = largeFont
-title.inverted = true
-fileManager.infoPanel = Panel.make(fileManager.header, 
-	fileManager.header.bottomPanel.left,
-	fileManager.header.bottomPanel.top + 8)
-fileManager.infoPanel.setTop 632, false
-fileManager.infoPanel.setRight title.left - 8, false
-fileManager.infoPanel.present = function
-	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
-	sel = fileManager.fileBox.selection
-	y = self.top - 20
-	smallFont.print "Files selected: " + sel.len, self.left, y, 1, self.style.textColor
-	if sel.len == 0 then return
-	y -= 16
-	totalSize = 0
-	for f in sel; totalSize += f.file.size; end for
-	smallFont.print "Total bytes: " + totalSize, self.left, y, 1, self.style.textColor
-end function
-
-fileManager.fileBox = Frame.make(fileManager, null, 0, null, fileManager.height - 118)
-fileManager.fileBox.configure true, true, true, false
-fileManager.fileBox.fileRows = []
-fileManager.fileBox.setup = function
-	w = 60
-	f = function
-		sounds.ok.play
-		fb = self.parent.parent
-		fb.load self.caption
-		fb.present
-	end function
-	Button.make("/usr", self.topPanel, null, null, w).action = @f
-	Button.make("/usr2", self.topPanel, null, null, w).action = @f
-	Button.make("/sys", self.topPanel, null, null, w).action = @f
-	b = Button.make(upOutChar + " UP", self.topPanel, null, null, w)
-	b.action = function
-		fb = self.parent.parent
-		if fb.path == "/" then return
-		sounds.blip.play 0.5, 0, noteFreq(69)/440
-		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(72)/440
-		fb.load file.parent(fb.path)
-		fb.present
-	end function
-	self.pathInfo = InfoBlock.make("/usr", self.topPanel, null, null, self.topPanel.width - self.style.buttonWidth)
-	self.topPanel.layout
-	
-	Button.make "Name", self.leftPanel, null, null, null, self.style.buttonHeight
-	Button.make "Size", self.leftPanel, null, null, null, self.style.buttonHeight
-	Button.make "Date", self.leftPanel, null, null, null, self.style.buttonHeight
-	Button.make "Selected", self.leftPanel, null, null, null, self.style.buttonHeight
-	Gap.make self.leftPanel
-	Button.make("Select All", self.leftPanel, null, null, null, self.style.buttonHeight).action = function
-		self.parent.parent.selectAll true
-	end function
-	Button.make("Select None", self.leftPanel, null, null, null, self.style.buttonHeight).action = function
-		self.parent.parent.selectAll false
-	end function
-	Gap.make self.leftPanel
-	Button.make "Move/Copy", self.leftPanel, null, null, null, self.style.buttonHeight
-	self.leftPanel.layout
-	
-//	Button.make "Rename", self.bottomPanel, null, null, self.style.buttonWidth
-//	delBtn = Button.make("Delete", self.bottomPanel, null, null, self.style.buttonWidth)
-//	delBtn.color = "#DD4444"
-	Gap.make self.bottomPanel
-//	Button.make "Preview", self.bottomPanel, null, null, self.style.buttonWidth
-	launchBtn = Button.make("Launch", self.bottomPanel, null, null, self.style.buttonWidth)
-	launchBtn.color = "#33CC99"
-	launchBtn.action = function
-		sel = fileManager.fileBox.selection
-		if sel.len != 1 or not sel[0].file.path.endsWith(".ms") then
-			sounds.err.play
-		else
-			sounds.ok.play; wait 1
-			if not env.shell then env.shell = _sourceFile
-			env.autorun = false
-			clear; reset; run sel[0].file.path; exit
-		end if
-	end function
-	self.bottomPanel.layout
-	
-	y0 = self.bottomPanel.top + 2
-	y4 = self.topPanel.bottom - 1
-	bh = floor((y4 - y0) / 4)
-	y1 = y0 + bh
-	y2 = y0 + bh*2
-	y3 = y0 + bh*3
-	b = Button.make(pageDownChar, self, self.right - 24, y0, 24, y1-y0-1)
-	b.key = char(4)	 // (ctrl-D)
-	b.action = function
-		fb = self.parent; fb.scroll 1, true
-	end function
-	b = Button.make(lineDownChar, self, self.right - 24, y1, 24, y2-y1-1)
-	b.key = char(20)  // down-arrow
-	b.action = function
-		fb = self.parent; fb.scroll 1, false
-	end function
-	b = Button.make(lineUpChar, self, self.right - 24, y2, 24, y3-y2-1)
-	b.key = char(19)  // up-arrow
-	b.action = function
-		fb = self.parent; fb.scroll -1, false
-	end function
-	b = Button.make(pageUpChar, self, self.right - 24, y3, 24, y4-y3-1)
-	b.key = char(21)  // ctrl-U
-	b.action = function
-		fb = self.parent; fb.scroll -1, true
-	end function
-end function
-
-fileManager.fileBox.scroll = function(direction, byPage=false)
-	self.topRow += (1 + 13*byPage) * direction	
-	self.topRow = mathUtil.clamp(self.topRow, 0, file.children(self.path).len-13)
-	if self.topRow < 0 then self.topRow = 0
-	self.load self.path, false
-	self.present
-end function
-
-fileManager.fileBox.load = function(path, resetScroll=true)
-	self.path = path
-	children = file.children(path)
-	if resetScroll then self.topRow = 0
-	for i in range(0,13)
-		if i+self.topRow >= children.len then; i -= 1; break; end if
-		if i >= self.fileRows.len then
-			fr = FileRow.make(self, 
-			  self.topPanel.left-20, self.topPanel.bottom - 36 - 32*i, 
-			  self.right - self.topPanel.left - 10, 24)
-			fr.action = function
-				if modKey.doAll then
-					self.parent.selectAll not self.selected
-				else
-					self.select not self.selected
-					fileManager.infoPanel.present
-				end if
-			end function
-			self.fileRows.push fr
-		end if
-		self.fileRows[i].setPath file.child(self.path, children[i+self.topRow])
+// Load all the modules found in /sys/lcarsApps and /usr/lcarsApps
+// (allowing the latter to override the former)
+appModules = []
+loadAllApps = function
+	names = {}
+	for name in file.children("/usr/lcarsApps")
+		if name.endsWith(".ms") then names.push name - ".ms"
+	end for
+	for name in file.children("/sys/lcarsApps")
+		if name.endsWith(".ms") then names.push name - ".ms"
+	end for
+	for name in names.indexes
+		appModules.push loadApp(name)
 	end for	
-	while self.fileRows.len-1 > i
-		self.fileRows[-1].dismiss; self.fileRows[-1].destroy
-		self.fileRows.remove -1
-	end while
-	self.pathInfo.text = path
-	fileManager.infoPanel.present
 end function
 
-fileManager.fileBox.selectAll = function(selectEm=true)
-	for fr in self.fileRows
-		fr.select selectEm
-	end for
-	fileManager.infoPanel.present
-end function
-
-fileManager.fileBox.selection = function
-	return self.fileRows.filtered("selected")
-end function
-
-fileManager.fileBox.setup
-fileManager.fileBox.load "/usr/"
-
-
-//----------------------------------------------------------------------
-// Clock panel
-clock = Panel.make(root, 168, 0, 960-168, 640)
-clock.style.color = "#cc4499"
-clock.style.textColor = "#cc88ff"
-clock.header = Frame.make(clock, null, clock.top - 200)
-clock.header.configure false, true, true, false
-Block.make clock.header.leftPanel
-Block.make clock.header.bottomPanel
-title = InfoBlock.make("CLOCK", clock.header,
-	clock.header.right - 200, clock.top - 30, 200, 30)
-title.font = largeFont
-title.inverted = true
-
-clock.topDisplay = Panel.make(clock, clock.left + 160, clock.header.bottom + 50, 400, clock.header.height - 50)
-clock.topDisplay.present = function
-	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
-	now = dateTime.val
-	y = self.top - largeFont.lineHeight * 3
-	x = self.left + 20
-	largeFont.print dateTime.str(now, "dddd"), x, y, 2, self.style.textColor
-	y = y - largeFont.lineHeight * 2
-	largeFont.print dateTime.str(now, "MMMM d, yyyy"), x, y, 1, self.style.textColor
-end function
-
-clock.main = Panel.make(clock, clock.left, 0, clock.width, clock.header.bottom)
-clock.main.present = function
-	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
-	s = dateTime.now.split[1]
-	largeFont.printCentered s, self.midX, self.midY - 50, 6, self.style.textColor
-	self.curTimeShown = s
-end function
-
-clock.onUpdate = function
-	s = dateTime.now.split[1]
-	if s != self.main.curTimeShown then self.main.present
-end function
-
-//----------------------------------------------------------------------
-// Calculator panel
-calc = Panel.make(root, 168, 0, 960-168, 640)
-calc.style.color = "#33cc99"
-calc.style.buttonColor = "#99dd66"
-calc.style.displayColor = "#88CCFF"
-calc.header = Frame.make(calc, null, calc.top - 108)
-calc.header.configure false, true, true, false
-calc.displayStr = "0"
-calc.clearOnInput = false
-Block.make calc.header.leftPanel
-Block.make calc.header.bottomPanel
-title = InfoBlock.make("CALCULATOR", calc.header,
-	calc.header.right - 200, calc.top - 30, 200, 30)
-title.font = largeFont
-title.inverted = true
-
-calc.display = Panel.make(calc, calc.left+160, calc.top-64, 420, 48)
-calc.display.present = function
-	gfx.fillRect self.left, self.bottom, self.width, self.height, "#666688"
-	largeFont.printRight calc.displayStr, self.right - 4, self.bottom + 8, 2, self.style.displayColor
-end function
-
-calc.doAction = function(s)
-	if s >= "0" and s <= "9" then
-		if self.displayStr == "0" or self.clearOnInput then self.displayStr = ""
-		self.displayStr += s
-		self.clearOnInput = false
-		sounds.blip.play 0.5, 0, noteFreq(67)/440
-	else if s == "Backspace" and self.displayStr then
-		self.displayStr = calc.displayStr[:-1]
-		if not self.displayStr then self.displayStr = "0"
-		sounds.blip.play 0.5, 0, noteFreq(71)/440
-		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(72)/440
-	else if s == "Clear" then
-		self.displayStr = "0"
-		self.opA.text = ""
-		self.operator.text = ""
-		self.opA.present
-		self.operator.present
-		sounds.blip.play 0.5, 0, noteFreq(64)/440
-		wait 0.1; sounds.blip.play 0.5, 0, noteFreq(67)/440
-		wait 0.1; sounds.blip.play 0.5, 0, noteFreq(72)/440
-	else if s == "=" then
-		op = self.operator.text
-		if not op then return
-		valA = val(self.opA.text)
-		valB = val(self.displayStr)
-		result = valB
-		if op == "+" then result = valA + valB
-		if op == "-" then result = valA - valB
-		if op == "*" then result = valA * valB
-		if op == "/" then result = valA / valB
-		if op == "^" then result = valA ^ valB
-		if op == "%" then result = valA % valB
-		if op == "and" then result = valA and valB
-		if op == "or" then result = valA or valB
-		if op == "not" then result = valA not valB
-		self.displayStr = str(result)
-		sounds.blip.play 0.5, 0, noteFreq(60)/440
-		self.main.log.add valA + " " + op + " " + valB, self.displayStr
-		self.opA.text = ""; self.opA.present
-		self.operator.text = ""; self.operator.present
-		self.clearOnInput = true
-		wait 0.1
-	else
-		if self.operator and not self.clearOnInput then self.doAction "="
-		self.opA.text = self.displayStr; self.opA.present
-		self.operator.text = s; self.operator.present
-		self.clearOnInput = true
-		sounds.blip.play 0.5, 0, noteFreq(64)/440
-	end if
-	self.display.present
-end function
-
-calc.main = Frame.make(calc, null, 0, null, calc.height - 118)
-calc.main.configure true, false, true, false
-
-Gap.make calc.main.topPanel
-calc.main.logHeader = InfoBlock.make("Calculation Log", calc.main.topPanel, null, null, 320)
-calc.main.topPanel.layout
-
-b = Button.make("Backspace", calc.main.leftPanel, null, null, null, calc.style.buttonHeight)
-b.action = function; calc.doAction self.caption; end function
-b.key = char(8)
-
-b = Button.make("Clear", calc.main.leftPanel, null, null, null, calc.style.buttonHeight)
-b.action = function; calc.doAction self.caption; end function
-b.key = char(1)	// (Home button, at least on Macs)
-
-InfoBlock.make "", calc.main.leftPanel, null, null, null, calc.style.buttonHeight*2
-
-b = Button.make("=", calc.main.leftPanel, null, null, null, calc.style.buttonHeight*3)
-b.action = function; calc.doAction self.caption; end function
-b.key = ["=", char(10), char(13), char(3)]
-
-Gap.make calc.main.leftPanel
-
-calc.opA = InfoBlock.make("", calc.main.leftPanel, null, null, null, calc.style.buttonHeight)
-calc.operator = InfoBlock.make("", calc.main.leftPanel, null, null, null, calc.style.buttonHeight)
-Gap.make calc.main.leftPanel
-calc.main.leftPanel.layout
-
-calc.main.setup = function
-	y = self.topPanel.bottom - 72
-	btns = ["789", "456", "123", " 0.", "+-*", "/^%", ["and","or","not"]]
-	for row in btns.indexes
-		for col in btns[row].indexes
-			x = self.topPanel.left + 96*col
-			if btns[row][col] == " " then continue
-			if btns[row][col] == "0" then
-				x = self.topPanel.left
-				b = RoundButton.make(btns[row][col], calc, x, y, 84+96, 48)
-			else
-				b = RoundButton.make(btns[row][col], calc, x, y, 84, 48)
-			end if
-			b.action = function; calc.doAction self.caption; end function
-		end for
-		y = y - 60 - 24 * (row == 3)
-	end for
-end function
-calc.main.setup
-
-calc.main.log = Panel.make(calc.main, calc.main.logHeader.left, 16, calc.main.logHeader.width, calc.main.topPanel.bottom - 40)
-calc.main.log.add = function(expression, result)
-	h = self.style.topBarHeight
-	gap = 8
-	y = self.top - h - self.children.len * (h+gap)
-	while y < self.bottom
-		self.children[0].dismiss; self.children[0].destroy
-		for b in self.children; b.move 0, h+gap; end for
-		y += h+gap
-	end while
-	b = Button.make(expression + " = " + result, self, self.left, y, self.width, h)
-	b.action = function
-		calc.displayStr = result
-		calc.display.present
-		sounds.blip.play 0.5, 0, noteFreq(65)/440
-		wait 0.05; sounds.blip.play 0.5, 0, noteFreq(67)/440
-	end function
-	b.present
-end function
-
-//----------------------------------------------------------------------
-// News panel
-news = Panel.make(root, 168, 0, 960-168, 640)
-news.style.color = "#ffaa44"
-news.style.buttonColor = "#ff7700"
-news.style.textColor = "#ffeecc"
-news.header = Frame.make(news, null, news.top - 108)
-news.header.configure false, true, true, false
-news.clearOnInput = false
-Block.make news.header.leftPanel
-Block.make news.header.bottomPanel
-title = InfoBlock.make("NEWS", news.header,
-	news.header.right - 200, news.top - 30, 200, 30)
-title.font = largeFont
-title.inverted = true
-
-news.main = Frame.make(news, null, 0, null, news.height - 118)
-news.main.configure true, false, true, false
-
-Gap.make news.main.topPanel
-news.date = InfoBlock.make("2000-01-01", news.main.topPanel, null, null, 160)
-news.posCount = InfoBlock.make("0 / 0", news.main.topPanel, null, null, 160)
-news.main.topPanel.layout
-
-Gap.make news.main.leftPanel
-
-b = Button.make("Previous", news.main.leftPanel, null, null, null, news.style.buttonHeight)
-b.action = function; news.nextStory -1; end function
-b.key = char(17)
-
-b = Button.make("Next", news.main.leftPanel, null, null, null, news.style.buttonHeight)
-b.action = function; news.nextStory 1; end function
-b.key = char(18)
-
-Gap.make news.main.leftPanel
-news.main.leftPanel.layout
-
-news.data = null; news.curItemIdx = 0
-news.nextStory = function(delta=1)
-	if not self.data then return
-	self.curItemIdx = (self.curItemIdx + self.data.len + delta) % self.data.len
-	self.content.present
-end function
-
-news.content = Panel.make(news.main, news.main.topPanel.left, 0, 
-			940 - news.main.topPanel.left, news.main.topPanel.bottom - 16)
-news.presenting = false	// or a map of context data
-news.content.present = function
-	if news.data == null then
-		lines = http.get("https://miniscript.org/news/news.dat").splitLines
-		news.data = []
-		curItem = {}
-		for line in lines
-			if line == "" then
-				if curItem then news.data.push curItem
-				curItem = {}
-				continue
-			end if
-			parts = line.split(": ", 2)
-			if parts.len < 2 then continue
-			curItem[parts[0]] = parts[1]
-		end for
-		if curItem then news.data.push curItem
-	end if
-	story = news.data[news.curItemIdx]
-	news.date.text = story.date; news.date.present
-	news.posCount.text = news.curItemIdx + " / " + news.data.len; news.posCount.present
-
-	gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
-
-	printer = new styledText.BmfPrinter
-	printer.x = self.left
-	printer.wrapTo = self.left
-	printer.wrapAt = self.right
-	printer.y = self.top - 20
-	printer.font = mediumFont
-	gfx.color = color.yellow
-	printer.printHTML story.title, self.left
-	gfx.color = self.style.textColor; printer.y -= 20
-	printer.printHTML story.shortText, self.left; printer.y -= 20
-	if story.hasIndex("moreText") then
-		printer.printHTML story.moreText, self.left
-	end if
-end function
-
+loadAllApps
 
 //----------------------------------------------------------------------
 // Main Menu: a simple panel of buttons (and gaps) on the left side of the screen.
@@ -1080,30 +578,22 @@ Button.make("Settings", mainMenu, null, null, null, mainMenu.style.buttonHeight)
 	// Maybe someday!
 	sounds.err.play
 end function
-// ...gap...
-Gap.make mainMenu
-// Main buttons, one for each mode
-b = Button.make("File Manager", mainMenu, null, null, null, mainMenu.style.buttonHeight)
-b.style.buttonColor = fileManager.style.color
-b.action = function; mainMenu.switchTo fileManager; end function
 
-b = Button.make("Clock", mainMenu, null, null, null, mainMenu.style.buttonHeight)
-b.style.buttonColor = clock.style.color
-b.action = function
-	mainMenu.switchTo clock
-end function
-b = Button.make("Calculator", mainMenu, null, null, null, mainMenu.style.buttonHeight)
-b.style.buttonColor = calc.style.color
-b.action = function
-	mainMenu.switchTo calc
-end function
-b = Button.make("News", mainMenu, null, null, null, mainMenu.style.buttonHeight)
-b.style.buttonColor = news.style.color
-b.action = function
-	mainMenu.switchTo news
-end function
 // ...gap...
 Gap.make mainMenu
+
+// Main buttons, one for each mode
+appModules.sort "modeLabel"
+for mod in appModules
+	b = Button.make(mod.modeLabel, mainMenu, null, null, null, mainMenu.style.buttonHeight)
+	b.style.buttonColor = mod.style.color
+	b.mod = mod
+	b.action = function; mainMenu.switchTo self.mod; end function
+end for
+
+// ...gap...
+Gap.make mainMenu
+
 // Exit button at bottom
 exitBtn = Button.make("Exit", mainMenu, null, null, null, mainMenu.style.buttonHeight)
 exitBtn.action = function
@@ -1133,6 +623,6 @@ end function
 
 mainMenu.layout
 mainMenu.present
-mainMenu.switchTo fileManager
+mainMenu.switchTo appModules[0]
 
 events.eventLoop.run
