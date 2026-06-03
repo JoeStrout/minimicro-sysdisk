@@ -31,7 +31,7 @@ init = function
 	FileRow.drawToScratch = function
 		f = self.file
 		gap = self.style.spacing
-		y = 6
+		y = 3
 		globals.gfx = scratch
 		gfx.fillRect 0, 0, self.width, self.height, color.black
 		if self.selected then gfx.fillEllipse 0, 6, 16, 12, color.white
@@ -229,8 +229,10 @@ init = function
 		self.present
 	end function
 
+	p.fileBox.path = ""
+	
 	p.fileBox.load = function(path, resetScroll=true)
-		infoPanel = p.infoPanel  // capture for fr.action closures (p is two scopes up from there)
+		infoPanel = p.infoPanel  // capture for fr.action closures (p is two scopes up from here)
 		self.path = path
 		children = file.children(path)
 		if resetScroll then self.topRow = 0
@@ -271,7 +273,10 @@ init = function
 		return self.fileRows.filtered("selected")
 	end function
 
-	p.fileBox.load "/usr/"
+	p.present = function
+		if self.fileBox.path == "" then self.fileBox.load "/usr/"
+		super.present
+	end function
 
 	outer.panel = p
 end function

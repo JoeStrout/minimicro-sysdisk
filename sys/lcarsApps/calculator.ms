@@ -25,7 +25,7 @@ init = function
 	p.display = Panel.make(p, p.left+160, p.top-64, 420, 48)
 	p.display.present = function
 		gfx.fillRect self.left, self.bottom, self.width, self.height, "#666688"
-		largeFont.printRight p.displayStr, self.right - 4, self.bottom + 8, 2, self.style.displayColor
+		largeFont.printRight p.displayStr, self.right - 4, self.bottom + 8, 1, self.style.displayColor
 	end function
 
 	p.doAction = function(s)

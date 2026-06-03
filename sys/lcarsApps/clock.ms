@@ -25,10 +25,10 @@ init = function
 	p.topDisplay.present = function
 		gfx.fillRect self.left, self.bottom, self.width, self.height, color.black
 		now = dateTime.val
-		y = self.top - largeFont.lineHeight * 3
+		y = self.top - largeFont.lineHeight * 2
 		x = self.left + 20
 		largeFont.print dateTime.str(now, "dddd"), x, y, 2, self.style.textColor
-		y = y - largeFont.lineHeight * 2
+		y = y - largeFont.lineHeight
 		largeFont.print dateTime.str(now, "MMMM d, yyyy"), x, y, 1, self.style.textColor
 	end function
 

@@ -22,9 +22,17 @@ display(7).mode = displayMode.pixel
 scratch = display(7)
 gfx.clear color.black
 
-smallFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-12.bmf")
-mediumFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
-largeFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-20.bmf")
+loadFontName = function(fontName)
+	for basePath in ["/usr/fonts/", "/sys/fonts/", "./"]
+		fullPath = basePath + fontName + ".bmf"
+		if file.exists(fullPath) then return bmfFonts.Font.load(fullPath)
+	end for
+	print "Font not found: " + fontName
+	exit
+end function
+smallFont = loadFontName("Lcars-24")
+mediumFont = loadFontName("Lcars-32")
+largeFont = loadFontName("Lcars-48")
 
 resourcePic = file.loadImage("/sys/data/desktop/desktopGfx.png")
 swoopImages = []
@@ -419,7 +427,7 @@ InfoBlock.present = function
 	gfx.color = self.style.infoBlockColor * (not self.inverted) + color.black * self.inverted
 	gfx.fillRect self.left, self.bottom, self.width, self.height
 	textColor = self.style.infoBlockColor * self.inverted + color.black * (not self.inverted)
-	self.font.printCentered self.text, self.midX, self.midY - self.font.lineHeight/2, 1, textColor
+	self.font.printCentered self.text, self.midX, self.midY - self.font.lineHeight/2 + 2, 1, textColor
 end function
 
 //----------------------------------------------------------------------
