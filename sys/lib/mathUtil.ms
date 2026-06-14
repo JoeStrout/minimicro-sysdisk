@@ -509,12 +509,16 @@ numToStr = function(n, precision=null)
 	end if
 	if precision <= 0 or n == 1/0 or n == -1/0 or n != n then return str(round(n, precision))
 	negative = n < 0; n = abs(n)
-	digits = [floor(n)]
+	intPart = floor(n)
+	digits = [intPart]
+	n -= intPart
 	for i in range(1, precision)
-		d = floor(n * 10^i) % 10
+		n *= 10
+		d = floor(n)
 		digits.push d
+		n -= d
 	end for
-	if (n * 10^precision) % 1 >= 0.5 then
+	if n % 1 >= 0.5 then
 		for i in range(digits.len - 1)
 			digits[i] += 1
 			if digits[i] < 10 or i == 0 then break
@@ -582,6 +586,9 @@ runUnitTests = function
 	assertEqual numToStr(41.9999, 2), "42.00", "numToStr"
 	assertEqual numToStr(42 - 1E-12, 5), "42.00000", "numToStr"
 	assertEqual numToStr(-pi, 4), "-3.1416", "numToStr"
+	assertEqual numToStr(4.56, 3), "4.560", "numToStr"
+	assertEqual numToStr(4.5600000001, 3), "4.560", "numToStr"
+	assertEqual numToStr(4.5599999999, 3), "4.560", "numToStr"
 	
 	if errorCount == 0 then
 		print "All tests passed.  Woot!"
