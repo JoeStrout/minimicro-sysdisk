@@ -323,6 +323,9 @@ events.eventLoop.onGotKey = function(key)
 end function
 
 events.eventLoop.onUpdate = function
+	for mod in mods.values
+		if mod.hasIndex("update") then mod.update
+	end for
 	scroll = key.axis("Mouse ScrollWheel")
 	if scroll != 0 then
 		wind = gui.windowUnderMouse
@@ -368,6 +371,24 @@ menubar.items[-2].openSubmenu = function(asTopLevelMenu = false)
 	rebuildWindowMenu
 	super.openSubmenu asTopLevelMenu
 end function
+
+// Load mods
+mods = {}  // key: module name; value: loaded module
+loadMods = function
+	names = {}
+	dirs = ["/usr/mods/desktop", "/sys/mods/desktop"]
+	for dir in dirs
+		env.importPaths.insert 0, dir
+		for name in file.children(dir)
+			if not name.endsWith(".ms") then continue
+			name = name - ".ms"
+			import name
+			mods[name] = locals[name]
+		end for
+		env.importPaths.remove 0
+	end for
+end function
+loadMods
 
 menubar.draw
 menubar.installHandlers
