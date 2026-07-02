@@ -531,10 +531,10 @@ end function
 // Root: the base of our entire display
 root = Panel.make(null, 0, 0, 960, 640)
 
-// Load an app module from /usr/lcarsApps, call its init, and return its panel.
+// Load an app module from mods/lcars, call its init, and return its panel.
 loadApp = function(name)
 	oldPaths = env.importPaths
-	env.importPaths = ["/usr/lcarsApps", "/sys/lcarsApps"] + oldPaths
+	env.importPaths = ["/usr/mods/lcars", "/sys/mods/lcars"] + oldPaths
 	import name
 	env.importPaths = oldPaths
 	mod = locals[name]
@@ -542,15 +542,15 @@ loadApp = function(name)
 	return mod.panel
 end function
 
-// Load all the modules found in /sys/lcarsApps and /usr/lcarsApps
+// Load all the modules found in /sys/mods/lcars and /usr/mods/lcars
 // (allowing the latter to override the former)
 appModules = []
 loadAllApps = function
 	names = {}
-	for name in file.children("/usr/lcarsApps")
+	for name in file.children("/usr/mods/lcars")
 		if name.endsWith(".ms") then names.push name - ".ms"
 	end for
-	for name in file.children("/sys/lcarsApps")
+	for name in file.children("/sys/mods/lcars")
 		if name.endsWith(".ms") then names.push name - ".ms"
 	end for
 	for name in names.indexes
