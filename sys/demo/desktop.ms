@@ -6,6 +6,7 @@ import "stringUtil"
 import "mathUtil"
 import "bmfFonts"
 import "gui"
+import "chars"
 
 oldTextColor = text.color
 gui.setupDisplays
@@ -131,12 +132,12 @@ FileWindow.selectedFiles = null	// list of selected file names
 FileWindow.spacing = 128
 FileWindow.lastClickTime = 0
 FileWindow.isDoubleClick = false
-FileWindow.make = function(path, width=300, height=200, titleLeft=0, titleWidth=150)
+FileWindow.Make = function(path, width=300, height=200, titleLeft=0, titleWidth=150)
 	w = new FileWindow
 	w.width = width; w.height = height
 	w.path = path
 	w.selectedFiles = []
-	w.contentImage = w.makeContentImage
+	w.contentImage = w.MakeContentImage
 	w.init width, height, titleLeft, titleWidth, path
 	if key.pressed("left shift") then exit
 	return w
@@ -202,7 +203,7 @@ FileWindow.fileAtXY = function(screenPos)
 	return null
 end function
 
-FileWindow.makeContentImage = function
+FileWindow.MakeContentImage = function
 	files = file.children(self.path)
 	
 	base = self.path
@@ -248,7 +249,7 @@ openFile = function(filePath, fromWindow=null)
 		print "Can't open path: " + filePath
 		return
 	else if info.isDirectory then
-		w = FileWindow.make(filePath, 512, 350, 50, 40 + filePath.len*8)
+		w = FileWindow.Make(filePath, 512, 350, 50, 40 + filePath.len*8)
 		if fromWindow then
 			w.goTo fromWindow.left + w.width/2 + 20, fromWindow.top - w.height/2 - 20
 		else
@@ -288,20 +289,20 @@ rebuildWindowMenu = function
 	for i in spriteDisp.sprites.indexes
 		if spriteDisp.sprites[i] isa gui.Window then
 			w = spriteDisp.sprites[i]
-			items.push gui.MenuItem.make(w.title)
+			items.push gui.MenuItem.Make(w.title)
 			items[-1].window = w
 			items[-1].action = function
 				 self.window.moveToFront
 			end function
 		end if
 	end for
-	menu.submenu = gui.Menu.make(items)
+	menu.submenu = gui.Menu.Make(items)
 end function
 
 handleShortcutKey = function(key)
 	if key == "/" then
 		if rootWindow == null then
-			globals.rootWindow = FileWindow.make("/", 384, 128, 0, 80)
+			globals.rootWindow = FileWindow.Make("/", 384, 128, 0, 80)
 			rootWindow.goTo 200, 450
 		else
 			rootWindow.moveToFront
@@ -324,7 +325,7 @@ end function
 
 events.eventLoop.onUpdate = function
 	for mod in mods.values
-		if mod.hasIndex("update") then mod.update
+		if mod.enabled and mod.hasIndex("update") then mod.update
 	end for
 	scroll = key.axis("Mouse ScrollWheel")
 	if scroll != 0 then
@@ -337,12 +338,12 @@ end function
 // Main program
 //----------------------------------------------------------------------
 
-menubar = gui.Menubar.make(["File", "Edit", "Window", "Help"])
+menubar = gui.Menubar.Make(["File", "Edit", "Window", "Help"], ["Mods"])
 
 // File menu
-menu = gui.Menu.make(["New Window", "Close Window", "-", "Exit to Shell"])
+menu = gui.Menu.Make(["New Window", "Close Window", "-", "Exit to Shell"])
 menu.items[0].action = function
-	w = FileWindow.make("/", 384, 128, 0, 80)		
+	w = FileWindow.Make("/", 384, 128, 0, 80)		
 	w.goTo 200, 450
 	if rootWindow == null then globals.rootWindow = w
 end function
@@ -362,7 +363,7 @@ end function
 menubar.items[0].submenu = menu
 
 // Edit menu (all disabled for now)
-menu = gui.Menu.make(["Cut", "Copy", "Paste", "Delete"])
+menu = gui.Menu.Make(["Cut", "Copy", "Paste", "Delete"])
 for item in menu.items; item.disabled = true; end for
 menubar.items[1].submenu = menu
 
@@ -373,9 +374,11 @@ menubar.items[-2].openSubmenu = function(asTopLevelMenu = false)
 end function
 
 // Load mods
+modsMenu = menubar.rightItems[0]
 mods = {}  // key: module name; value: loaded module
 loadMods = function
 	names = {}
+	menuItems = []
 	dirs = ["/usr/mods/desktop", "/sys/mods/desktop"]
 	for dir in dirs
 		env.importPaths.insert 0, dir
@@ -383,10 +386,27 @@ loadMods = function
 			if not name.endsWith(".ms") then continue
 			name = name - ".ms"
 			import name
-			mods[name] = locals[name]
+			mod = locals[name]
+			mod.enabled =  false
+			mods[name] = mod
+			mod.menuItem = new gui.MenuItem.Make(chars.emptyBox + " " + mod.menuItemText)
+			mod.menuItem.modName = name
+			mod.menuItem.action = function
+				mod = mods[self.modName]
+				mod.enabled = not mod.enabled
+				if mod.enabled then
+					mod.enable
+					self.text = chars.checkedBox + " " + mod.menuItemText
+				else
+					mod.disable
+					self.text = chars.emptyBox + " " + mod.menuItemText
+				end if
+			end function			 
+			menuItems.push mod.menuItem
 		end for
 		env.importPaths.remove 0
 	end for
+	menubar.rightItems[0].submenu = gui.Menu.Make(menuItems)
 end function
 loadMods
 
@@ -394,10 +414,10 @@ menubar.draw
 menubar.installHandlers
 
 
-rootWindow = FileWindow.make("/", 384, 128, 0, 80)
+rootWindow = FileWindow.Make("/", 384, 128, 0, 80)
 rootWindow.goTo 200, 450
 
-//window3 = Window.make(200,200, 25, 150, "Accessory")
+//window3 = Window.Make(200,200, 25, 150, "Accessory")
 //window3.goTo 750, 500
 
 events.eventLoop.run

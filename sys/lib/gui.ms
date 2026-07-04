@@ -21,7 +21,9 @@ kPartResize = "kPartResize"		// the window resize box
 kPartContent = "kPartContent"	// the window content area
 // Drawing constants
 kScrollbarSize = 16				// default thickness for any scrollbar
-kMenuBarHeight = 24				// height of the menu bar at top of screen
+kMenuBarTop = 641				// position of menu bar at top of screen
+kMenuBarHeight = 24				// height of menu bar at top of screen
+kMenuBarBottom = kMenuBarTop - kMenuBarHeight
 kMenuItemHeight = 20			// height of one item in a menu
 // Things that may become options some day
 selectionColor = "#CCCCFF"
@@ -42,7 +44,7 @@ Image9Slice.bottomMargin = 0
 Image9Slice.rightMargin = 0
 Image9Slice.topMargin = 0
 
-Image9Slice.make = function(image, left=12, bottom=12, right=12, top=12)
+Image9Slice.Make = function(image, left=12, bottom=12, right=12, top=12)
 	noob = new Image9Slice
 	noob.image = image
 	noob.leftMargin = left
@@ -51,6 +53,7 @@ Image9Slice.make = function(image, left=12, bottom=12, right=12, top=12)
 	noob.topMargin = top
 	return noob
 end function
+Image9Slice.make = @Image9Slice.Make  // (for backwards compatibility)
 
 Image9Slice.draw = function(g, left, bottom, width, height, tint="#FFFFFF")
 	midH = height - self.bottomMargin - self.topMargin
@@ -120,6 +123,7 @@ medFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-16.bmf")
 if medFont == null then
 	medFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-16.bmf")
 end if
+medFont.sizeOver = -19  // corrects error in BMF definition (issue #62)
 largeFont = bmfFonts.Font.load("/usr/fonts/minimicro-pro-20.bmf")
 if largeFont == null then
 	largeFont = bmfFonts.Font.load("/sys/fonts/minimicro-pro-20.bmf")
@@ -127,24 +131,24 @@ end if
 
 images = {}
 images.menuBar = gfxSource.getImage(0, 488, 24, 24)
-images.windowBox = Image9Slice.make(gfxSource.getImage(0, 0, 48, 48))
-images.titleBar = Image9Slice.make(gfxSource.getImage(96, 0, 64, 36), 12, 0, 12, 0)
-images.shadow = Image9Slice.make(gfxSource.getImage(0, 48, 80, 80), 32, 32, 32, 32)
-images.titleShadow = Image9Slice.make(gfxSource.getImage(80, 64, 96, 48), 32, 0, 32, 32)
+images.windowBox = Image9Slice.Make(gfxSource.getImage(0, 0, 48, 48))
+images.titleBar = Image9Slice.Make(gfxSource.getImage(96, 0, 64, 36), 12, 0, 12, 0)
+images.shadow = Image9Slice.Make(gfxSource.getImage(0, 48, 80, 80), 32, 32, 32, 32)
+images.titleShadow = Image9Slice.Make(gfxSource.getImage(80, 64, 96, 48), 32, 0, 32, 32)
 images.iconHighlight = gfxSource.getImage(192, 0, 80, 80)
-images.rounded4 = Image9Slice.make(gfxSource.getImage(280, 0, 32, 32), 8, 8, 8, 8)
+images.rounded4 = Image9Slice.Make(gfxSource.getImage(280, 0, 32, 32), 8, 8, 8, 8)
 
-images.menuItem = Image9Slice.make(gfxSource.getImage(4, 251, 42, 12), 8, 0, 8, 0)
-images.menuSeparator = Image9Slice.make(gfxSource.getImage(52, 257-10, 42, 20), 8, 0, 8, 0)
-images.menuTop = Image9Slice.make(gfxSource.getImage(4, 263, 42, 4), 8, 0, 8, 0)
-images.menuBottom = Image9Slice.make(gfxSource.getImage(4, 240, 42, 10), 8, 0, 8, 0)
+images.menuItem = Image9Slice.Make(gfxSource.getImage(4, 251, 42, 12), 8, 0, 8, 0)
+images.menuSeparator = Image9Slice.Make(gfxSource.getImage(52, 257-10, 42, 20), 8, 0, 8, 0)
+images.menuTop = Image9Slice.Make(gfxSource.getImage(4, 263, 42, 4), 8, 0, 8, 0)
+images.menuBottom = Image9Slice.Make(gfxSource.getImage(4, 240, 42, 10), 8, 0, 8, 0)
 
 // scrollbar parts (H = Horizontal, V = Vertical)
-images.sbTrackH = Image9Slice.make(gfxSource.getImage(32, 176, 32, 16), 8, 0, 8, 0)
-images.sbThumbH = Image9Slice.make(gfxSource.getImage(0, 176, 32, 16), 8, 0, 8, 0)
+images.sbTrackH = Image9Slice.Make(gfxSource.getImage(32, 176, 32, 16), 8, 0, 8, 0)
+images.sbThumbH = Image9Slice.Make(gfxSource.getImage(0, 176, 32, 16), 8, 0, 8, 0)
 images.sbNubsH = gfxSource.getImage(0, 160, 16, 16)
-images.sbTrackV = Image9Slice.make(gfxSource.getImage(16, 192, 16, 32), 0, 8, 0, 8)
-images.sbThumbV = Image9Slice.make(gfxSource.getImage(0, 192, 16, 32), 0, 8, 0, 8)
+images.sbTrackV = Image9Slice.Make(gfxSource.getImage(16, 192, 16, 32), 0, 8, 0, 8)
+images.sbThumbV = Image9Slice.Make(gfxSource.getImage(0, 192, 16, 32), 0, 8, 0, 8)
 images.sbNubsV = gfxSource.getImage(16, 160, 16, 16)
 
 
@@ -188,7 +192,7 @@ drawMenuItemText = function(g, menuText, left, bottom, width, height, highlighte
 	else
 		textColor = color.black
 	end if
-	y = bottom + 2 + round((height-16)/2)
+	y = bottom + 4 + round((height+medFont.sizeOver)/2)
 	if menuText != "-" then medFont.print menuText, left+6, y, 1, textColor
 end function
 
@@ -535,12 +539,13 @@ Window.init = function(width, height, titleLeft, titleWidth, title)
 	self.moveToFront // a new window should always be frontmost
 end function
 
-Window.make = function(width=300, height=200, titleLeft=0, titleWidth=150, title="Untitled")
+Window.Make = function(width=300, height=200, titleLeft=0, titleWidth=150, title="Untitled")
 	w = new Window
 	w.init width, height, titleLeft, titleWidth, title
 	w.goTo 480, 320
 	return w
 end function
+Window.make = @Window.Make  // (for backwards compatibilty)
 
 Window.addScrollbars = function
 	self.scrollbarH = new ScrollbarH
@@ -650,7 +655,7 @@ Window.goTo = function(x, y, keepOnScreen=true)
 	if keepOnScreen then
 		if self.left > 960 then self.x -= self.left - 960
 		if self.right < 0 then self.x += 0 - self.right
-		if self.bottom > 640 - kMenuBarHeight then self.y -= self.bottom - (640-kMenuBarHeight)
+		if self.bottom > kMenuBarBottom then self.y -= self.bottom - kMenuBarBottom
 		if self.top < -16 then self.y += -16 - self.top // (because title bar)
 	end if
 	extra = 6 * (self.dragMode == kDragMove)
@@ -787,12 +792,13 @@ MenuItem.disabled = false
 MenuItem.submenu = null
 MenuItem.action = null	// function invoked for this menu item
 
-MenuItem.make = function(text)
+MenuItem.Make = function(text)
 	item = new MenuItem
 	item.text = text
 	if text == "-" then item.disabled = true
 	return item
 end function
+MenuItem.make = @MenuItem.Make  // (for backwards compatibilty)
 
 MenuItem.draw = function(left, top, width)
 	drawMenuItem menuDisp, self.text, left, top - kMenuItemHeight, width, self.selected, self.disabled
@@ -800,10 +806,11 @@ end function
 
 MenuItem.openSubmenu = function(asTopLevelMenu = false)
 	if self.submenu == null then return false
+	maxx = 960 + menuDisp.scrollX - self.submenu.width
 	if asTopLevelMenu then
-		self.submenu.left = self.left
+		self.submenu.left = min(self.left, maxx)
 	else
-		self.submenu.left = self.left + self.width
+		self.submenu.left = min(self.left + self.width, maxx)
 	end if
 	for item in self.submenu.items; item.selected = false; end for
 	self.submenu.draw
@@ -821,13 +828,13 @@ Menu.selectedMenu = function
 	return self.selectedItem.submenu
 end function
 
-Menu.make = function(items, width=null)
+Menu.Make = function(items, width=null)
 	menu = new Menu
 	menu.items = items
 	maxWidth = 0
 	for i in menu.items.indexes
 		if menu.items[i] isa string then
-			menu.items[i] = MenuItem.make(menu.items[i])
+			menu.items[i] = MenuItem.Make(menu.items[i])
 		end if
 		maxWidth = max(maxWidth, calcMenuItemWidth(menu.items[i].text))
 	end for
@@ -836,6 +843,7 @@ Menu.make = function(items, width=null)
 	menu.width = width
 	return menu
 end function
+Menu.make = @Menu.Make // (for backwards compatibility)
 
 Menu.draw = function
 	y = self.top
@@ -903,41 +911,62 @@ end function
 
 Menubar = new Menu
 Menubar._name = "gui.Menubar"
+Menubar.rightItems = null // list of right-aligned menus
 Menubar.draw = function
-	x = 40; y = 624
+	x = 32 + menuDisp.scrollX
+	y = kMenuBarBottom + menuDisp.scrollY
 	menuDisp.drawImage images.menuBar, 0, y, 960+16, kMenuBarHeight
 	for item in self.items
 		itemWidth = medFont.width(item.text) + 20
 		drawMenuItemText menuDisp, item.text, x, y, itemWidth, kMenuBarHeight, item.selected, item.disabled
 		item.left = x
 		item.width = itemWidth
-		x = x + itemWidth
+		x += itemWidth
+	end for
+	x = 960 - 20 + menuDisp.scrollX
+	for item in self.rightItems
+		itemWidth = medFont.width(item.text) + 20
+		x -= itemWidth
+		drawMenuItemText menuDisp, item.text, x, y, itemWidth, kMenuBarHeight, item.selected, item.disabled
+		item.left = x
+		item.width = itemWidth
 	end for
 end function
 
-Menubar.make = function(items)
+Menubar.Make = function(items, rightItems=null)
 	bar = new Menubar
 	bar.width = 960
-	bar.top = 640
+	bar.top = kMenuBarBottom
+
 	bar.items = items
 	for i in bar.items.indexes
-		if bar.items[i] isa string then
-			bar.items[i] = MenuItem.make(bar.items[i])
-		end if
+		if bar.items[i] isa string then bar.items[i] = MenuItem.Make(bar.items[i])
 	end for
+
+	if rightItems == null then bar.rightItems = [] else bar.rightItems = rightItems
+	for i in bar.rightItems.indexes
+		item = bar.rightItems[i]
+		if item isa string then bar.rightItems[i] = MenuItem.Make(item)
+	end for
+
 	return bar
 end function
+Menubar.make = @Menubar.Make  // (for backwards compatibility)
 
 Menubar.itemAtPoint = function(point)
-	if point.y < 640 - kMenuBarHeight then return
+	if point.y < kMenuBarBottom then return
 	for item in self.items
+		if point.x >= item.left and point.x < item.left + item.width then return item
+	end for
+	for item in self.rightItems
 		if point.x >= item.left and point.x < item.left + item.width then return item
 	end for
 end function
 
 Menubar.trackMouse = function
-	if mouse.y > 640-kMenuBarHeight then
+	if mouse.y > kMenuBarBottom then
 		// track mouse over the menu bar
+		if self.selectedItem and self.selectedMenu then self.selectedMenu.selectItem null
 		newMenu = self.itemAtPoint(mouse)
 		if newMenu == self.selectedItem or (newMenu == null and not mouse.button) then return
 		self.openMenu newMenu
@@ -952,7 +981,7 @@ end function
 Menubar.openMenu = function(menu)
 	if self.selectedItem then 
 		self.selectedItem.selected = false
-		menuDisp.fillRect 0, 0, 640-kMenuBarHeight, 960, color.clear
+		menuDisp.fillRect 0, menuDisp.scrollY, menuDisp.width, kMenuBarBottom, color.clear
 	end if
 	self.selectedItem = menu
 	if menu then
@@ -1036,7 +1065,7 @@ InputField.onTextChange = null
 InputField.instances = []
 InputField.focusedField = null	// (class property, points to field with focus)
 
-InputField.make = function(left, bottom, width, height, text="0")
+InputField.Make = function(left, bottom, width, height, text="0")
 	fld = new InputField
 	fld.bounds = new Bounds
 	fld.bounds.x = left + width/2
@@ -1047,6 +1076,7 @@ InputField.make = function(left, bottom, width, height, text="0")
 	InputField.instances.push fld
 	return fld
 end function
+InputField.make = @InputField.Make  // (for backwards compatibility)
 
 InputField.value = function
 	return val(self.text)
@@ -1183,6 +1213,9 @@ setupDisplays = function
 	menuDisp.clear color.clear, 960+16, 640+16
 	menuDisp.scrollX = 8; menuDisp.scrollY = 7
 	
+	display(1).mode = displayMode.pixel
+	outer.topDrawing = display(1)
+	topDrawing.clear color.clear
 	
 end function
 
@@ -1194,17 +1227,17 @@ end function
 testWindows = function
 	setupDisplays
 	
-	globals.window1 = Window.make(600,400, 25, 150, "window1")
+	globals.window1 = Window.Make(600,400, 25, 150, "window1")
 	scratchDisp.clear color.pink, 800,500
 	scratchDisp.line 0, 0, scratchDisp.width, scratchDisp.height, color.blue
 	scratchDisp.line 0, scratchDisp.height, scratchDisp.width, 0, color.blue
 	window1.setContent scratchDisp.getImage
 	window1.goTo 480, 320
 	
-	globals.window2 = Window.make(100,100, 8, 100, "window2")
+	globals.window2 = Window.Make(100,100, 8, 100, "window2")
 	window2.goTo 750, 500
 
-	globals.window3 = Window.make(200,200, 25, 150, "window3")
+	globals.window3 = Window.Make(200,200, 25, 150, "window3")
 	window3.goTo 150, 200
 	
 	window1.moveToFront
@@ -1262,21 +1295,24 @@ end function
 
 testMenus = function
 	setupDisplays
-	globals.menubar = Menubar.make(["File", "Edit", "Window", "Help"])
+	globals.menubar = Menubar.Make(["File", "Edit", "Window", "Help"], ["Right 1", "Right 2"])
 	menubar.draw
 
-	menu = Menu.make(["New Window", "Close Window", "-", "Exit to Shell"])
+	menu = Menu.Make(["New Window", "Close Window", "-", "Exit to Shell"])
 	menu.items[1].disabled = true
 	menu.items[-1].action = function; menubar.openMenu null; exit; end function
 	menubar.items[0].submenu = menu
 	
-	menu = Menu.make(["Item One", "Second Item jg", "Item the Third", "-", "Disabled Item", "Last Item"])
+	menu = Menu.Make(["Item One", "Second Item jg", "Item the Third", "-", "Disabled Item", "Last Item"])
 	menu.items[-2].disabled = true
 	menubar.items[1].submenu = menu
 	
-	menu = Menu.make(["Help You", "Help Me", "Self Help"])
+	menu = Menu.Make(["Help You", "Help Me", "Self Help"])
 	menubar.items[-1].submenu = menu
 		
+	menubar.rightItems[0].submenu = Menu.Make(["Foo", "Long Menu Command", "Bar"])
+	menubar.rightItems[1].submenu = Menu.Make(["Baz...", "Bamf"])
+	
 	menubar.installHandlers
 	events.eventLoop.run
 	

@@ -1,6 +1,9 @@
 // This Desktop mod draws animated lines that bounce around the desktop, 
 // behind all windows.
 
+// Required stuff for all mods: menuItemText, enable, disable, update.
+menuItemText = "Desktop Lines"
+
 // Convenience function to return an integer in [-n, n]
 rand = function(n)
 	return floor(rnd * (n*2+1) - n)
@@ -18,12 +21,12 @@ vx1 = rand(6)
 vy1 = rand(6)
 // and hue
 lineHue = 200
+bgColor = gui.backgroundDisp.color
 
-setup = function
+enable = function
 	// Change the background display from solid color to Pixel
 	// (but note the color).
 	idx = gui.backgroundDisp.index
-	outer.bgColor = gui.backgroundDisp.color
 	display(idx).mode = displayMode.pixel
 	gui.backgroundDisp = display(idx)
 	gui.backgroundDisp.clear bgColor, 960+20, 640+20
@@ -31,7 +34,11 @@ setup = function
 	gui.backgroundDisp.scrollY = 10
 end function
 
-setup
+disable = function
+	for i in x0.indexes
+		gui.backgroundDisp.line x0[i], y0[i], x1[i], y1[i], bgColor
+	end for
+end function
 
 update = function
 	// Update line hue
