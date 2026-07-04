@@ -449,10 +449,37 @@ if intrinsics.hasIndex("_polyPerimeter") then
 	//
 	// Parameters:
 	//	polygon: list of points defining a polygon
-	//	degrees: amount of rotation to apply, in degrees clockwise
+	//	degrees: amount of rotation to apply, in degrees counter-clockwise
 	// Returns: new list of points defining rotated polygon
 	rotatePoly = @_rotatePoly
 end if
+
+// rotatePoint: rotate a given point around the origin, by
+// the given angle (radians counter-clockwise).
+rotatePoint = function(p, radians=0)
+	if p isa map then p = [p.x, p.y]
+    c = cos(radians)
+    s = sin(radians)
+    return [p[0] * c - p[1] * s, p[0] * s + p[1] * c]
+end function
+
+// rotatePoly: rotates all points in the given list around 0,0.
+// The given polygon is unchanged; instead a NEW list of points
+// in returned with the result.
+// (Overrides _rotatePoly, which is buggy in Mini Micro 1.x.)
+//
+// Parameters:
+//	polygon: list of points defining a polygon
+//	degrees: amount of rotation to apply, in degrees counter-clockwise
+// Returns: new list of points defining rotated polygon
+rotatePoly = function(poly, degrees)
+	result = [null] * poly.len
+	radians = degrees * pi/180
+	for i in poly.indexes
+		result[i] = rotatePoint(poly[i], radians)
+	end for
+	return result
+end function
 
 // randNormal: return a normally-destributed (i.e. Gaussian) number
 // with the given mean and standard deviation.

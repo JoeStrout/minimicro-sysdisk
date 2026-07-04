@@ -461,12 +461,6 @@ Window.makeImage = function
 	images.windowBox.draw scratchDisp, 0, 0, self.width+16, self.height+16
 	images.titleBar.draw scratchDisp, self.titleLeft, self.height+12, self.titleWidth, 36
 	scratchDisp.print self.title, self.titleLeft+16, self.height+24, "#444444", "small"
-//	if self.contentImage != null then
-//		w = min(self.width, self.contentImage.width)
-//		h = min(self.height, self.contentImage.height)
-//		scratchDisp.drawImage self.contentImage, 8, 8+self.height-h, w, h,
-//		   self.scrollX, self.contentImage.height - h - self.scrollY, w, h
-//	end if
 
 	if self.scrollbarH then
 		Scrollbar.drawTrack scratchDisp, 8, 8, self.scrollbarH.width, kScrollbarSize
@@ -532,7 +526,7 @@ Window.init = function(width, height, titleLeft, titleWidth, title)
 		if self.contentImage.width > width or self.contentImage.height > height then
 			self.addScrollbars
 		else
-		self.updateContent
+			self.updateContent
 		end if
 	end if
 
