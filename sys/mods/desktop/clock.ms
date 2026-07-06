@@ -8,11 +8,12 @@ import "dateTime"
 menuItemText = "Clock"
 
 currentDateTimeStr = function
-	return dateTime.str(dateTime.nowVal, "ddd MMM d, h:mm:ss tt")
+	return dateTime.str(dateTime.nowVal, "ddd MMM d, h:mm tt")
 end function
 
 menuBarItem = null
 clockWindow = null
+calendarWindow = null
 
 AnalogClock = new gui.Window
 AnalogClock.scratchDisp = null
@@ -68,6 +69,63 @@ AnalogClock.update = function
 	self.updateContent
 end function
 
+Calendar = new gui.Window
+Calendar.scratchDisp = null
+Calendar.dateShown = ""  // date string e.g. "Jul 7, 2026"
+Calendar.lastSize = []
+
+Calendar.update = function
+	curDate = dateTime.now("MMM d, yyyy")
+	curSize = [self.width, self.height]
+	if curDate == self.dateShown and curSize == self.lastSize then return
+	self.dateShown = curDate
+	self.lastSize = curSize
+
+	if self.scratchDisp == null then self.scratchDisp = new PixelDisplay
+	oldgfx = gfx
+	globals.gfx = self.scratchDisp
+	gfx.clear "#CCCCCC", self.width, self.height
+
+	now = dateTime.nowVal
+	gui.medFont.printCentered dateTime.str(now, "MMM yyyy"), self.width/2, self.height-16,
+	   1.0, color.black
+	ch = floor((self.height - 32) / 5)  // cell height
+	cw = floor(self.width / 7)  // cell width
+	
+	x = 0
+	for dow in "Su Mo Tu We Th Fr Sa".split
+		gui.smallFont.printCentered dow, x + cw/2, self.height - 25, 1.0, color.black
+		x += cw
+	end for
+	
+	curMonth = dateTime.month(now)
+	secsPerDay = 60 * 60 * 24
+	d = now - secsPerDay * (dateTime.day(now) - 1)  // get to start of month
+	d -= secsPerDay * dateTime.weekday(d)  // and then to the start of that week
+	y = self.height - 32
+	for row in range(0, 4)
+		x = 0
+		for col in range(0, 6)
+			if dateTime.month(d) == curMonth then
+				gfx.color = "#FFFFFF"
+				if dateTime.str(d, "MMM d, yyyy") == curDate then gfx.color = "#CCCCFF"
+			else
+				gfx.color = "#CCCCCC"
+			end if
+			gfx.fillRect x, y-ch, cw, ch
+			gfx.drawRect x, y-ch, cw+1, ch+1, color.black
+			gui.smallFont.printCentered dateTime.day(d), x + cw/2, y - 10, 1, color.black
+			x += cw
+			d += secsPerDay
+		end for
+		y -= ch
+	end for
+
+	self.contentImage = gfx.getImage
+	globals.gfx = oldgfx
+	self.updateContent
+end function
+
 
 showAnalogClock = function
 	if clockWindow then
@@ -76,11 +134,17 @@ showAnalogClock = function
 	end if
 	outer.clockWindow = new AnalogClock
 	clockWindow.init 200, 200, 50, 100, "Clock"
-	clockWindow.goTo menuBarItem.left, 500
+	clockWindow.goTo menuBarItem.left - 10, 500
 end function
 
 showCalendar = function
-
+	if calendarWindow then
+		calendarWindow.moveToFront
+		return
+	end if
+	outer.calendarWindow = new Calendar
+	calendarWindow.init 200, 200, 50, 100, "Calendar"
+	calendarWindow.goTo menuBarItem.left + 10, 500
 end function
 
 menuCommands = []
