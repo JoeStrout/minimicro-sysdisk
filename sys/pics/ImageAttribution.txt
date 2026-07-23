@@ -18,6 +18,8 @@ animals:
 
 germs: pixel artwork by Joe Strout
 
+mahjongTiles and mahjongLabels: adapted from tileset by Code Inferno (www.codeinferno.com), CC BY 3.0 license.
+
 Mochi.png, Pipe.png, PipeCap.png, Wumpus.png, Spaceship.png, UFO.png: all by Joe Strout
 
 hextiles: adapted from "Pastel Resources Hex Tiles" by qubodup on OpenGameart.org (CC-BY-SA 3 license).
