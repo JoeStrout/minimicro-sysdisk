@@ -70,8 +70,7 @@ end function
 // Print a string starting at the given column and row.
 // Also, if you use this to print to row 0, it avoids the usual scrolling.
 printAt = function(column, row, s)
-	text.row = row
-	text.column = column
+	text.setCursor row, column
 	if row == 0 then
 		// avoid scrolling when printing to the bottom row
 		print s, ""
@@ -195,8 +194,7 @@ getState = function
 	result.color = text.color
 	result.backColor = text.backColor
 	result.delimiter = text.delimiter
-	result.row = text.row
-	result.column = text.column
+	result.row = text.row; result.column = text.column
 	return result
 end function
 
@@ -207,8 +205,7 @@ setState = function(state)
 	text.color = state.color
 	text.backColor = state.backColor
 	text.delimiter = state.delimiter
-	text.row = state.row
-	text.column = state.column
+	text.setCursor state.row, state.column
 end function
 
 // Dialog class: used to define a simple message dialog,
@@ -232,7 +229,7 @@ DialogButton.x = 20
 DialogButton.y = 10
 DialogButton.draw = function
 	c = text.backColor
-	text.row = self.y; text.column = self.x; print buttonLeft, ""
+	text.setCursor self.y, self.x; print buttonLeft, ""
 	text.backColor = color.black
 	print self.caption, ""
 	text.backColor = c
@@ -286,14 +283,13 @@ Dialog.draw = function
 	cols = range(self.left, self.right)
 	
 	text.delimiter = char(13)
-	text.row = 12 + ceil(self.height/2)
 	x = 34 - self.width/2
 	
 	// draw title
 	text.color = self.textColor
 	text.backColor = self.titleColor
 	spacesNeeded = self.width - self.title.len
-	text.row = rows[-1] + 1; text.column = cols[0]
+	text.setCursor rows[-1] + 1, cols[0]
 	print " " * floor(spacesNeeded/2) + self.title + " " * ceil(spacesNeeded/2)
 	
 	// draw box and content
@@ -325,9 +321,9 @@ end function
 Dialog.drawContent = function(cols, rows)
 	text.color = self.textColor
 	text.backColor = self.backColor
-	text.row = rows[-2]
+	text.setCursor rows[-2]
 	for line in self.msgLines
-		text.column = cols[2]; print line
+		text.setCursor null, cols[2]; print line
 	end for
 end function
 
@@ -502,7 +498,7 @@ end function
 FileDialog.drawFiles = function(colNum=1, files=null)
 	if files == null then files = self.files
 	width = self.colWidth[colNum]
-	text.row = self.top - 2
+	text.setCursor self.top - 2
 	rows = self.height - 5
 	highlightedIdx = self.highlightedInColumn(colNum)	
 	scroll = self.scroll[colNum]
@@ -538,7 +534,7 @@ end function
 
 FileDialog.drawParentDir = function
 	if self.directory == "/" then
-		text.row = self.top - 2
+		text.setCursor self.top - 2
 		text.column = self.colLeft[0]
 		text.color = self.listTextColor
 		text.backColor = self.listBackColor
@@ -556,7 +552,7 @@ end function
 FileDialog.drawPreviewText = function(lines)
 	text.color = self.listTextColor
 	text.backColor = self.listBackColor
-	text.row = self.top - 2
+	text.setCursor self.top - 2
 	TAB = char(9)
 	for row in range(0, self.height-6)
 		text.column = self.colLeft[2]
@@ -641,7 +637,7 @@ end function
 
 FileDialog.drawCurDir = function
 	text.color = self.textColor; text.backColor = self.backColor
-	text.row = self.top - 1; text.column = self.left + 2
+	text.setCursor self.top - 1, self.left + 2
 	print self.directory.pad(self.width-4)
 end function
 

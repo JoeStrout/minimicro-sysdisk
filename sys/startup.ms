@@ -1,6 +1,91 @@
 _EOL = char(13)
 _TAB = char(9)
 
+if val(version.host) < 2.0 then
+	// Backwards-compatibility shims for when this code is running
+	// on Mini Micro 1.x:
+	
+	Display.setMode = function(newMode)
+		self.mode = newMode
+	end function
+	
+	TextDisplay.setCursor = function(row, column=null)
+		if row != null then self.row = row
+		if column != null then self.column = column
+	end function
+	
+	// Convert a 0-255 number to a 2-digit hex string.
+	// (Used by some of the color methods below.)
+	hex2 = function(val)
+		digits = "0123456789ABCDEF"
+		val = floor(val)
+		if val < 0 then return "00"
+		if val >= 255 then return "FF"
+		return digits[val / 16] + digits[val % 16]
+	end function
+	
+	// HexVal: convert a hexadecimal string to a number.
+	hexVal = function(hexstr)
+		result = 0
+		digits = "0123456789ABCDEF"
+		for c in hexstr
+			cval = digits.indexOf(c.upper)
+			if cval < 0 then break
+			result = result * 16 + cval
+		end for
+		return result
+	end function
+	
+	color = {}
+	color.clear     = "#00000000"
+	color.black 	= "#000000"
+	color.white		= "#FFFFFF"
+	color.gray		= "#808080"
+	color.silver	= "#C0C0C0"
+	color.maroon	= "#800000"
+	color.red		= "#FF0000"
+	color.olive		= "#808000"
+	color.yellow	= "#FFFF00"
+	color.orange	= "#FF8000"
+	color.green		= "#008000"
+	color.lime		= "#00FF00"
+	color.teal		= "#008080"
+	color.aqua		= "#00FFFF"
+	color.navy		= "#000080"
+	color.blue		= "#0000FF"
+	color.purple	= "#800080"
+	color.fuchsia	= "#FF00FF"
+	color.brown		= "#996633"
+	color.pink		= "#FF8080"
+	color.rgb = function(r, g, b)
+		return "#" + hex2(r) + hex2(g) + hex2(b)
+	end function
+	color.rgba = function(r, g, b, a)
+		return "#" + hex2(r) + hex2(g) + hex2(b) + hex2(a)
+	end function
+	color.hsv = function(h, s, v, a=255)
+		return _HSVAtoColor([h, s, v, a])
+	end function
+	color.lerp = function(colorA, colorB, t=0.5)
+		return _lerpColor(colorA, colorB, t)
+	end function
+	color.toList = function(colorString)
+		return _colorToRGBA(colorString)
+	end function
+	color.fromList = function(rgbaList)
+		return _RGBAtoColor(rgbaList)
+	end function
+	color.toListHSV = function(colorString)
+		return _colorToHSVA(colorString)
+	end function
+	color.fromListHSV = function(hsvaList)
+		return _HSVAtoColor(hsvaList)
+	end function
+else
+	// Forwards-compatibility stuff we need to define in MM2:
+	globals.pwd = @file.curdir
+end if
+
 _printMark = function(s, altColor="#8888FF")
 	colors = [text.color, altColor]
 	which = 0
@@ -56,74 +141,6 @@ end function
 gfx = display(5)
 text = display(3)
 
-// Convert a 0-255 number to a 2-digit hex string.
-// (Used by some of the color methods below.)
-hex2 = function(val)
-	digits = "0123456789ABCDEF"
-	val = floor(val)
-	if val < 0 then return "00"
-	if val >= 255 then return "FF"
-	return digits[val / 16] + digits[val % 16]
-end function
-
-// HexVal: convert a hexadecimal string to a number.
-hexVal = function(hexstr)
-	result = 0
-	digits = "0123456789ABCDEF"
-	for c in hexstr
-		cval = digits.indexOf(c.upper)
-		if cval < 0 then break
-		result = result * 16 + cval
-	end for
-	return result
-end function
-
-color = {}
-color.clear     = "#00000000"
-color.black 	= "#000000"
-color.white		= "#FFFFFF"
-color.gray		= "#808080"
-color.silver	= "#C0C0C0"
-color.maroon	= "#800000"
-color.red		= "#FF0000"
-color.olive		= "#808000"
-color.yellow	= "#FFFF00"
-color.orange	= "#FF8000"
-color.green		= "#008000"
-color.lime		= "#00FF00"
-color.teal		= "#008080"
-color.aqua		= "#00FFFF"
-color.navy		= "#000080"
-color.blue		= "#0000FF"
-color.purple	= "#800080"
-color.fuchsia	= "#FF00FF"
-color.brown		= "#996633"
-color.pink		= "#FF8080"
-color.rgb = function(r, g, b)
-	return "#" + hex2(r) + hex2(g) + hex2(b)
-end function
-color.rgba = function(r, g, b, a)
-	return "#" + hex2(r) + hex2(g) + hex2(b) + hex2(a)
-end function
-color.hsv = function(h, s, v, a=255)
-	return _HSVAtoColor([h, s, v, a])
-end function
-color.lerp = function(colorA, colorB, t=0.5)
-	return _lerpColor(colorA, colorB, t)
-end function
-color.toList = function(colorString)
-	return _colorToRGBA(colorString)
-end function
-color.fromList = function(rgbaList)
-	return _RGBAtoColor(rgbaList)
-end function
-color.toListHSV = function(colorString)
-	return _colorToHSVA(colorString)
-end function
-color.fromListHSV = function(hsvaList)
-	return _HSVAtoColor(hsvaList)
-end function
-
 prepareKeyboard = function
 	f = file.open("/sys/data/keyLayout.grfon", "r")
 	data = f.read
@@ -153,9 +170,8 @@ pageThrough = function(lines)
 				if ikey == 10 or ikey == 13 or ikey == 3 or k == " " then break
 				yield
 			end while
-			text.column = 0
+			text.setCursor null, 0
 			print " " * 32
-			text.column = 0
 			if done then break
 			printed = 0
 		end if
@@ -343,11 +359,11 @@ _viewImage = function(pic, scale=1)
 			break
 		end if
 	end while
-	text.column = 0
+	text.setCursor null, 0
 	print " " * 48
 	g.clear
 	prevDisp.install 0
-	display(0).mode = prevDisp.mode	
+	display(0).setMode prevDisp.mode	
 end function
 
 findFile = function(prompt="Select file")
@@ -607,19 +623,19 @@ end function
 clear = function
 	// Clear and reset all displays.
 	for i in [0,1,2,6]
-		display(i).mode = displayMode.off
+		display(i).setMode displayMode.off
 	end for
-	display(3).mode = displayMode.text
+	display(3).setMode displayMode.text
 	display(3).clear
-	display(4).mode = displayMode.sprite
+	display(4).setMode displayMode.sprite
 	display(4).clear
-	display(5).mode = displayMode.pixel
+	display(5).setMode displayMode.pixel
 	display(5).clear "#00000D", 960, 640
-	display(7).mode = displayMode.solidColor
+	display(7).setMode displayMode.solidColor
 	display(7).color = "#000000"
 	globals.text = display(3)
 	globals.gfx = display(5)
-	text.row = 25
+	text.setCursor 25
 	text.delimiter = char(13)
 end function
 
