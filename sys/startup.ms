@@ -313,8 +313,8 @@ _viewImage = function(pic, scale=1)
 		print "Unable to read image: " + path
 		return
 	end if
-	prevDisp = display(0)
-	g = new PixelDisplay
+	globals.prevDisp = display(0)
+	if val(version.host) < 2.0 then g = new PixelDisplay else g = PixelDisplay.Make
 	g.install 0
 	print pic.width + " x " + pic.height + " image"
 	text.inverse = true

@@ -598,7 +598,7 @@ FileDialog.drawPreview = function
 		pic = file.loadImage(f.path)
 		if pic != null then
 			self.origDisp0 = display(0)
-			disp = new PixelDisplay
+			if val(version.host) < 2.0 then disp = new PixelDisplay else disp = PixelDisplay.Make
 			disp.clear color.clear
 			disp.install 0
 			x = (self.colLeft[2] + self.colWidth[2]/2)*14.05
@@ -621,8 +621,9 @@ FileDialog.stopPreview = function
 		self.playingSound = null
 	end if	
 	if self.origDisp0 then
+		intrinsics.print "Installing: " + self.origDisp0
 		self.origDisp0.install 0
-		if self.origDisp0.mode == 0 then display(0).mode = 0 // (bug work-around)
+		if self.origDisp0.mode == 0 then display(0).setMode 0 // (work-around for MM1.x)
 		self.origDisp0 = null
 	end if
 end function

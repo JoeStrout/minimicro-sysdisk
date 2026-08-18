@@ -6,6 +6,11 @@
 //	 w = f.width("Hello world!")
 //   f.print "Hello world!", 480 - w/2, 320
 
+if not globals.hasIndex("hex2") then
+	if globals.hasIndex("stringUtil") then import "stringUtil"
+	hex2 = @stringUtil.hexStr
+end if		
+
 // CharData class, storing data about just one character in a particular font.
 CharData = {}
 CharData._name = "bmfFonts.CharData";
