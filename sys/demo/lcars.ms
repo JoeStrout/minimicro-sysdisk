@@ -18,7 +18,7 @@ file.loadSound("/sys/sounds/blip-thinking.wav").play
 
 clear
 spriteDisp = display(4)
-display(7).mode = displayMode.pixel
+display(7).setMode displayMode.pixel
 scratch = display(7)
 gfx.clear color.black
 

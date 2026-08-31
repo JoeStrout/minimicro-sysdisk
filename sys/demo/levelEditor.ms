@@ -293,7 +293,7 @@ editLoop = function
 	end while
 end function
 
-display(6).mode = displayMode.tile
+display(6).setMode displayMode.tile
 tiles = display(6)
 tiles.clear
 tiles.scrollX = 0
@@ -301,7 +301,7 @@ tiles.scrollY = 0
 tiles.oddRowOffset = 0
 tiles.oddColOffset = 0
 
-display(5).mode = displayMode.pixel
+display(5).setMode displayMode.pixel
 gfx = display(5)
 gfx.clear color.clear
 gfx.fillRect 0, 0, gfx.width, 32, "#00000088"

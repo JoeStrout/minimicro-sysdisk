@@ -36,35 +36,35 @@ resourceDir = "/sys/data/fatbits/"
 // Prepare displays
 // text: display 1
 clear
-display(1).mode = displayMode.text
+display(1).setMode displayMode.text
 text = display(1)
 text.backColor = color.clear
 text.clear
 // spriteDisp: used for UI buttons, etc.
-display(2).mode = displayMode.sprite
+display(2)setMode displayMode.sprite
 spriteDisp = display(2)
 spriteDisp.clear
 // gfx: static overlay (drawing area grid, etc.)
-display(3).mode = displayMode.pixel
+display(3)setMode displayMode.pixel
 gfx = display(3)
 gfx.clear
 // bkgnd: background color; masks off everything except paint area
-display(4).mode = displayMode.pixel
+display(4)setMode displayMode.pixel
 bkgnd = display(4)
 bkgnd.clear "#929292", 970, 650
 bkgnd.scrollX = 5
 bkgnd.scrollY = 5
 // fatbits: scaled-up (fat) display of picture we're drawing
-display(5).mode = displayMode.pixel
+display(5)setMode displayMode.pixel
 fatbits = display(5)
 fatbits.clear color.clear, picW, picH
 fatbits.scale = ps
 // backdrop: area that appears behind the fat-bits drawing (and preview area)
-display(6).mode = displayMode.pixel
+display(6)setMode displayMode.pixel
 backdrop = display(6)
 backdrop.color = "#444444"
 // scratch: hidden drawing area
-display(7).mode = displayMode.pixel
+display(7)setMode displayMode.pixel
 scratch = display(7)
 
 // load brush sprites
@@ -347,11 +347,11 @@ scaleSlider.applyValue
 //---------------------------------------------------------------------
 // Tools
 Tool = new Button
-Tool.mode = null
+ToolsetMode null
 Tool.instances = []
 Tool.init = function(name, left, top, mode)
 	super.init "tool" + name, left, top	
-	self.mode = mode
+	selfsetMode mode
 	Tool.instances.push self
 end function
 
@@ -362,7 +362,7 @@ Tool.make = function(name, left, top, mode)
 end function
 
 Tool.isDown = function
-	return mode == self.mode
+	returnsetMode= self.mode
 end function
 
 // if option key is pressed, switch temporarily to eyedrop mode,
@@ -372,7 +372,7 @@ Tool.optKeySwitchedFrom = null
 Tool.checkEvents = function
 	optKeyIsDown = key.pressed("left alt") or key.pressed("right alt")
 	if optKeyIsDown then
-		if self.mode == kModeEyedrop and mode != self.mode then
+		if selfsetMode= kModeEyedrop and mode != self.mode then
 			Tool.optKeySwitchedFrom = mode
 			setMode self.mode
 		end if
@@ -390,8 +390,8 @@ end function
 
 modesWithSize = [kModeErase, kModePaint, kModeLighten, kModeDarken, kModeBlur,
   kModeDrawRect, kModeDrawEllipse, kModeLine]
-setMode = function(newMode)
-	globals.mode = newMode
+sesetMode function(newMode)
+	globalssetMode newMode
 	globals.drawErases = false
 	deselect
 	for tool in Tool.instances
@@ -538,7 +538,7 @@ copy = function
 end function
 
 deleteSelection = function
-	if mode == kModePasting then
+	ifsetMode= kModePasting then
 		fatbits.fillRect 0, 0, picW+1, picH+1, color.clear
 		fatbits.drawImage picAtStart, 0, 0
 		setMode kModeSelect
@@ -554,7 +554,7 @@ paste = function
 		return
 	end if
 	globals.picAtStart = fatbits.getImage(0, 0, picW, picH)
-	globals.mode = kModePasting
+	globalssetMode kModePasting
 end function
 
 updatePaste = function(pp)
@@ -796,7 +796,7 @@ end function
 
 toolFuncs[kModePasting] = function(pp, justDown)
 	if justDown then
-		globals.mode = kModeSelect
+		globalssetMode kModeSelect
 		globals.selectionAnchor = pp
 	end if
 end function
@@ -1466,7 +1466,7 @@ while true
 			brushSprite.y = yAtPaintPixel(pp) - (not brushSize%2)*ps/2
 		end if
 	end if
-	if mode == kModePasting then updatePaste pp
+	ifsetMode= kModePasting then updatePaste pp
 	
 	// check UI elements
 	for btn in Button.instances; btn.checkEvents; end for

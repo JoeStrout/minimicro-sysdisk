@@ -26,7 +26,7 @@ end for
 pipeImg = file.loadImage("/sys/pics/Pipe.png")
 pipecapImg = file.loadImage("/sys/pics/PipeCap.png")
 
-display(4).mode = displayMode.sprite
+display(4).setMode displayMode.sprite
 disp = display(4)
 disp.clear
 disp.scrollX = 0

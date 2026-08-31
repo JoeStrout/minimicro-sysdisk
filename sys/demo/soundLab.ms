@@ -522,10 +522,10 @@ end function
 setup = function
 	text.backColor = color.clear
 	clear
-	display(7).mode = displayMode.pixel
+	display(7).setMode displayMode.pixel
 	display(7).clear
 	display(7).drawImage file.loadImage("/sys/data/soundlab/SoundLabBG.png")
-	display(6).mode = displayMode.pixel
+	display(6).setMode displayMode.pixel
 	outer.gfx2 = display(6)
 	gfx2.clear
 	gfx.clear color.clear

@@ -38,7 +38,7 @@ sounds.push file.loadSound("/sys/sounds/woodblock.wav")
 // 'tile' is our grid of actual buttons;
 // 'bgtile' is the background, used to light up the current column
 
-display(5).mode = displayMode.tile
+display(5).setMode displayMode.tile
 tile = display(5)
 tile.tileSet = file.loadImage("/sys/pics/TileShapes.png")
 tile.tileSetTileSize = 64
@@ -54,7 +54,7 @@ tile.extent = [columns, rows]
 tile.scrollX = -50
 tile.scrollY = -60
 
-display(6).mode = displayMode.tile
+display(6).setMode displayMode.tile
 bgtile = display(6)
 bgtile.extent = tile.extent
 bgtile.tileSet = tile.tileSet

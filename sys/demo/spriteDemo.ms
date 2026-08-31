@@ -13,7 +13,7 @@ text.row = 25
 print "(Use arrows or joystick to move; Esc to exit.)"
 text.color = c
 
-display(4).mode = displayMode.sprite
+display(4).setMode displayMode.sprite
 disp = display(4)
 disp.clear
 

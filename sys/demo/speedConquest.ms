@@ -7,7 +7,7 @@ import "listUtil"
 text.inverse = false
 clear
 bgColor = "#000044FF"
-display(7).mode = displayMode.solidColor
+display(7).setMode displayMode.solidColor
 display(7).color = bgColor
 
 hurry = false
@@ -115,7 +115,7 @@ columns = 15
 rows = 12
 tiles = file.loadImage("/sys/pics/TileShapes.png")
 gfx.clear color.clear
-display(6).mode = displayMode.tile
+display(6).setMode displayMode.tile
 grid = display(6)
 grid.tileSet = tiles
 grid.tileSetTileSize = 64
