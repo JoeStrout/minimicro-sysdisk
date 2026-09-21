@@ -7,7 +7,7 @@ import "listUtil"
 // Set up displays
 clear
 display(7).color = color.yellow
-display(6).setMode displayMode.pixel
+display(6).mode = displayMode.pixel
 bg = display(6)
 gfx.clear color.black, 960+10, 640+10
 gfx.fillRect 960, 0, 10, 650, color.yellow

@@ -12,7 +12,7 @@ burstImg = file.loadImage("/sys/pics/Burst.png")
 clear
 gfx.clear color.clear
 
-display(6).setMode displayMode.tile
+display(6).mode = displayMode.tile
 tiles = display(6)
 tiles.tileSet = file.loadImage("/sys/pics/TwoCornerTiles.png")
 tiles.tileSetTileSize = tiles.tileSet.width/16
@@ -22,7 +22,7 @@ tiles.clear null
 tiles.scrollX = 0; tiles.scrollY = 0
 tiles.overlap = 0
 
-display(5).setMode displayMode.tile
+display(5).mode = displayMode.tile
 pathTiles = display(5)
 pathTiles.tileSet = tiles.tileSet
 pathTiles.tileSetTileSize = tiles.tileSetTileSize
@@ -34,7 +34,7 @@ pathTiles.overlap = tiles.overlap
 
 sprites = display(4).sprites
 
-display(7).setMode displayMode.pixel
+display(7).mode = displayMode.pixel
 display(7).fillRect 0, 0, 13*64, 10*64, "#939FFFFF"
 
 levelMap = file.readLines("/usr/data/td-maps.txt")

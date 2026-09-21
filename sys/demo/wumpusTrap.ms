@@ -11,10 +11,10 @@ clear
 
 // Prepare the hex grid
 tiles = file.loadImage("/sys/pics/TileShapes.png")
-display(7).setMode displayMode.solidColor
+display(7).mode = displayMode.solidColor
 display(7).color = "#000044"
 gfx.clear color.clear
-display(6).setMode displayMode.tile
+display(6).mode = displayMode.tile
 grid = display(6)
 grid.tileSet = tiles
 grid.tileSetTileSize = 64
@@ -71,7 +71,7 @@ end function
 wumpus = new Sprite
 wumpus.image = file.loadImage("/sys/pics/Wumpus.png")
 wumpus.scale = 0.75
-display(4).setMode displayMode.sprite
+display(4).mode = displayMode.sprite
 display(4).clear
 display(4).sprites.push wumpus
 wumpus.col = 5

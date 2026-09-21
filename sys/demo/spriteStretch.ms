@@ -20,7 +20,7 @@ spr.y = 320
 display(4).sprites.push spr
 corners = spr.corners
 
-display(6).setMode displayMode.pixel
+display(6).mode = displayMode.pixel
 bgfx = display(6)
 bgfx.clear
 uvX = 720 - spr.image.width/2

@@ -9,7 +9,7 @@ gfx.clear color.clear
 
 baseIndex = 16  // (select the thin, squarish tileset)
 
-display(6).setMode displayMode.tile
+display(6).mode = displayMode.tile
 tiles = display(6)
 tiles.tileSet = file.loadImage("/sys/pics/TwoCornerTiles.png")
 tiles.tileSetTileSize = tiles.tileSet.width/16

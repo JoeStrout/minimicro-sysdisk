@@ -8,7 +8,7 @@ import "mathUtil"
 import "sounds"
 
 clear
-display(4).setMode displayMode.sprite
+display(4).mode = displayMode.sprite
 spr = display(4)
 
 kBinWidth = 10

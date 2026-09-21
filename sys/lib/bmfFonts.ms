@@ -7,7 +7,7 @@
 //   f.print "Hello world!", 480 - w/2, 320
 
 if not globals.hasIndex("hex2") then
-	if globals.hasIndex("stringUtil") then import "stringUtil"
+	if not globals.hasIndex("stringUtil") then import "stringUtil"
 	hex2 = @stringUtil.hexStr
 end if		
 

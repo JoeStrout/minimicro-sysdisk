@@ -5,15 +5,6 @@ if val(version.host) < 2.0 then
 	// Backwards-compatibility shims for when this code is running
 	// on Mini Micro 1.x:
 	
-	Display.setMode = function(newMode)
-		self.mode = newMode
-	end function
-	
-	TextDisplay.setCursor = function(row, column=null)
-		if row != null then self.row = row
-		if column != null then self.column = column
-	end function
-	
 	// Convert a 0-255 number to a 2-digit hex string.
 	// (Used by some of the color methods below.)
 	hex2 = function(val)
@@ -170,7 +161,7 @@ pageThrough = function(lines)
 				if ikey == 10 or ikey == 13 or ikey == 3 or k == " " then break
 				yield
 			end while
-			text.setCursor null, 0
+			text.column = 0
 			print " " * 32
 			if done then break
 			printed = 0
@@ -359,11 +350,11 @@ _viewImage = function(pic, scale=1)
 			break
 		end if
 	end while
-	text.setCursor null, 0
+	text.column = 0
 	print " " * 48
 	g.clear
 	prevDisp.install 0
-	display(0).setMode prevDisp.mode	
+	display(0).mode = prevDisp.mode	
 end function
 
 findFile = function(prompt="Select file")
@@ -623,19 +614,19 @@ end function
 clear = function
 	// Clear and reset all displays.
 	for i in [0,1,2,6]
-		display(i).setMode displayMode.off
+		display(i).mode = displayMode.off
 	end for
-	display(3).setMode displayMode.text
+	display(3).mode = displayMode.text
 	display(3).clear
-	display(4).setMode displayMode.sprite
+	display(4).mode = displayMode.sprite
 	display(4).clear
-	display(5).setMode displayMode.pixel
+	display(5).mode = displayMode.pixel
 	display(5).clear "#00000D", 960, 640
-	display(7).setMode displayMode.solidColor
+	display(7).mode = displayMode.solidColor
 	display(7).color = "#000000"
 	globals.text = display(3)
 	globals.gfx = display(5)
-	text.setCursor 25
+	text.row = 25
 	text.delimiter = char(13)
 end function
 

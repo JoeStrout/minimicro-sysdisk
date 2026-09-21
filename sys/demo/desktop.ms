@@ -263,13 +263,13 @@ openFile = function(filePath, fromWindow=null)
 	filePath.endsWith(".csv") or
 	filePath.endsWith(".grfon") or
 	filePath.endsWith(".json") then
-		display(4).setMode displayMode.solidColor
+		display(4).mode = displayMode.solidColor
 		display(4).color = color.black
 		text.color = color.silver
 		view filePath
 		text.color = color.gray; print "(Press any key.)"; key.get
 		text.clear
-		display(4).setMode displayMode.sprite
+		display(4).mode = displayMode.sprite
 	else if filePath.endsWith(".ms") then
 		text.color = color.orange
 		if not env.shell then env.shell = _sourceFile

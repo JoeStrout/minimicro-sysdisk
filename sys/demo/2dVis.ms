@@ -349,7 +349,7 @@ if locals == globals then
 	// Let's do a test!
 	clear
 	
-	display(2).setMode displayMode.pixel
+	display(2).mode = displayMode.pixel
 	g = display(2)
 	g.clear
 	y = 560

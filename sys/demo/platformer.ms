@@ -14,13 +14,13 @@ newAnimation = @spriteControllers.newAnimation
 
 // Set up the displays
 clear
-display(4).setMode displayMode.sprite
+display(4).mode = displayMode.sprite
 disp = display(4)
 disp.clear
 disp.scrollX = 0
 disp.scrollY = 0
 
-display(5).setMode displayMode.tile
+display(5).mode = displayMode.tile
 tiles = display(5)
 tiles.clear
 tileUtil.loadFromFile "/sys/data/platformDemoMap.txt", tiles

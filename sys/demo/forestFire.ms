@@ -30,11 +30,11 @@ end function
 
 // Set up two displays, so we can work in one while
 // showing the other.
-display(1).setMode displayMode.text
+display(1).mode = displayMode.text
 disp1 = display(1)
 disp1.backColor = "#221100"
 disp1.clear
-display(2).setMode displayMode.text
+display(2).mode = displayMode.text
 disp2 = display(2)
 disp2.backColor = disp1.backColor
 disp2.clear
@@ -89,8 +89,8 @@ update = function(inp, outp)
 			updateCell x, y
 		end for
 	end for
-	inp.setMode displayMode.off
-	outp.setMode displayMode.text
+	inp.mode = displayMode.off
+	outp.mode = displayMode.text
 end function
 
 // Main loop.
@@ -107,5 +107,5 @@ end while
 inp.clear
 outp.clear
 key.clear
-display(1).setMode displayMode.off
-display(0).setMode displayMode.off
+display(1).mode = displayMode.off
+display(0).mode = displayMode.off

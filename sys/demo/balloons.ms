@@ -22,7 +22,7 @@ clear
 gfx.clear "#004400"
 pathUtil.drawPath gfx, path, "#666622", 30
 
-display(4).setMode displayMode.sprite
+display(4).mode = displayMode.sprite
 disp = display(4)
 disp.clear
 

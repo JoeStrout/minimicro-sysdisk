@@ -93,7 +93,7 @@ player.x = 960/2
 player.y = 100
 
 // Prepare the displays
-display(4).setMode displayMode.sprite
+display(4).mode = displayMode.sprite
 disp = display(4)
 disp.clear
 gfx.clear "#000044"
