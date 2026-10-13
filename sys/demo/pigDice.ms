@@ -1,16 +1,18 @@
 // Pig the Dice Game for two or more players.
 
-if version.hostName != "Mini Micro" then
-	// This code can work even in plain vanilla MiniScript,
-	// if we just define a couple of functions:
-	clear = null
+if version.hostName == "Mini Micro" then
+	clear
+else if version.hostName[:12] == "Command-Line" then
+	import "vt"
+	print vt.clear
+	text = {}
+else
 	key = {}
 	key.get = function
 		s = input("")
 		if s == "" then s = char(13)
 		return s[0]
 	end function
-	text = {}
 end if
 
 // Print title and instructions
@@ -39,14 +41,12 @@ Player.doTurn = function
 			print "   " + self.name.upper + " WINS WITH " + (self.score + pot) + "!"
 			exit
 		else
-			text.delimiter = ""
 			if rolls == 0 then
-				print self.name + " ready!  Press R to roll! "
+				print self.name + " ready!  Press R to roll! ", ""
 			else
-				print self.name + ", you have " + pot + " in the pot.  [R]oll or [H]old? "
+				print self.name + ", you have " + pot + " in the pot.  [R]oll or [H]old? ", ""
 			end if
 			inp = key.get
-			text.delimiter = char(13)
 		end if
 		if inp == "" or inp[0].upper == "R" then
 			print "Roll"

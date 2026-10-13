@@ -1,7 +1,6 @@
 // String Utilities.
 //	This module adds some additional methods to the `string` type.
 
-
 // Small words we don't capitalize in titleCase.
 // This set is from the U.S. Government Printing Office Style Manual:
 smallWords = ["a", "an", "the", "at", "by", "for", "in", "of", "on", "to", "up", "and", "as", "but", "or", "nor"]
@@ -440,7 +439,11 @@ end function
 string.fill = function(args)
 	s = self
 	for idx in args.indexes
-		s = s.replace("{" + idx + "}", args[idx])
+		key = "{" + idx + "}"
+		value = @args[idx]
+		if @value isa string or s.indexOf(key) != null then
+			s = s.replace(key, value)
+		end if
 	end for
 	return s
 end function
