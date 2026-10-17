@@ -308,7 +308,7 @@ hexStr = function(val, padToLength=2, lowercase=false)
 	return result
 end function
 
-// HexVal: convert a hexadecimal string to a number.
+// hexVal: convert a hexadecimal string to a number.
 // Example:
 //	hexVal("007B") --> 123
 hexVal = function(hexstr)
