@@ -144,7 +144,7 @@ updateDistMap = function
 		dist = distMap[pos] + 1
 		for n in neighbors(pos[0], pos[1])
 			if grid.cell(n[0], n[1]) != freeCell then continue
-			if distMap[n] > dist then
+			if distMap.hasIndex(n) and distMap[n] > dist then
 				distMap[n] = dist
 				toDo.push n
 			end if

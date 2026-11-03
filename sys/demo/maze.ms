@@ -19,6 +19,8 @@ tiles.clear null
 tiles.scrollX = 0
 tiles.scrollY = 0
 tiles.overlap = 0
+tiles.oddRowOffset = 0
+tiles.oddColOffset = 0
 
 // Wang tiles are selected by solid/empty CORNERS, not cells.
 // So, we need someplace else to store the state of each corner.
