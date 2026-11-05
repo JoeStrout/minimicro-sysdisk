@@ -94,11 +94,53 @@ _printMark = function(s, altColor="#8888FF")
 	text.color = colors[0]
 	print
 end function
-	
+
+_wrap = function(str, width=67)
+	"Return a list of lines, word-wrapping this string to the given width."
+	// (Also in stringUtil, but we don't want to import that in startup.)
+	if str == "" then return [""]
+	result = []
+	for s in str.split(char(13))
+		while s
+			if s.len <= width then
+				result.push s
+				break
+			end if
+			foundCut = false
+			for i in range(width, 0, -1)
+				if s[i] == " " then
+					result.push s[:i]
+					s = s[i+1:]
+					foundCut = true
+					break
+				end if
+			end for
+			if not foundCut then
+				// Couldn't find a space to cut on...
+				// so, out of desperation, just cut at width
+				result.push s[:width]
+				s = s[width:]
+			end if
+		end while
+	end for
+	return result
+end function
+
 help = function(topic)
-	if topic == "" or topic == null then topic = "_default"
-	if topic == "graphics" then topic = "gfx"
-	lines = _fileReadLines("/sys/help/" + topic + ".txt")
+	if @topic isa funcRef then
+		funcInfo = info(@topic)
+		funcStr = str(@topic)
+		lines = [funcInfo.name + " = " + funcStr[funcStr.indexOf("=")+1:]]
+		if funcInfo.note then
+			for noteLine in _wrap(funcInfo.note, 63)
+				lines.push "    " + noteLine
+			end for
+		end if
+	else
+		if topic == "" or topic == null then topic = "_default"
+		if topic == "graphics" then topic = "gfx"
+		lines = _fileReadLines("/sys/help/" + topic + ".txt")
+	end if
 	if not lines then
 		_printMark "No help available for `""" + topic + """`."
 		print "Help topics:"
