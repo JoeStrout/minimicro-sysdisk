@@ -251,7 +251,7 @@ end function
 pprintToList = function(outList, obj, prefix="", indent=0, suffix="", alreadySeen=null)
 	s = str(@obj)
 	if @obj == null then s = "null"
-	if @obj isa funcRef then s = "function" + s[8:]
+	if @obj isa funcRef then s = s[s.indexOf("=")+1:]
 	if s.len + prefix.len + indent < 65 then
 		outList.push " "*indent + prefix + s + suffix
 		return
